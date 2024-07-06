@@ -1,0 +1,64 @@
+package com.example.beehive.ui.home.components
+
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.unit.dp
+import com.example.beehive.ui.Dimensions.SmallPadding
+
+@Composable
+fun SearchBar(
+    query: String,
+    onValueChanged: (String) -> Unit = {},
+    onFocusChanged: (Boolean) -> Unit = {}
+) {
+    Surface(
+        shadowElevation = 1.dp,
+        color = MaterialTheme.colorScheme.primary,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(54.dp)
+            .clip(CircleShape),
+
+        ) {
+        Row {
+            Icon(
+                imageVector = Icons.Outlined.Search,
+                contentDescription = "Search",
+                tint = MaterialTheme.colorScheme.onPrimary,
+                modifier = Modifier.padding(SmallPadding)
+            )
+
+            TextField(
+                value = query,
+                onValueChange = onValueChanged,
+                maxLines = 1,
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = MaterialTheme.colorScheme.primary,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.primary,
+                    focusedTextColor = MaterialTheme.colorScheme.onPrimary,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onPrimary,
+                    focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+                    unfocusedIndicatorColor = MaterialTheme.colorScheme.primary,
+                    cursorColor = MaterialTheme.colorScheme.onPrimary,
+                ),
+                modifier = Modifier.onFocusChanged {
+                    onFocusChanged(it.isFocused)
+                }
+            )
+
+        }
+    }
+}
