@@ -1,101 +1,150 @@
 package com.example.beehive.ui.home.components
 
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import coil.compose.rememberAsyncImagePainter
 import com.example.beehive.ui.Dimensions.IconSize
-import com.example.beehive.ui.Dimensions.SmallPadding
-import com.example.beehive.ui.theme.BeehiveTheme
+import com.example.beehive.ui.Dimensions.PasswordCardWidth
+import com.example.beehive.ui.Dimensions.RoundedCornerShape
+import com.example.beehive.ui.Dimensions.TinyPadding
+
+// TODO: improve animation
 
 @Composable
-fun PasswordCard(siteName: String, url: String, isHighlight: Boolean) {
-    val size by animateDpAsState(if (isHighlight) 150.dp else 100.dp, label = "icon size")
-    val siteIconSource =
-        "https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=$url&size=256"
+fun PasswordCard(site: String, password: String) {
+    var showPassword by remember { mutableStateOf(false) }
 
-    Column(
-        modifier = Modifier.fillMaxHeight(0.8f),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+    val interactionSource = remember { MutableInteractionSource() }
+    val density = LocalDensity.current
+    val commonModifiers = Modifier
+        .size(PasswordCardWidth)
+        .padding(TinyPadding)
+        .shadow(
+            elevation = 8.dp,
+            shape = RoundedCornerShape(RoundedCornerShape)
+        )
+        .clickable(interactionSource = interactionSource, indication = null) {
+            showPassword = !showPassword
+        }
+
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        shape = RoundedCornerShape(RoundedCornerShape),
+        modifier = commonModifiers
     ) {
-        Image(
-            painter = rememberAsyncImagePainter(siteIconSource),
-            contentDescription = siteName,
+        //
+        Row(
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                text = site,
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary
+                ),
+                modifier = Modifier.padding(TinyPadding)
+            )
+        }
+        Row(
+            horizontalArrangement = Arrangement.End,
             modifier = Modifier
-                .animateContentSize()
-                .size(size)
-                .clip(CircleShape)
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(text = siteName, style = MaterialTheme.typography.headlineSmall)
-    }
-}
-
-@Composable
-fun PasswordCard() {
-    Box(
-        modifier = Modifier
-            .padding(SmallPadding)
-            .background(color = MaterialTheme.colorScheme.primaryContainer)
-    ) {
-        Text(
-            text = "Facebook",
-            style = MaterialTheme.typography.titleSmall.copy(
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
-            ),
-            modifier = Modifier.padding(SmallPadding)
-        )
-        Row {
-            IconButton(onClick = { /*TODO*/ }) {
+                .fillMaxWidth()
+                .padding(5.dp)
+        ) {
+            IconButton(
+                onClick = { /* TODO: Implement edit functionality */ },
+                modifier = Modifier.size(IconSize)
+            ) {
                 Icon(
-                    Icons.Filled.Edit, contentDescription = "Edit", modifier = Modifier.size(
-                        IconSize
-                    )
+                    Icons.Filled.Edit,
+                    contentDescription = "Edit",
+                    modifier = Modifier.size(IconSize),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            IconButton(onClick = { /*TODO*/ }) {
+            IconButton(
+                onClick = { /* TODO: Implement delete functionality */ },
+                modifier = Modifier.size(IconSize)
+            ) {
                 Icon(
-                    Icons.Filled.Delete, contentDescription = "Delete", modifier = Modifier.size(
-                        IconSize
-                    )
+                    Icons.Filled.Delete,
+                    contentDescription = "Delete",
+                    modifier = Modifier.size(IconSize),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
+        AnimatedVisibility(
+            visible = showPassword,
+            enter = slideInVertically {
+                // Slide in from 40 dp from the top.
+                with(density) { -100.dp.roundToPx() }
+            } + expandVertically(
+                // Expand from the top.
+                expandFrom = Alignment.Top
+            ) + fadeIn(
+                // Fade in with the initial alpha of 0.3f.
+                initialAlpha = 0.3f
+            ),
+            exit = slideOutVertically() + shrinkVertically() + fadeOut()
+        ) {
+            DisplayPassword(password = password)
+        }
     }
+
 }
 
-@Preview
 @Composable
-fun PreviewPasswordCard() {
-    BeehiveTheme {
-        PasswordCard()
+fun DisplayPassword(password: String) {
+    Surface(
+        color = MaterialTheme.colorScheme.inverseSurface,
+        modifier = Modifier.fillMaxSize()
+    ) {
+        Row(
+            modifier = Modifier.padding(TinyPadding),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = password,
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    color = MaterialTheme.colorScheme.inverseOnSurface
+                ),
+            )
+        }
     }
 }

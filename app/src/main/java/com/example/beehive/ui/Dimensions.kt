@@ -8,5 +8,6 @@ object Dimensions {
     val MediumPadding = 24.dp
     val IndicatorLineThickness = 3.dp
     val RoundedCornerShape = 6.dp
-    val IconSize = 10.dp
+    val IconSize = 17.5f.dp
+    val PasswordCardWidth = 120.dp
 }
