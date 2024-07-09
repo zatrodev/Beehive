@@ -22,6 +22,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.beehive.ui.BeehiveViewModelProvider
 import com.example.beehive.ui.Dimensions.MediumPadding
 import com.example.beehive.ui.common.PasswordButton
 import com.example.beehive.ui.common.PasswordTextButton
@@ -35,7 +37,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun AddPasswordScreen(
     navigateBack: () -> Unit,
-    viewModel: AddPasswordViewModel
+    viewModel: AddPasswordViewModel = viewModel(factory = BeehiveViewModelProvider.Factory),
 ) {
     val coroutineScope = rememberCoroutineScope()
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->

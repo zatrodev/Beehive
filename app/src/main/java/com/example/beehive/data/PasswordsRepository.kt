@@ -7,13 +7,12 @@ interface PasswordsRepository {
 
     fun getPasswordStream(id: Int): Flow<Password>
 
-    fun countPasswords(): Int
-
     suspend fun insertPassword(password: Password)
 
     suspend fun updatePassword(password: Password)
 
     suspend fun deletePassword(password: Password)
 
+    suspend fun countPasswords(): Int
 }
 

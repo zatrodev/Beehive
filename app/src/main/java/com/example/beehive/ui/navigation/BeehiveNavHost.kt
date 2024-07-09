@@ -5,7 +5,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.beehive.ui.home.HomeScreen
-import com.example.beehive.ui.home.HomeViewModel
 import com.example.beehive.ui.password.AddPasswordScreen
 import kotlinx.serialization.Serializable
 
@@ -21,9 +20,7 @@ fun BeehiveNavHost(
 ) {
     NavHost(navController = navController, startDestination = Home) {
         composable<Home> {
-            val viewModel = HomeViewModel()
             HomeScreen(
-                viewModel = viewModel,
                 onNavigateToAddPassword = {
                     navController.navigate(route = AddPassword)
                 }
@@ -31,7 +28,7 @@ fun BeehiveNavHost(
         }
         composable<AddPassword> {
             AddPasswordScreen(
-                onBack = {
+                navigateBack = {
                     navController.popBackStack()
                 }
             )

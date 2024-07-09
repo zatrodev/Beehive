@@ -7,7 +7,7 @@ class PasswordsRepositoryImpl(private val passwordDao: PasswordDao) : PasswordsR
 
     override fun getPasswordStream(id: Int): Flow<Password> = passwordDao.getPassword(id)
 
-    override fun countPasswords(): Int = passwordDao.countPasswords()
+    override suspend fun countPasswords(): Int = passwordDao.countPasswords()
 
     override suspend fun insertPassword(password: Password) = passwordDao.insert(password)
 

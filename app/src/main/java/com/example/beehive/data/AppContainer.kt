@@ -2,11 +2,11 @@ package com.example.beehive.data
 
 import android.content.Context
 
-interface AppContainer {
+interface BeehiveContainer {
     val passwordsRepository: PasswordsRepository
 }
 
-class AppContainerImpl(private val applicationContext: Context) : AppContainer {
+class BeehiveContainerImpl(private val applicationContext: Context) : BeehiveContainer {
     override val passwordsRepository: PasswordsRepository by lazy {
         PasswordsRepositoryImpl(BeehiveDatabase.getDatabase(applicationContext).passwordDao())
     }

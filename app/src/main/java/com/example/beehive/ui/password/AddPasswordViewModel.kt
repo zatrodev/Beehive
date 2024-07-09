@@ -17,8 +17,10 @@ class AddPasswordViewModel(private val passwordsRepository: PasswordsRepository)
     }
 
     suspend fun createPassword() {
-        if (validateInput())
-            passwordsRepository.insertPassword(passwordUiState.toPassword(passwordsRepository.countPasswords()))
+        if (validateInput()) {
+
+            passwordsRepository.insertPassword(passwordUiState.toPassword(passwordsRepository.countPasswords() + 1))
+        }
     }
 
     private fun validateInput(site: String = passwordUiState.site): Boolean {

@@ -26,5 +26,5 @@ interface PasswordDao {
     fun getAllPasswords(): Flow<List<Password>>
 
     @Query("SELECT COUNT(*) FROM passwords")
-    fun countPasswords(): Int
+    suspend fun countPasswords(): Int
 }
