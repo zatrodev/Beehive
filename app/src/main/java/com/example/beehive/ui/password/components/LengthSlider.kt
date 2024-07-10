@@ -19,7 +19,6 @@ fun LengthSlider(
         colors = SliderDefaults.colors(
             thumbColor = MaterialTheme.colorScheme.tertiary,
             activeTrackColor = MaterialTheme.colorScheme.tertiary,
-            inactiveTrackColor = MaterialTheme.colorScheme.tertiary,
         ),
         valueRange = 1f..100f,
         modifier = Modifier.padding(horizontal = MediumPadding)

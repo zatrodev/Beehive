@@ -10,4 +10,5 @@ object Dimensions {
     val RoundedCornerShape = 6.dp
     val IconSize = 17.5f.dp
     val PasswordCardWidth = 120.dp
+    val ShadowElevation = 8.dp
 }

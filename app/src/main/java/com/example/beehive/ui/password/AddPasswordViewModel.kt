@@ -9,7 +9,6 @@ import com.example.beehive.data.PasswordsRepository
 
 class AddPasswordViewModel(private val passwordsRepository: PasswordsRepository) : ViewModel() {
     var passwordUiState by mutableStateOf(PasswordUiState())
-        private set
 
     fun updateUiState(site: String, password: String) {
         passwordUiState =
@@ -18,7 +17,6 @@ class AddPasswordViewModel(private val passwordsRepository: PasswordsRepository)
 
     suspend fun createPassword() {
         if (validateInput()) {
-
             passwordsRepository.insertPassword(passwordUiState.toPassword(passwordsRepository.countPasswords() + 1))
         }
     }
@@ -35,6 +33,11 @@ data class PasswordUiState(
 
 fun PasswordUiState.toPassword(id: Int): Password = Password(
     id = id,
+    site = site,
+    password = password
+)
+
+fun Password.toPasswordUiState(): PasswordUiState = PasswordUiState(
     site = site,
     password = password
 )

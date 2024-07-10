@@ -1,19 +1,20 @@
 package com.example.beehive.ui.password
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -22,31 +23,37 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.beehive.ui.BeehiveViewModelProvider
 import com.example.beehive.ui.Dimensions.MediumPadding
 import com.example.beehive.ui.common.PasswordButton
 import com.example.beehive.ui.common.PasswordTextButton
+import com.example.beehive.ui.home.components.PasswordCard
+import com.example.beehive.ui.password.components.FeatureSiteTextField
 import com.example.beehive.ui.password.components.LengthSlider
 import com.example.beehive.ui.password.components.OptionRow
-import com.example.beehive.ui.password.components.PasswordDisplay
-import com.example.beehive.ui.password.components.SiteTextField
+import com.example.beehive.ui.theme.BeehiveTheme
 import kotlinx.coroutines.launch
 
 
+// TODO: implement shared layout transition
+
 @Composable
-fun AddPasswordScreen(
+fun EditPasswordScreen(
     navigateBack: () -> Unit,
-    viewModel: AddPasswordViewModel = viewModel(factory = BeehiveViewModelProvider.Factory),
+    viewModel: EditPasswordViewModel = viewModel(factory = BeehiveViewModelProvider.Factory),
 ) {
     val coroutineScope = rememberCoroutineScope()
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-        AddPasswordContent(
+        EditPasswordContent(
+            passwordUiState = viewModel.passwordUiState,
             updateUiState = viewModel::updateUiState,
             onBack = navigateBack,
-            onCreateClick = {
+            onDoneEditingClick = {
                 coroutineScope.launch {
-                    viewModel.createPassword()
+                    viewModel.updatePassword()
                     navigateBack()
                 }
             },
@@ -57,45 +64,83 @@ fun AddPasswordScreen(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun AddPasswordContent(
+private fun EditPasswordContent(
+    passwordUiState: PasswordUiState,
     updateUiState: (String, String) -> Unit,
     onBack: () -> Unit,
-    onCreateClick: () -> Unit,
+    onDoneEditingClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var site by remember { mutableStateOf("") }
+    val interactionSource = remember { MutableInteractionSource() }
+    var showPassword by remember {
+        mutableStateOf(false)
+    }
     var sliderPosition by remember { mutableIntStateOf(1) }
     var checkboxStates by remember {
         mutableStateOf(
             mapOf(*OptionType.entries.map { it to true }.toTypedArray())
         )
     }
-    val password by remember(sliderPosition, checkboxStates) {
-        derivedStateOf {
-            generatePassword(sliderPosition, checkboxStates)
-        }
+
+    fun toggleShowPassword() {
+        showPassword = !showPassword
     }
 
     fun onOptionChange(optionType: OptionType) {
         val tempStates = checkboxStates.toMutableMap()
         tempStates[optionType] = !tempStates[optionType]!!
         checkboxStates = tempStates
+
+        if (!showPassword)
+            toggleShowPassword()
+
+        updateUiState(
+            passwordUiState.site,
+            generatePassword(sliderPosition, checkboxStates)
+        )
     }
 
-    Column(modifier = modifier) {
-        SiteTextField(
-            site = site,
-            onSiteChange = { site = it },
+
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Spacer(modifier = Modifier.weight(0.3f))
+        PasswordCard(
+            site = passwordUiState.site,
+            password = passwordUiState.password,
+            showPassword = showPassword,
+            modifier = Modifier
+                .width(200.dp)
+                .clickable(interactionSource = interactionSource, indication = null) {
+                    toggleShowPassword()
+                }
         )
+        Spacer(modifier = Modifier.weight(0.3f))
         Column(
-            modifier = Modifier.fillMaxHeight(0.8f),
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            PasswordDisplay(password = password)
+            FeatureSiteTextField(
+                site = passwordUiState.site,
+                onSiteChange = {
+                    if (showPassword)
+                        toggleShowPassword()
+
+                    updateUiState(it, passwordUiState.password)
+                },
+            )
             LengthSlider(
                 length = sliderPosition,
                 onLengthChange = {
+                    if (!showPassword)
+                        toggleShowPassword()
+
                     sliderPosition = it.toInt()
+                    updateUiState(
+                        passwordUiState.site,
+                        generatePassword(sliderPosition, checkboxStates)
+                    )
                 })
             Column(
                 modifier = Modifier.fillMaxWidth(),
@@ -138,48 +183,28 @@ private fun AddPasswordContent(
         ) {
             PasswordTextButton(text = "Back", onClick = onBack)
             PasswordButton(
-                text = "Create Password",
+                text = "Done",
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
                 onClick = {
-                    updateUiState(site, password)
-                    onCreateClick()
+                    onDoneEditingClick()
                 })
         }
     }
 }
 
-fun generatePassword(length: Int, options: Map<OptionType, Boolean>): String {
-    val usableChars = mutableListOf<Char>()
-
-    if (options[OptionType.LowerCase] == true) usableChars.addAll('a'..'z')
-    if (options[OptionType.UpperCase] == true) usableChars.addAll('A'..'Z')
-    if (options[OptionType.Punctuations] == true) usableChars.addAll(
-        listOf(
-            '!',
-            '@',
-            '#',
-            '$',
-            '%',
-            '^',
-            '&',
-            '*',
-            '(',
-            ')',
-            '_',
-            '-'
+@Preview(showBackground = true)
+@Composable
+fun EditPasswordScreenPreview() {
+    BeehiveTheme {
+        EditPasswordContent(
+            passwordUiState = PasswordUiState(
+                site = "Facebook",
+                password = "ahbwhdawhdwd"
+            ),
+            updateUiState = { _, _ -> },
+            onBack = { },
+            onDoneEditingClick = { },
         )
-    )
-    if (options[OptionType.Numbers] == true) usableChars.addAll('0'..'9')
-
-    return (1..length)
-        .map { usableChars.random() }
-        .joinToString("")
-}
-
-enum class OptionType {
-    LowerCase,
-    UpperCase,
-    Punctuations,
-    Numbers
+    }
 }

@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.unit.dp
+import com.example.beehive.ui.Dimensions.ShadowElevation
 import com.example.beehive.ui.Dimensions.SmallPadding
 
 @Composable
@@ -25,7 +26,7 @@ fun SearchBar(
     onFocusChanged: (Boolean) -> Unit = {}
 ) {
     Surface(
-        shadowElevation = 1.dp,
+        shadowElevation = ShadowElevation,
         color = MaterialTheme.colorScheme.tertiary,
         modifier = Modifier
             .fillMaxWidth()

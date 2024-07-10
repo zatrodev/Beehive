@@ -32,13 +32,13 @@ fun PasswordDisplay(password: String) {
             .fillMaxWidth()
             .height(75.dp),
         shape = RoundedCornerShape(RoundedCornerShape),
-        color = MaterialTheme.colorScheme.primary
+        color = MaterialTheme.colorScheme.surfaceContainer
     ) {
         Box {
             Text(
                 text = password.length.toString(),
                 modifier = Modifier.padding(8.dp),
-                color = MaterialTheme.colorScheme.onPrimary
+                color = MaterialTheme.colorScheme.onSurface
             )
             Text(
                 text = password,
@@ -46,7 +46,7 @@ fun PasswordDisplay(password: String) {
                 modifier = Modifier.padding(MediumPadding),
                 fontSize = fontSizeValue.sp,
                 overflow = TextOverflow.Ellipsis,
-                color = MaterialTheme.colorScheme.onPrimary
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
     }

@@ -13,5 +13,5 @@ class PasswordsRepositoryImpl(private val passwordDao: PasswordDao) : PasswordsR
 
     override suspend fun updatePassword(password: Password) = passwordDao.update(password)
 
-    override suspend fun deletePassword(password: Password) = passwordDao.delete(password)
+    override suspend fun deletePassword(id: Int) = passwordDao.delete(id)
 }

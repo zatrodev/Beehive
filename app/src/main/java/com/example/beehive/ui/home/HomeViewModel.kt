@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
-class HomeViewModel(passwordsRepository: PasswordsRepository) : ViewModel() {
+class HomeViewModel(private val passwordsRepository: PasswordsRepository) : ViewModel() {
     val homeUiState: StateFlow<HomeUiState> =
         passwordsRepository.getAllPasswordsStream().map { HomeUiState(passwords = it) }
             .stateIn(
@@ -17,6 +17,10 @@ class HomeViewModel(passwordsRepository: PasswordsRepository) : ViewModel() {
                 started = SharingStarted.WhileSubscribed(5_000),
                 initialValue = HomeUiState()
             )
+
+    suspend fun deletePassword(id: Int) {
+        passwordsRepository.deletePassword(id)
+    }
 }
 
 data class HomeUiState(val passwords: List<Password> = listOf())

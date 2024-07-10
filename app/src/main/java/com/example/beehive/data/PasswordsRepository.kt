@@ -11,7 +11,7 @@ interface PasswordsRepository {
 
     suspend fun updatePassword(password: Password)
 
-    suspend fun deletePassword(password: Password)
+    suspend fun deletePassword(id: Int)
 
     suspend fun countPasswords(): Int
 }

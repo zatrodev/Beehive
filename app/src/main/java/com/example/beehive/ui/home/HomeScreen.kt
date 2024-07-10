@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,18 +24,27 @@ import com.example.beehive.ui.BeehiveViewModelProvider
 import com.example.beehive.ui.common.PasswordButton
 import com.example.beehive.ui.home.components.PasswordsGrid
 import com.example.beehive.ui.home.components.SearchBar
+import kotlinx.coroutines.launch
 
 @Composable
 fun HomeScreen(
+    onNavigateToEditPassword: (Int) -> Unit,
     onNavigateToAddPassword: () -> Unit,
     viewModel: HomeViewModel = viewModel(factory = BeehiveViewModelProvider.Factory)
 ) {
+    val coroutineScope = rememberCoroutineScope()
     val homeUiState by viewModel.homeUiState.collectAsStateWithLifecycle()
 
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         HomeContent(
             passwords = homeUiState.passwords,
             onAddPasswordClick = onNavigateToAddPassword,
+            onDeletePassword = {
+                coroutineScope.launch {
+                    viewModel.deletePassword(it)
+                }
+            },
+            navigateToEditPassword = onNavigateToEditPassword,
             modifier = Modifier.padding(innerPadding)
         )
     }
@@ -44,6 +54,8 @@ fun HomeScreen(
 fun HomeContent(
     passwords: List<Password>,
     onAddPasswordClick: () -> Unit,
+    onDeletePassword: (Int) -> Unit,
+    navigateToEditPassword: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var query by remember { mutableStateOf("") }
@@ -63,7 +75,11 @@ fun HomeContent(
             onValueChanged = { query = it },
             onFocusChanged = ::onFocusChanged
         )
-        PasswordsGrid(passwords = passwords)
+        PasswordsGrid(
+            passwords = passwords,
+            onDelete = onDeletePassword,
+            onEdit = navigateToEditPassword
+        )
         Spacer(modifier = Modifier.weight(1f))
         PasswordButton(
             text = "Add Password",

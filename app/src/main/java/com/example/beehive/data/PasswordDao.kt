@@ -1,7 +1,6 @@
 package com.example.beehive.data
 
 import androidx.room.Dao
-import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
@@ -16,8 +15,8 @@ interface PasswordDao {
     @Update
     suspend fun update(password: Password)
 
-    @Delete
-    suspend fun delete(password: Password)
+    @Query("DELETE FROM passwords WHERE id = :id")
+    suspend fun delete(id: Int)
 
     @Query("SELECT * from passwords WHERE id = :id")
     fun getPassword(id: Int): Flow<Password>

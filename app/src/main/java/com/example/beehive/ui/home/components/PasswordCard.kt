@@ -11,11 +11,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -38,33 +39,42 @@ import androidx.compose.ui.unit.dp
 import com.example.beehive.ui.Dimensions.IconSize
 import com.example.beehive.ui.Dimensions.PasswordCardWidth
 import com.example.beehive.ui.Dimensions.RoundedCornerShape
+import com.example.beehive.ui.Dimensions.ShadowElevation
 import com.example.beehive.ui.Dimensions.TinyPadding
 
-// TODO: improve animation
 
 @Composable
-fun PasswordCard(site: String, password: String) {
-    var showPassword by remember { mutableStateOf(false) }
-
+fun PasswordCard(
+    modifier: Modifier = Modifier,
+    id: Int? = null,
+    site: String,
+    password: String,
+    showPassword: Boolean = false,
+    onDelete: (Int) -> Unit = {},
+    onEdit: (Int) -> Unit = {}
+) {
+    var localShowPassword by remember { mutableStateOf(showPassword) }
+    val isEditing = id == null
     val interactionSource = remember { MutableInteractionSource() }
+    val passwordModifier = if (isEditing) modifier else Modifier.clickable(
+        interactionSource = interactionSource,
+        indication = null
+    ) {
+        localShowPassword = !localShowPassword
+    }
     val density = LocalDensity.current
-    val commonModifiers = Modifier
-        .size(PasswordCardWidth)
-        .padding(TinyPadding)
-        .shadow(
-            elevation = 8.dp,
-            shape = RoundedCornerShape(RoundedCornerShape)
-        )
-        .clickable(interactionSource = interactionSource, indication = null) {
-            showPassword = !showPassword
-        }
 
     Surface(
         color = MaterialTheme.colorScheme.surfaceContainer,
         shape = RoundedCornerShape(RoundedCornerShape),
-        modifier = commonModifiers
+        modifier = passwordModifier
+            .size(PasswordCardWidth)
+            .padding(TinyPadding)
+            .shadow(
+                elevation = ShadowElevation,
+                shape = RoundedCornerShape(RoundedCornerShape)
+            )
     ) {
-        //
         Row(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
@@ -86,7 +96,7 @@ fun PasswordCard(site: String, password: String) {
                 .padding(5.dp)
         ) {
             IconButton(
-                onClick = { /* TODO: Implement edit functionality */ },
+                onClick = { if (id != null) onEdit(id) },
                 modifier = Modifier.size(IconSize)
             ) {
                 Icon(
@@ -97,7 +107,7 @@ fun PasswordCard(site: String, password: String) {
                 )
             }
             IconButton(
-                onClick = { /* TODO: Implement delete functionality */ },
+                onClick = { if (id != null) onDelete(id) },
                 modifier = Modifier.size(IconSize)
             ) {
                 Icon(
@@ -109,15 +119,12 @@ fun PasswordCard(site: String, password: String) {
             }
         }
         AnimatedVisibility(
-            visible = showPassword,
+            visible = if (isEditing) showPassword else localShowPassword,
             enter = slideInVertically {
-                // Slide in from 40 dp from the top.
                 with(density) { -100.dp.roundToPx() }
             } + expandVertically(
-                // Expand from the top.
                 expandFrom = Alignment.Top
             ) + fadeIn(
-                // Fade in with the initial alpha of 0.3f.
                 initialAlpha = 0.3f
             ),
             exit = slideOutVertically() + shrinkVertically() + fadeOut()
@@ -132,10 +139,11 @@ fun PasswordCard(site: String, password: String) {
 fun DisplayPassword(password: String) {
     Surface(
         color = MaterialTheme.colorScheme.inverseSurface,
-        modifier = Modifier.fillMaxSize()
     ) {
         Row(
-            modifier = Modifier.padding(TinyPadding),
+            modifier = Modifier
+                .padding(TinyPadding)
+                .verticalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
