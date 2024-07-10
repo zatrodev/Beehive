@@ -23,18 +23,20 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.beehive.R
 import com.example.beehive.ui.BeehiveViewModelProvider
-import com.example.beehive.ui.Dimensions.MediumPadding
-import com.example.beehive.ui.common.PasswordButton
-import com.example.beehive.ui.common.PasswordTextButton
+import com.example.beehive.ui.Dimensions.LargePadding
+import com.example.beehive.ui.Dimensions.SmallPadding
+import com.example.beehive.ui.common.BeehiveButton
+import com.example.beehive.ui.common.BeehiveTextButton
 import com.example.beehive.ui.home.components.PasswordCard
+import com.example.beehive.ui.navigation.SharedElementTransition
 import com.example.beehive.ui.password.components.FeatureSiteTextField
 import com.example.beehive.ui.password.components.LengthSlider
 import com.example.beehive.ui.password.components.OptionRow
-import com.example.beehive.ui.theme.BeehiveTheme
 import kotlinx.coroutines.launch
 
 
@@ -43,6 +45,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun EditPasswordScreen(
     navigateBack: () -> Unit,
+    sharedElementTransition: SharedElementTransition,
     viewModel: EditPasswordViewModel = viewModel(factory = BeehiveViewModelProvider.Factory),
 ) {
     val coroutineScope = rememberCoroutineScope()
@@ -57,6 +60,7 @@ fun EditPasswordScreen(
                     navigateBack()
                 }
             },
+            sharedElementTransition = sharedElementTransition,
             modifier = Modifier.padding(innerPadding)
         )
     }
@@ -69,6 +73,7 @@ private fun EditPasswordContent(
     updateUiState: (String, String) -> Unit,
     onBack: () -> Unit,
     onDoneEditingClick: () -> Unit,
+    sharedElementTransition: SharedElementTransition,
     modifier: Modifier = Modifier
 ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -110,6 +115,7 @@ private fun EditPasswordContent(
             site = passwordUiState.site,
             password = passwordUiState.password,
             showPassword = showPassword,
+            sharedElementTransition = sharedElementTransition,
             modifier = Modifier
                 .width(200.dp)
                 .clickable(interactionSource = interactionSource, indication = null) {
@@ -146,29 +152,29 @@ private fun EditPasswordContent(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(MediumPadding)) {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(LargePadding)) {
                     OptionRow(
                         checked = checkboxStates[OptionType.LowerCase]!!,
                         onCheckedChange = { onOptionChange(OptionType.LowerCase) },
-                        text = "Lower Case",
+                        text = stringResource(R.string.checkbox_lowercase_label),
                         isEnabled = checkboxStates.values.count { it } > 1 || !checkboxStates[OptionType.LowerCase]!!
                     )
                     OptionRow(
                         checked = (checkboxStates[OptionType.UpperCase]!!),
                         onCheckedChange = { onOptionChange(OptionType.UpperCase) },
-                        text = "Upper Case",
+                        text = stringResource(R.string.checkbox_uppercase_label),
                         isEnabled = checkboxStates.values.count { it } > 1 || !checkboxStates[OptionType.UpperCase]!!
                     )
                     OptionRow(
                         checked = (checkboxStates[OptionType.Punctuations]!!),
                         onCheckedChange = { onOptionChange(OptionType.Punctuations) },
-                        text = "Punctuations",
+                        text = stringResource(R.string.checkbox_punctuations_label),
                         isEnabled = checkboxStates.values.count { it } > 1 || !checkboxStates[OptionType.Punctuations]!!
                     )
                     OptionRow(
                         checked = (checkboxStates[OptionType.Numbers]!!),
                         onCheckedChange = { onOptionChange(OptionType.Numbers) },
-                        text = "Numbers",
+                        text = stringResource(R.string.checkbox_numbers_label),
                         isEnabled = checkboxStates.values.count { it } > 1 || !checkboxStates[OptionType.Numbers]!!
                     )
                 }
@@ -178,33 +184,18 @@ private fun EditPasswordContent(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(MediumPadding),
+                .padding(LargePadding),
             horizontalArrangement = Arrangement.End
         ) {
-            PasswordTextButton(text = "Back", onClick = onBack)
-            PasswordButton(
-                text = "Done",
+            BeehiveTextButton(text = stringResource(R.string.back_button), onClick = onBack)
+            BeehiveButton(
+                text = stringResource(R.string.done_editing_button),
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
                 onClick = {
                     onDoneEditingClick()
-                })
+                }, modifier = Modifier.padding(SmallPadding)
+            )
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun EditPasswordScreenPreview() {
-    BeehiveTheme {
-        EditPasswordContent(
-            passwordUiState = PasswordUiState(
-                site = "Facebook",
-                password = "ahbwhdawhdwd"
-            ),
-            updateUiState = { _, _ -> },
-            onBack = { },
-            onDoneEditingClick = { },
-        )
     }
 }

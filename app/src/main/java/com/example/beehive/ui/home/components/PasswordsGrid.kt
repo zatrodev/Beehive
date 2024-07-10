@@ -6,15 +6,17 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.runtime.Composable
 import com.example.beehive.data.Password
-import com.example.beehive.ui.Dimensions.SmallPadding
+import com.example.beehive.ui.Dimensions.MediumPadding
+import com.example.beehive.ui.navigation.SharedElementTransition
 
 @Composable
 fun PasswordsGrid(
     passwords: List<Password>,
     onDelete: (Int) -> Unit,
-    onEdit: (Int) -> Unit
+    onEdit: (Int) -> Unit,
+    sharedElementTransition: SharedElementTransition,
 ) {
-    LazyVerticalGrid(columns = GridCells.Fixed(2), contentPadding = PaddingValues(SmallPadding)) {
+    LazyVerticalGrid(columns = GridCells.Fixed(2), contentPadding = PaddingValues(MediumPadding)) {
         items(passwords) { password ->
             PasswordCard(
                 id = password.id,
@@ -22,6 +24,7 @@ fun PasswordsGrid(
                 password = password.password,
                 onDelete = onDelete,
                 onEdit = onEdit,
+                sharedElementTransition = sharedElementTransition
             )
         }
     }
