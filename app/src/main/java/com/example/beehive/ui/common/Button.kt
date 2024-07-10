@@ -1,7 +1,6 @@
 package com.example.beehive.ui.common
 
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
@@ -17,25 +16,24 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.example.beehive.ui.Dimensions.RoundedCornerShape
 import com.example.beehive.ui.Dimensions.SmallPadding
-import com.example.beehive.ui.Dimensions.TinyPadding
 
 @Composable
-fun PasswordButton(
+fun BeehiveButton(
     text: String,
     containerColor: Color,
     contentColor: Color,
+    modifier: Modifier = Modifier,
     icon: ImageVector? = null,
-    onClick: () -> Unit,
+    onClick: () -> Unit
 ) {
     Button(
         onClick = onClick, colors = ButtonDefaults.buttonColors(
             containerColor = containerColor,
             contentColor = contentColor,
         ),
-        contentPadding = PaddingValues(TinyPadding),
+        contentPadding = PaddingValues(SmallPadding),
         shape = RoundedCornerShape(RoundedCornerShape)
     ) {
         if (icon != null)
@@ -48,13 +46,13 @@ fun PasswordButton(
         Text(
             text = text,
             style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
-            modifier = Modifier.padding(TinyPadding)
+            modifier = modifier
         )
     }
 }
 
 @Composable
-fun PasswordTextButton(
+fun BeehiveTextButton(
     text: String,
     onClick: () -> Unit,
 ) {
@@ -72,7 +70,7 @@ fun PasswordTextButton(
 @Preview
 @Composable
 fun PreviewButton() {
-    PasswordButton(
+    BeehiveButton(
         text = "Create Password",
         containerColor = MaterialTheme.colorScheme.primary,
         contentColor = MaterialTheme.colorScheme.onPrimary,

@@ -16,7 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.beehive.ui.Dimensions.MediumPadding
+import com.example.beehive.ui.Dimensions.LargePadding
 import com.example.beehive.ui.Dimensions.RoundedCornerShape
 
 @Composable
@@ -28,7 +28,7 @@ fun PasswordDisplay(password: String) {
     }
     Surface(
         modifier = Modifier
-            .padding(MediumPadding)
+            .padding(LargePadding)
             .fillMaxWidth()
             .height(75.dp),
         shape = RoundedCornerShape(RoundedCornerShape),
@@ -43,7 +43,7 @@ fun PasswordDisplay(password: String) {
             Text(
                 text = password,
                 maxLines = 1,
-                modifier = Modifier.padding(MediumPadding),
+                modifier = Modifier.padding(LargePadding),
                 fontSize = fontSizeValue.sp,
                 overflow = TextOverflow.Ellipsis,
                 color = MaterialTheme.colorScheme.onSurface

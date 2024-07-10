@@ -6,7 +6,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.example.beehive.ui.Dimensions.MediumPadding
+import com.example.beehive.ui.Dimensions.LargePadding
 
 @Composable
 fun LengthSlider(
@@ -21,7 +21,7 @@ fun LengthSlider(
             activeTrackColor = MaterialTheme.colorScheme.tertiary,
         ),
         valueRange = 1f..100f,
-        modifier = Modifier.padding(horizontal = MediumPadding)
+        modifier = Modifier.padding(horizontal = LargePadding)
     )
 }
 

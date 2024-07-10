@@ -12,9 +12,11 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
-import com.example.beehive.ui.Dimensions.MediumPadding
+import com.example.beehive.R
+import com.example.beehive.ui.Dimensions.LargePadding
 
 @Composable
 fun FeatureSiteTextField(
@@ -38,7 +40,7 @@ fun FeatureSiteTextField(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        text = "Enter Site",
+                        text = stringResource(R.string.site_placeholder),
                         style = MaterialTheme.typography.headlineMedium.copy(
                             fontStyle = FontStyle.Italic,
                             color = MaterialTheme.colorScheme.surfaceVariant,
@@ -50,7 +52,7 @@ fun FeatureSiteTextField(
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.primary,
             ),
-            modifier = Modifier.padding(bottom = MediumPadding)
+            modifier = Modifier.padding(bottom = LargePadding)
         )
     }
 

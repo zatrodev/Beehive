@@ -22,11 +22,14 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.beehive.R
 import com.example.beehive.ui.BeehiveViewModelProvider
-import com.example.beehive.ui.Dimensions.MediumPadding
-import com.example.beehive.ui.common.PasswordButton
-import com.example.beehive.ui.common.PasswordTextButton
+import com.example.beehive.ui.Dimensions.LargePadding
+import com.example.beehive.ui.Dimensions.SmallPadding
+import com.example.beehive.ui.common.BeehiveButton
+import com.example.beehive.ui.common.BeehiveTextButton
 import com.example.beehive.ui.password.components.LengthSlider
 import com.example.beehive.ui.password.components.OptionRow
 import com.example.beehive.ui.password.components.PasswordDisplay
@@ -101,29 +104,29 @@ private fun AddPasswordContent(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(MediumPadding)) {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(LargePadding)) {
                     OptionRow(
                         checked = checkboxStates[OptionType.LowerCase]!!,
                         onCheckedChange = { onOptionChange(OptionType.LowerCase) },
-                        text = "Lower Case",
+                        text = stringResource(R.string.checkbox_lowercase_label),
                         isEnabled = checkboxStates.values.count { it } > 1 || !checkboxStates[OptionType.LowerCase]!!
                     )
                     OptionRow(
                         checked = (checkboxStates[OptionType.UpperCase]!!),
                         onCheckedChange = { onOptionChange(OptionType.UpperCase) },
-                        text = "Upper Case",
+                        text = stringResource(R.string.checkbox_uppercase_label),
                         isEnabled = checkboxStates.values.count { it } > 1 || !checkboxStates[OptionType.UpperCase]!!
                     )
                     OptionRow(
                         checked = (checkboxStates[OptionType.Punctuations]!!),
                         onCheckedChange = { onOptionChange(OptionType.Punctuations) },
-                        text = "Punctuations",
+                        text = stringResource(R.string.checkbox_punctuations_label),
                         isEnabled = checkboxStates.values.count { it } > 1 || !checkboxStates[OptionType.Punctuations]!!
                     )
                     OptionRow(
                         checked = (checkboxStates[OptionType.Numbers]!!),
                         onCheckedChange = { onOptionChange(OptionType.Numbers) },
-                        text = "Numbers",
+                        text = stringResource(R.string.checkbox_numbers_label),
                         isEnabled = checkboxStates.values.count { it } > 1 || !checkboxStates[OptionType.Numbers]!!
                     )
                 }
@@ -133,18 +136,19 @@ private fun AddPasswordContent(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(MediumPadding),
+                .padding(LargePadding),
             horizontalArrangement = Arrangement.End
         ) {
-            PasswordTextButton(text = "Back", onClick = onBack)
-            PasswordButton(
-                text = "Create Password",
+            BeehiveTextButton(text = stringResource(R.string.back_button), onClick = onBack)
+            BeehiveButton(
+                text = stringResource(R.string.create_password_button),
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
                 onClick = {
                     updateUiState(site, password)
                     onCreateClick()
-                })
+                }, modifier = Modifier.padding(SmallPadding)
+            )
         }
     }
 }

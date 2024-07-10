@@ -14,10 +14,12 @@ import androidx.compose.material3.TextFieldDefaults.indicatorLine
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.beehive.R
 import com.example.beehive.ui.Dimensions.IndicatorLineThickness
-import com.example.beehive.ui.Dimensions.SmallPadding
+import com.example.beehive.ui.Dimensions.MediumPadding
 
 @SuppressLint("UnrememberedMutableInteractionSource")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -29,7 +31,7 @@ fun SiteTextField(
     Surface(
         modifier = Modifier
             .width(280.dp)
-            .padding(SmallPadding)
+            .padding(MediumPadding)
     ) {
 
         TextField(
@@ -42,9 +44,11 @@ fun SiteTextField(
             ),
             label = {
                 Text(
-                    text = "Site", style = MaterialTheme.typography.labelLarge.copy(
+                    text = stringResource(R.string.site_placeholder),
+                    style = MaterialTheme.typography.labelLarge.copy(
                         fontWeight = FontWeight.ExtraBold
-                    ), color = MaterialTheme.colorScheme.onSurface
+                    ),
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             },
             textStyle = MaterialTheme.typography.headlineSmall.copy(

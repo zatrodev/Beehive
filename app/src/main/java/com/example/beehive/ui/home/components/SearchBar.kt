@@ -16,8 +16,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.unit.dp
+import com.example.beehive.ui.Dimensions.MediumPadding
 import com.example.beehive.ui.Dimensions.ShadowElevation
-import com.example.beehive.ui.Dimensions.SmallPadding
 
 @Composable
 fun SearchBar(
@@ -39,7 +39,7 @@ fun SearchBar(
                 imageVector = Icons.Outlined.Search,
                 contentDescription = "Search",
                 tint = MaterialTheme.colorScheme.onTertiary,
-                modifier = Modifier.padding(SmallPadding)
+                modifier = Modifier.padding(MediumPadding)
             )
 
             TextField(
