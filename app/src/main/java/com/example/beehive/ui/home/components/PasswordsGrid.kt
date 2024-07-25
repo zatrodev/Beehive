@@ -5,7 +5,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.runtime.Composable
-import com.example.beehive.data.Password
+import com.example.beehive.data.passwords.Password
 import com.example.beehive.ui.Dimensions.MediumPadding
 import com.example.beehive.ui.navigation.SharedElementTransition
 
@@ -20,7 +20,7 @@ fun PasswordsGrid(
         items(passwords) { password ->
             PasswordCard(
                 id = password.id,
-                site = password.site,
+                name = password.name,
                 password = password.password,
                 onDelete = onDelete,
                 onEdit = onEdit,

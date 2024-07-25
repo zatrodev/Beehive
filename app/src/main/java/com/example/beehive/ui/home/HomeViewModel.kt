@@ -2,8 +2,8 @@ package com.example.beehive.ui.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.beehive.data.Password
-import com.example.beehive.data.PasswordsRepository
+import com.example.beehive.data.passwords.Password
+import com.example.beehive.data.passwords.PasswordsRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -23,7 +23,7 @@ class HomeViewModel(private val passwordsRepository: PasswordsRepository) : View
                 passwords
             } else {
                 passwords.filter {
-                    it.site.contains(query, ignoreCase = true)
+                    it.name.contains(query, ignoreCase = true)
                 }
             }
             HomeUiState(

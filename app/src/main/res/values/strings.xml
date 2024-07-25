@@ -4,14 +4,16 @@
     <string name="done_editing_button">Done</string>
     <string name="create_password_button">Create Password</string>
     <string name="add_password_button">Add Password</string>
-    <string name="no_password_description">No bees in the beehive!</string>
+    <string name="no_password_description">No bees in the Beehive!</string>
     <string name="delete_question">Are you sure you want to delete this password?</string>
     <string name="no">No</string>
     <string name="yes">Yes</string>
-    <string name="site_placeholder">"Site Name"</string>
+    <string name="name_placeholder">"Name"</string>
     <string name="site_label">"Site"</string>
     <string name="checkbox_lowercase_label">Lower Case</string>
     <string name="checkbox_uppercase_label">Upper Case</string>
     <string name="checkbox_punctuations_label">Punctuations</string>
     <string name="checkbox_numbers_label">Numbers</string>
+    <string name="error_message">Site is empty!</string>
+    <string name="search_bar_placeholder">Search your bees</string>
 </resources>
