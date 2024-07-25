@@ -34,13 +34,12 @@ import com.example.beehive.ui.common.BeehiveButton
 import com.example.beehive.ui.common.BeehiveTextButton
 import com.example.beehive.ui.home.components.PasswordCard
 import com.example.beehive.ui.navigation.SharedElementTransition
-import com.example.beehive.ui.password.components.FeatureSiteTextField
+import com.example.beehive.ui.password.components.FeatureNameTextField
 import com.example.beehive.ui.password.components.LengthSlider
 import com.example.beehive.ui.password.components.OptionRow
+import com.example.beehive.utils.generatePassword
 import kotlinx.coroutines.launch
 
-
-// TODO: implement shared layout transition
 
 @Composable
 fun EditPasswordScreen(
@@ -49,15 +48,21 @@ fun EditPasswordScreen(
     viewModel: EditPasswordViewModel = viewModel(factory = BeehiveViewModelProvider.Factory),
 ) {
     val coroutineScope = rememberCoroutineScope()
+    var isError by remember { mutableStateOf(false) }
+
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         EditPasswordContent(
+            isError = isError,
+            setIsErrorToFalse = { isError = false },
             passwordUiState = viewModel.passwordUiState,
             updateUiState = viewModel::updateUiState,
             onBack = navigateBack,
             onDoneEditingClick = {
                 coroutineScope.launch {
-                    viewModel.updatePassword()
-                    navigateBack()
+                    if (viewModel.updatePassword())
+                        navigateBack()
+                    else
+                        isError = true
                 }
             },
             sharedElementTransition = sharedElementTransition,
@@ -69,7 +74,9 @@ fun EditPasswordScreen(
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun EditPasswordContent(
-    passwordUiState: PasswordUiState,
+    isError: Boolean,
+    setIsErrorToFalse: () -> Unit,
+    passwordUiState: AddPasswordUiState,
     updateUiState: (String, String) -> Unit,
     onBack: () -> Unit,
     onDoneEditingClick: () -> Unit,
@@ -100,7 +107,7 @@ private fun EditPasswordContent(
             toggleShowPassword()
 
         updateUiState(
-            passwordUiState.site,
+            passwordUiState.name,
             generatePassword(sliderPosition, checkboxStates)
         )
     }
@@ -112,7 +119,7 @@ private fun EditPasswordContent(
     ) {
         Spacer(modifier = Modifier.weight(0.3f))
         PasswordCard(
-            site = passwordUiState.site,
+            name = passwordUiState.name,
             password = passwordUiState.password,
             showPassword = showPassword,
             sharedElementTransition = sharedElementTransition,
@@ -127,13 +134,15 @@ private fun EditPasswordContent(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            FeatureSiteTextField(
-                site = passwordUiState.site,
-                onSiteChange = {
+            FeatureNameTextField(
+                name = passwordUiState.name,
+                isError = isError,
+                onNameChange = {
                     if (showPassword)
                         toggleShowPassword()
 
                     updateUiState(it, passwordUiState.password)
+                    setIsErrorToFalse()
                 },
             )
             LengthSlider(
@@ -144,7 +153,7 @@ private fun EditPasswordContent(
 
                     sliderPosition = it.toInt()
                     updateUiState(
-                        passwordUiState.site,
+                        passwordUiState.name,
                         generatePassword(sliderPosition, checkboxStates)
                     )
                 })

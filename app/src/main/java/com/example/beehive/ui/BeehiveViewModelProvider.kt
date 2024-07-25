@@ -6,6 +6,7 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.beehive.BeehiveApplication
+import com.example.beehive.domain.GetInstalledAppsUseCase
 import com.example.beehive.ui.home.HomeViewModel
 import com.example.beehive.ui.password.AddPasswordViewModel
 import com.example.beehive.ui.password.EditPasswordViewModel
@@ -13,7 +14,10 @@ import com.example.beehive.ui.password.EditPasswordViewModel
 object BeehiveViewModelProvider {
     val Factory = viewModelFactory {
         initializer {
-            AddPasswordViewModel(beehiveApplication().container.passwordsRepository)
+            AddPasswordViewModel(
+                beehiveApplication().container.passwordsRepository,
+                GetInstalledAppsUseCase(beehiveApplication().container.packageManager)
+            )
         }
 
         initializer {
