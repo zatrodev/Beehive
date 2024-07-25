@@ -1,4 +1,4 @@
-package com.example.beehive.data
+package com.example.beehive.data.passwords
 
 import androidx.room.Dao
 import androidx.room.Insert
@@ -21,7 +21,10 @@ interface PasswordDao {
     @Query("SELECT * from passwords WHERE id = :id")
     fun getPassword(id: Int): Flow<Password>
 
-    @Query("SELECT * from passwords ORDER BY site ASC")
+    @Query("SELECT * from passwords WHERE uri = :uri")
+    fun getPasswordsByUri(uri: String): Flow<List<Password>>
+
+    @Query("SELECT * from passwords ORDER BY name ASC")
     fun getAllPasswords(): Flow<List<Password>>
 
     @Query("SELECT COUNT(*) FROM passwords")

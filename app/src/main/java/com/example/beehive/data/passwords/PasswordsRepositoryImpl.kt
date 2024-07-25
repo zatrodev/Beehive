@@ -1,4 +1,4 @@
-package com.example.beehive.data
+package com.example.beehive.data.passwords
 
 import kotlinx.coroutines.flow.Flow
 
@@ -6,6 +6,9 @@ class PasswordsRepositoryImpl(private val passwordDao: PasswordDao) : PasswordsR
     override fun getAllPasswordsStream(): Flow<List<Password>> = passwordDao.getAllPasswords()
 
     override fun getPasswordStream(id: Int): Flow<Password> = passwordDao.getPassword(id)
+
+    override fun getPasswordsByUri(uri: String): Flow<List<Password>> =
+        passwordDao.getPasswordsByUri(uri)
 
     override suspend fun countPasswords(): Int = passwordDao.countPasswords()
 
