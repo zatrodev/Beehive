@@ -4,10 +4,15 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.example.beehive.data.passwords.Password
+import com.example.beehive.data.passwords.PasswordDao
+import com.example.beehive.data.users.User
+import com.example.beehive.data.users.UserDao
 
-@Database(entities = [Password::class], version = 2, exportSchema = false)
+@Database(entities = [Password::class, User::class], version = 4, exportSchema = false)
 abstract class BeehiveDatabase : RoomDatabase() {
     abstract fun passwordDao(): PasswordDao
+    abstract fun userDao(): UserDao
 
     companion object {
         @Volatile
