@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
+    alias(libs.plugins.compose.compiler)
     kotlin("plugin.serialization") version "2.0.0"
     id("com.google.devtools.ksp")
     id("kotlin-kapt")
@@ -12,7 +13,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.beehive"
-        minSdk = 27
+        minSdk = 28
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -43,7 +44,7 @@ android {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
+        kotlinCompilerExtensionVersion = "1.5.5"
     }
     packaging {
         resources {
@@ -54,6 +55,7 @@ android {
 
 dependencies {
     implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.autofill)
     annotationProcessor(libs.androidx.room.room.compiler7)
     ksp(libs.androidx.room.room.compiler7)
     implementation(libs.androidx.room.ktx)
