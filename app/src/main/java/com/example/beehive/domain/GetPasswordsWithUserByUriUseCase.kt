@@ -18,7 +18,7 @@ class GetPasswordsWithUserByUriUseCase(
     )
 
     operator fun invoke(uri: String): Flow<List<PasswordWithUser>> =
-        passwordsRepository.getPasswordsByUri(uri).map { passwords ->
+        passwordsRepository.getPasswordsByUriStream(uri).map { passwords ->
             passwords.map { password ->
                 val user = usersRepository.getUser(password.userId).filterNotNull().first()
                 PasswordWithUser(password.password, user)

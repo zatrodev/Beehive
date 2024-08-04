@@ -7,7 +7,9 @@ interface PasswordsRepository {
 
     fun getPasswordStream(id: Int): Flow<Password>
 
-    fun getPasswordsByUri(uri: String): Flow<List<Password>>
+    fun getPasswordsByUriStream(uri: String): Flow<List<Password>>
+
+    fun getPasswordsByUserIdStream(userId: Int): Flow<List<Password>>
 
     suspend fun insertPassword(password: Password)
 

@@ -24,6 +24,9 @@ interface PasswordDao {
     @Query("SELECT * from passwords WHERE uri = :uri")
     fun getPasswordsByUri(uri: String): Flow<List<Password>>
 
+    @Query("SELECT * from passwords WHERE userId = :userId")
+    fun getPasswordsByUserId(userId: Int): Flow<List<Password>>
+
     @Query("SELECT * from passwords ORDER BY name ASC")
     fun getAllPasswords(): Flow<List<Password>>
 

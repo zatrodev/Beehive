@@ -28,7 +28,10 @@ object BeehiveViewModelProvider {
         }
 
         initializer {
-            HomeViewModel(beehiveApplication().container.passwordsRepository)
+            HomeViewModel(
+                beehiveApplication().container.passwordsRepository,
+                beehiveApplication().container.usersRepository,
+            )
         }
     }
 }

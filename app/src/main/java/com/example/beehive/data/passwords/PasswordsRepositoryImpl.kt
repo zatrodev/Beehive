@@ -7,8 +7,11 @@ class PasswordsRepositoryImpl(private val passwordDao: PasswordDao) : PasswordsR
 
     override fun getPasswordStream(id: Int): Flow<Password> = passwordDao.getPassword(id)
 
-    override fun getPasswordsByUri(uri: String): Flow<List<Password>> =
+    override fun getPasswordsByUriStream(uri: String): Flow<List<Password>> =
         passwordDao.getPasswordsByUri(uri)
+
+    override fun getPasswordsByUserIdStream(userId: Int): Flow<List<Password>> =
+        passwordDao.getPasswordsByUserId(userId)
 
     override suspend fun countPasswords(): Int = passwordDao.countPasswords()
 

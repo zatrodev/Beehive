@@ -6,9 +6,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import com.example.beehive.ui.theme.BeehiveTheme
 
-/*
-TODO: data layer
- */
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -21,6 +18,8 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
+
 
 
 

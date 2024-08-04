@@ -16,4 +16,6 @@
     <string name="checkbox_numbers_label">Numbers</string>
     <string name="error_message">Site is empty!</string>
     <string name="search_bar_placeholder">Search your bees</string>
+    <string name="an_error_has_occurred">An error has occurred!</string>
+    <string name="retry_label">Try again?</string>
 </resources>
