@@ -55,14 +55,17 @@ fun BeehiveButton(
 fun BeehiveTextButton(
     text: String,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    color: Color = MaterialTheme.colorScheme.onSurface
 ) {
     TextButton(
         onClick = onClick,
+        modifier = modifier
     ) {
         Text(
             text = text,
             style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
-            color = MaterialTheme.colorScheme.onSurface
+            color = color
         )
     }
 }

@@ -10,6 +10,7 @@ import com.example.beehive.utils.filterByName
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
@@ -26,8 +27,7 @@ class HomeViewModel(
     private val _homeUiState = MutableStateFlow<HomeScreenUiState>(HomeScreenUiState.Loading)
     private val refreshing = MutableStateFlow(false)
 
-    val homeUiState: StateFlow<HomeScreenUiState>
-        get() = _homeUiState
+    val homeUiState: StateFlow<HomeScreenUiState> = _homeUiState.asStateFlow()
 
     init {
         viewModelScope.launch {
@@ -55,6 +55,17 @@ class HomeViewModel(
             }
         }
     }
+
+//    fun refresh() {
+//        viewModelScope.launch {
+//            runCatching {
+//                refreshing.value = true
+//                passwordsRepository.countPasswords()
+//            }.onSuccess {
+//                refreshing.value = false
+//            }
+//        }
+//    }
 
     fun onQueryChange(query: String) {
         _query.value = query

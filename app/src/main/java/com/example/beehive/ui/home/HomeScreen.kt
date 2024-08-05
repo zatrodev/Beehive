@@ -11,8 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -32,7 +30,6 @@ import com.example.beehive.R
 import com.example.beehive.ui.BeehiveViewModelProvider
 import com.example.beehive.ui.Dimensions.LargePadding
 import com.example.beehive.ui.Dimensions.SmallPadding
-import com.example.beehive.ui.common.BeehiveButton
 import com.example.beehive.ui.home.components.PasswordsGrid
 import com.example.beehive.ui.home.components.SearchBar
 import com.example.beehive.ui.home.components.UserNavigationBar
@@ -104,20 +101,22 @@ fun HomeScreenReady(
         modifier = Modifier
             .fillMaxSize(),
         bottomBar = {
-            UserNavigationBar(users = uiState.users,
+            UserNavigationBar(
+                users = uiState.users,
                 onClick = { user, index ->
                     viewModel.onUserSelected(user)
                     coroutineScope.launch {
                         pagerState.animateScrollToPage(index)
                     }
-                })
+                },
+                onAddPasswordClick = onNavigateToAddPassword
+            )
         }
     ) { innerPadding ->
         HomeContent(
             uiState = uiState,
             pagerState = pagerState,
             onQueryChange = viewModel::onQueryChange,
-            onAddPasswordClick = onNavigateToAddPassword,
             onDeletePassword = {
                 coroutineScope.launch {
                     viewModel.deletePassword(it)
@@ -135,7 +134,6 @@ fun HomeContent(
     uiState: HomeScreenUiState.Ready,
     pagerState: PagerState,
     onQueryChange: (String) -> Unit,
-    onAddPasswordClick: () -> Unit,
     onDeletePassword: (Int) -> Unit,
     navigateToEditPassword: (Int) -> Unit,
     sharedElementTransition: SharedElementTransition,
@@ -182,14 +180,6 @@ fun HomeContent(
 
             }
             Spacer(modifier = Modifier.weight(1f))
-            BeehiveButton(
-                text = stringResource(R.string.add_password_button),
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-                icon = Icons.Outlined.Add,
-                onClick = onAddPasswordClick,
-                modifier = Modifier.padding(SmallPadding)
-            )
         }
     }
 }

@@ -1,6 +1,5 @@
 package com.example.beehive.ui.password
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -36,15 +35,14 @@ class AddPasswordViewModel(
             password = password
         )
 
-        Log.d("VIEW MODEL", uiState.name)
-
-        uiState.installedApps = if (uiState.name.isBlank()) {
-            installedApps
-        } else {
-            installedApps.filter {
-                it.name.contains(uiState.name, ignoreCase = true)
+        uiState.installedApps =
+            if (uiState.name.isBlank()) {
+                installedApps
+            } else {
+                installedApps.filter {
+                    it.name.contains(uiState.name, ignoreCase = true)
+                }
             }
-        }
     }
 
     suspend fun createPassword(): Boolean {

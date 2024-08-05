@@ -1,5 +1,6 @@
 package com.example.beehive.ui.password
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -82,7 +83,7 @@ private fun AddPasswordContent(
     onCreateClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var openDialog by remember { mutableStateOf(false) }
+    var showDialog by remember { mutableStateOf(false) }
     var sliderPosition by remember { mutableIntStateOf(1) }
     var checkboxStates by remember {
         mutableStateOf(
@@ -105,11 +106,15 @@ private fun AddPasswordContent(
     Column(modifier = modifier) {
         NameTextField(
             name = uiState.name,
+            packageName = uiState.packageName,
             onNameChange = {
                 updateUiState(it, uiState.packageName, uiState.password)
             },
             isError = isError,
-            showSearchDialog = { openDialog = true }
+            modifier = Modifier.clickable(
+                enabled = true,
+                onClick = { showDialog = true }
+            )
         )
         Column(
             modifier = Modifier.fillMaxHeight(0.8f),
@@ -176,19 +181,19 @@ private fun AddPasswordContent(
         }
     }
 
-    if (openDialog) {
+    if (showDialog) {
         NameSearchDialog(
             name = uiState.name,
-            openDialog = openDialog,
+            openDialog = showDialog,
             onNameChange = {
                 updateUiState(it, uiState.packageName, uiState.password)
             },
             appCardOnClick = { name, packageName ->
                 updateUiState(name, packageName, uiState.password)
-                openDialog = false
+                showDialog = false
             },
             disableError = onClearError,
-            closeDialogBox = { openDialog = false },
+            closeDialogBox = { showDialog = false },
             installedApps = installedApps
         )
     }

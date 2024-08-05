@@ -52,7 +52,7 @@ fun InstalledAppCard(
                             }
                         }
                     })
-            Text(text = appName, modifier = modifier)
+            Text(text = appName, modifier = modifier, style = MaterialTheme.typography.labelMedium)
         }
     }
 }

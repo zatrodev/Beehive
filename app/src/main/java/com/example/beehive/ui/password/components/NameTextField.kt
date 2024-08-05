@@ -1,7 +1,6 @@
 package com.example.beehive.ui.password.components
 
 import android.annotation.SuppressLint
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
@@ -30,19 +29,16 @@ import com.example.beehive.ui.Dimensions.RoundedCornerShape
 @Composable
 fun NameTextField(
     name: String,
+    packageName: String,
     onNameChange: (String) -> Unit,
     isError: Boolean,
-    showSearchDialog: () -> Unit
+    modifier: Modifier = Modifier
 ) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .width(280.dp)
             .padding(MediumPadding)
             .clip(RoundedCornerShape(RoundedCornerShape))
-            .clickable(
-                enabled = true,
-                onClick = showSearchDialog
-            )
     ) {
         TextField(
             value = name,
@@ -53,7 +49,6 @@ fun NameTextField(
                 focusedContainerColor = Color.Transparent,
                 unfocusedContainerColor = Color.Transparent,
             ),
-            enabled = false,
             label = {
                 Text(
                     text = stringResource(R.string.name_placeholder),
@@ -79,6 +74,7 @@ fun NameTextField(
                 ),
 
             )
+        PackageNameText(packageName = packageName)
         if (isError)
             Text(
                 text = stringResource(R.string.error_message),

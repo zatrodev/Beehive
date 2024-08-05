@@ -21,17 +21,20 @@ import com.example.beehive.R
 @Composable
 fun FeatureNameTextField(
     name: String,
+    packageName: String,
     isError: Boolean,
     onNameChange: (String) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.height(100.dp)
+        modifier = modifier.height(100.dp)
     ) {
         TextField(
             value = name,
             onValueChange = onNameChange,
             maxLines = 1,
+            singleLine = true,
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = Color.Transparent,
                 unfocusedContainerColor = Color.Transparent,
@@ -56,6 +59,7 @@ fun FeatureNameTextField(
                 color = MaterialTheme.colorScheme.primary,
             ),
         )
+        PackageNameText(packageName = packageName)
         if (isError)
             Text(
                 text = stringResource(R.string.error_message),

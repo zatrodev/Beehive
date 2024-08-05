@@ -23,7 +23,9 @@ object BeehiveViewModelProvider {
         initializer {
             EditPasswordViewModel(
                 this.createSavedStateHandle(),
-                beehiveApplication().container.passwordsRepository
+                beehiveApplication().container.passwordsRepository,
+                GetInstalledAppsUseCase(beehiveApplication().container.packageManager)
+
             )
         }
 

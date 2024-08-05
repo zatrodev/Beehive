@@ -27,6 +27,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.beehive.R
+import com.example.beehive.domain.GetInstalledAppsUseCase.InstalledApp
 import com.example.beehive.ui.BeehiveViewModelProvider
 import com.example.beehive.ui.Dimensions.LargePadding
 import com.example.beehive.ui.Dimensions.SmallPadding
@@ -36,6 +37,7 @@ import com.example.beehive.ui.home.components.PasswordCard
 import com.example.beehive.ui.navigation.SharedElementTransition
 import com.example.beehive.ui.password.components.FeatureNameTextField
 import com.example.beehive.ui.password.components.LengthSlider
+import com.example.beehive.ui.password.components.NameSearchDialog
 import com.example.beehive.ui.password.components.OptionRow
 import com.example.beehive.utils.generatePassword
 import kotlinx.coroutines.launch
@@ -52,9 +54,10 @@ fun EditPasswordScreen(
 
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         EditPasswordContent(
+            installedApps = viewModel.uiState.installedApps,
             isError = isError,
-            setIsErrorToFalse = { isError = false },
-            passwordUiState = viewModel.passwordUiState,
+            onClearError = { isError = false },
+            uiState = viewModel.uiState,
             updateUiState = viewModel::updateUiState,
             onBack = navigateBack,
             onDoneEditingClick = {
@@ -74,16 +77,18 @@ fun EditPasswordScreen(
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun EditPasswordContent(
+    installedApps: List<InstalledApp>,
     isError: Boolean,
-    setIsErrorToFalse: () -> Unit,
-    passwordUiState: AddPasswordUiState,
-    updateUiState: (String, String) -> Unit,
+    onClearError: () -> Unit,
+    uiState: AddPasswordUiState,
+    updateUiState: (String, String, String) -> Unit,
     onBack: () -> Unit,
     onDoneEditingClick: () -> Unit,
     sharedElementTransition: SharedElementTransition,
     modifier: Modifier = Modifier
 ) {
     val interactionSource = remember { MutableInteractionSource() }
+    var showDialog by remember { mutableStateOf(false) }
     var showPassword by remember {
         mutableStateOf(false)
     }
@@ -107,7 +112,8 @@ private fun EditPasswordContent(
             toggleShowPassword()
 
         updateUiState(
-            passwordUiState.name,
+            uiState.name,
+            uiState.packageName,
             generatePassword(sliderPosition, checkboxStates)
         )
     }
@@ -119,8 +125,8 @@ private fun EditPasswordContent(
     ) {
         Spacer(modifier = Modifier.weight(0.3f))
         PasswordCard(
-            name = passwordUiState.name,
-            password = passwordUiState.password,
+            name = uiState.name,
+            password = uiState.password,
             showPassword = showPassword,
             sharedElementTransition = sharedElementTransition,
             modifier = Modifier
@@ -135,15 +141,20 @@ private fun EditPasswordContent(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             FeatureNameTextField(
-                name = passwordUiState.name,
+                name = uiState.name,
+                packageName = uiState.packageName,
                 isError = isError,
                 onNameChange = {
                     if (showPassword)
                         toggleShowPassword()
 
-                    updateUiState(it, passwordUiState.password)
-                    setIsErrorToFalse()
+                    updateUiState(it, uiState.packageName, uiState.password)
+                    onClearError()
                 },
+                modifier = Modifier.clickable(
+                    enabled = true,
+                    onClick = { showDialog = true }
+                )
             )
             LengthSlider(
                 length = sliderPosition,
@@ -153,7 +164,8 @@ private fun EditPasswordContent(
 
                     sliderPosition = it.toInt()
                     updateUiState(
-                        passwordUiState.name,
+                        uiState.name,
+                        uiState.packageName,
                         generatePassword(sliderPosition, checkboxStates)
                     )
                 })
@@ -206,5 +218,22 @@ private fun EditPasswordContent(
                 }, modifier = Modifier.padding(SmallPadding)
             )
         }
+    }
+
+    if (showDialog) {
+        NameSearchDialog(
+            name = uiState.name,
+            openDialog = showDialog,
+            onNameChange = {
+                updateUiState(it, uiState.packageName, uiState.password)
+            },
+            appCardOnClick = { name, packageName ->
+                updateUiState(name, packageName, uiState.password)
+                showDialog = false
+            },
+            disableError = onClearError,
+            closeDialogBox = { showDialog = false },
+            installedApps = installedApps
+        )
     }
 }
