@@ -62,7 +62,7 @@ fun FeatureNameTextField(
         PackageNameText(packageName = packageName)
         if (isError)
             Text(
-                text = stringResource(R.string.error_message),
+                text = stringResource(R.string.name_error_message),
                 style = MaterialTheme.typography.labelMedium.copy(
                     color = MaterialTheme.colorScheme.error
                 )

@@ -1,4 +1,4 @@
-package com.example.beehive.ui.password
+package com.example.beehive.ui.password.add
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -42,7 +42,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun AddPasswordScreen(
-    navigateBack: () -> Unit,
+    onBack: () -> Unit,
     viewModel: AddPasswordViewModel = viewModel(factory = BeehiveViewModelProvider.Factory),
 ) {
     val coroutineScope = rememberCoroutineScope()
@@ -55,12 +55,12 @@ fun AddPasswordScreen(
             onClearError = { showError = false },
             uiState = viewModel.uiState,
             updateUiState = viewModel::updateUiState,
-            onBack = navigateBack,
+            onBack = onBack,
             onCreateClick = {
                 coroutineScope.launch {
                     val isCreated = viewModel.createPassword()
                     if (isCreated)
-                        navigateBack()
+                        onBack()
                     else
                         showError = true
 

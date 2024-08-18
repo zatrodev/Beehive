@@ -1,30 +1,38 @@
-package com.example.beehive.ui.password
+package com.example.beehive.ui.password.edit
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.beehive.data.passwords.Password
 import com.example.beehive.data.passwords.PasswordsRepository
 import com.example.beehive.domain.GetInstalledAppsUseCase
 import com.example.beehive.domain.GetInstalledAppsUseCase.InstalledApp
-import com.example.beehive.utils.generatePassword
+import com.example.beehive.ui.password.add.AddPasswordUiState
+import com.example.beehive.ui.password.add.toPassword
+import com.example.beehive.ui.password.add.toPasswordUiState
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
-class AddPasswordViewModel(
+class EditPasswordViewModel(
+    savedStateHandle: SavedStateHandle,
     private val passwordsRepository: PasswordsRepository,
     private val getInstalledAppsUseCase: GetInstalledAppsUseCase
 ) : ViewModel() {
+    var uiState by mutableStateOf(AddPasswordUiState())
     private var installedApps by mutableStateOf(emptyList<InstalledApp>())
-    var uiState by mutableStateOf(
-        AddPasswordUiState()
-    )
+    private val passwordId: Int = savedStateHandle.get<Int>("id")!!
 
     init {
         viewModelScope.launch {
             installedApps = getInstalledAppsUseCase()
             uiState.installedApps = installedApps
+            uiState = passwordsRepository.getPasswordStream(passwordId)
+                .filterNotNull()
+                .first()
+                .toPasswordUiState()
         }
     }
 
@@ -45,9 +53,9 @@ class AddPasswordViewModel(
             }
     }
 
-    suspend fun createPassword(): Boolean {
+    suspend fun updatePassword(): Boolean {
         if (validateInput()) {
-            passwordsRepository.insertPassword(uiState.toPassword(passwordsRepository.countPasswords() + 1))
+            passwordsRepository.updatePassword(uiState.toPassword(passwordId))
 
             return true
         }
@@ -59,23 +67,3 @@ class AddPasswordViewModel(
         return name.isNotBlank()
     }
 }
-
-data class AddPasswordUiState(
-    val name: String = "",
-    val packageName: String = "",
-    val password: String = generatePassword(1),
-    var installedApps: List<InstalledApp> = emptyList()
-)
-
-fun AddPasswordUiState.toPassword(id: Int): Password = Password(
-    id = id,
-    name = name,
-    uri = packageName,
-    password = password
-)
-
-fun Password.toPasswordUiState(): AddPasswordUiState = AddPasswordUiState(
-    name = name,
-    packageName = uri,
-    password = password,
-)

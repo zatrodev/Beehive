@@ -14,9 +14,12 @@
     <string name="checkbox_uppercase_label">Upper Case</string>
     <string name="checkbox_punctuations_label">Punctuations</string>
     <string name="checkbox_numbers_label">Numbers</string>
-    <string name="error_message">Site is empty!</string>
+    <string name="name_error_message">Name is empty!</string>
+    <string name="email_error_message">Email is empty!</string>
     <string name="search_bar_placeholder">Search your bees</string>
     <string name="an_error_has_occurred">An error has occurred!</string>
     <string name="retry_label">Try again?</string>
-    <string name="package_name_placeholder">com.example.placeholder</string>
+    <string name="package_name_placeholder">(custom password)</string>
+    <string name="input_user_description">Enter the email you usually use</string>
+    <string name="continue_label">Continue</string>
 </resources>

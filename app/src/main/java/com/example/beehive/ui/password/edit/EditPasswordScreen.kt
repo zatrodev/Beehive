@@ -1,4 +1,4 @@
-package com.example.beehive.ui.password
+package com.example.beehive.ui.password.edit
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -35,6 +35,8 @@ import com.example.beehive.ui.common.BeehiveButton
 import com.example.beehive.ui.common.BeehiveTextButton
 import com.example.beehive.ui.home.components.PasswordCard
 import com.example.beehive.ui.navigation.SharedElementTransition
+import com.example.beehive.ui.password.add.AddPasswordUiState
+import com.example.beehive.ui.password.add.OptionType
 import com.example.beehive.ui.password.components.FeatureNameTextField
 import com.example.beehive.ui.password.components.LengthSlider
 import com.example.beehive.ui.password.components.NameSearchDialog
@@ -45,7 +47,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun EditPasswordScreen(
-    navigateBack: () -> Unit,
+    onBack: () -> Unit,
     sharedElementTransition: SharedElementTransition,
     viewModel: EditPasswordViewModel = viewModel(factory = BeehiveViewModelProvider.Factory),
 ) {
@@ -59,11 +61,11 @@ fun EditPasswordScreen(
             onClearError = { isError = false },
             uiState = viewModel.uiState,
             updateUiState = viewModel::updateUiState,
-            onBack = navigateBack,
+            onBack = onBack,
             onDoneEditingClick = {
                 coroutineScope.launch {
                     if (viewModel.updatePassword())
-                        navigateBack()
+                        onBack()
                     else
                         isError = true
                 }
@@ -125,7 +127,7 @@ private fun EditPasswordContent(
     ) {
         Spacer(modifier = Modifier.weight(0.3f))
         PasswordCard(
-            name = uiState.name,
+            username = uiState.name,
             password = uiState.password,
             showPassword = showPassword,
             sharedElementTransition = sharedElementTransition,
