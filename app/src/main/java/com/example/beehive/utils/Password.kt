@@ -1,13 +1,13 @@
 package com.example.beehive.utils
 
-import com.example.beehive.data.passwords.Password
+import com.example.beehive.domain.GetPasswordsWithIconsOfUserUseCase.PasswordWithIcon
 
-fun List<Password>.filterByName(query: String): List<Password> {
+fun List<PasswordWithIcon>.filterByName(query: String): List<PasswordWithIcon> {
     if (query.isBlank()) {
         return this
     }
 
     return this.filter {
-        it.name.contains(query, ignoreCase = true)
+        it.self.name.contains(query, ignoreCase = true)
     }
 }

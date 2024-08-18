@@ -86,8 +86,8 @@ class BeehiveAutofillService : AutofillService() {
                         Dataset.Builder()
                             .setValue(
                                 usernameId!!,
-                                AutofillValue.forText(password.user.name),
-                                createPresentation(password.user.name)
+                                AutofillValue.forText(password.user.email),
+                                createPresentation(password.user.email)
                             )
                             .setValue(
                                 passwordId!!,

@@ -9,8 +9,9 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.beehive.ui.home.HomeScreen
-import com.example.beehive.ui.password.AddPasswordScreen
-import com.example.beehive.ui.password.EditPasswordScreen
+import com.example.beehive.ui.password.add.AddPasswordScreen
+import com.example.beehive.ui.password.edit.EditPasswordScreen
+import com.example.beehive.ui.password.view.ViewPasswordScreen
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -21,6 +22,9 @@ object AddPassword
 
 @Serializable
 data class EditPassword(val id: Int)
+
+@Serializable
+data class ViewPassword(val uri: String, val userId: Int)
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -34,12 +38,27 @@ fun BeehiveNavHost(
                     onNavigateToAddPassword = {
                         navController.navigate(route = AddPassword)
                     },
-                    onNavigateToEditPassword = {
+                    onNavigateToViewPassword = { uri, userId ->
                         navController.navigate(
-                            route = EditPassword(
-                                id = it,
+                            route = ViewPassword(
+                                uri = uri,
+                                userId = userId
                             )
                         )
+                    }
+                )
+            }
+            composable<AddPassword> {
+                AddPasswordScreen(
+                    onBack = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+            composable<EditPassword> {
+                EditPasswordScreen(
+                    onBack = {
+                        navController.popBackStack()
                     },
                     sharedElementTransition = SharedElementTransition(
                         sharedTransitionScope = this@SharedTransitionLayout,
@@ -47,17 +66,18 @@ fun BeehiveNavHost(
                     )
                 )
             }
-            composable<AddPassword> {
-                AddPasswordScreen(
-                    navigateBack = {
+
+            composable<ViewPassword> {
+                ViewPasswordScreen(
+                    onBack = {
                         navController.popBackStack()
-                    }
-                )
-            }
-            composable<EditPassword> {
-                EditPasswordScreen(
-                    navigateBack = {
-                        navController.popBackStack()
+                    },
+                    onNavigateToEditPassword = {
+                        navController.navigate(
+                            route = EditPassword(
+                                id = it,
+                            )
+                        )
                     },
                     sharedElementTransition = SharedElementTransition(
                         sharedTransitionScope = this@SharedTransitionLayout,

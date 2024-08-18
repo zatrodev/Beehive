@@ -10,13 +10,13 @@ import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.beehive.data.users.User
 import com.example.beehive.ui.Dimensions.ExtraSmallPadding
@@ -30,30 +30,32 @@ fun UserNavigationBar(
     BottomAppBar(
         actions = {
             users.mapIndexed { index, user ->
-                Surface(
+                TextButton(
+                    onClick = { onClick(user, index) },
                     shape = CircleShape,
                     modifier = Modifier
-                        .size(100.dp)
+                        .size(75.dp)
                 ) {
-                    IconButton(
-                        onClick = { onClick(user, index) },
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.padding(ExtraSmallPadding)
                     ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.Person,
-                                contentDescription = user.name,
-                                tint = MaterialTheme.colorScheme.onSurface,
-                            )
-                            Text(
-                                text = user.name,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                style = MaterialTheme.typography.labelMedium
-                            )
-                        }
+                        Icon(
+                            imageVector = Icons.Outlined.Person,
+                            contentDescription = user.email,
+                            tint = MaterialTheme.colorScheme.onSurface,
+                        )
+                        Text(
+                            text = user.email,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            style = MaterialTheme.typography.labelSmall,
+                            overflow = TextOverflow.Clip
+                        )
+
                     }
+
                 }
+
 
             }
         },

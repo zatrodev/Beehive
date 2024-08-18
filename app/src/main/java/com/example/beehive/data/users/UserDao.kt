@@ -11,8 +11,11 @@ interface UserDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(user: User)
 
-    @Query("SELECT * from users ORDER BY name ASC")
+    @Query("SELECT * from users ORDER BY email ASC")
     fun getAllUsers(): Flow<List<User>>
+
+    @Query("SELECT * from users WHERE email LIKE :email")
+    fun getUsersByEmail(email: String): Flow<List<User>>
 
     @Query("SELECT * from users WHERE id = :id")
     fun getUser(id: Int): Flow<User>

@@ -7,9 +7,12 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.beehive.BeehiveApplication
 import com.example.beehive.domain.GetInstalledAppsUseCase
+import com.example.beehive.domain.GetPasswordsOfUserByUriUseCase
+import com.example.beehive.domain.GetPasswordsWithIconsOfUserUseCase
 import com.example.beehive.ui.home.HomeViewModel
-import com.example.beehive.ui.password.AddPasswordViewModel
-import com.example.beehive.ui.password.EditPasswordViewModel
+import com.example.beehive.ui.password.add.AddPasswordViewModel
+import com.example.beehive.ui.password.edit.EditPasswordViewModel
+import com.example.beehive.ui.password.view.ViewPasswordViewModel
 
 object BeehiveViewModelProvider {
     val Factory = viewModelFactory {
@@ -31,8 +34,22 @@ object BeehiveViewModelProvider {
 
         initializer {
             HomeViewModel(
+                GetPasswordsWithIconsOfUserUseCase(
+                    beehiveApplication().container.passwordsRepository,
+                    GetInstalledAppsUseCase(beehiveApplication().container.packageManager)
+                ),
+                beehiveApplication().container.usersRepository,
+            )
+        }
+
+        initializer {
+            ViewPasswordViewModel(
+                this.createSavedStateHandle(),
                 beehiveApplication().container.passwordsRepository,
                 beehiveApplication().container.usersRepository,
+                GetPasswordsOfUserByUriUseCase(
+                    beehiveApplication().container.passwordsRepository,
+                )
             )
         }
     }

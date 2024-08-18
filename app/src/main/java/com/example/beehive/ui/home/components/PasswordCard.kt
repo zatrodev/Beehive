@@ -53,7 +53,7 @@ import com.example.beehive.ui.navigation.SharedElementTransition
 fun PasswordCard(
     modifier: Modifier = Modifier,
     id: Int? = null,
-    name: String,
+    username: String,
     password: String,
     showPassword: Boolean = false,
     onDelete: (Int) -> Unit = {},
@@ -97,7 +97,7 @@ fun PasswordCard(
                     .verticalScroll(rememberScrollState())
             ) {
                 Text(
-                    text = name,
+                    text = username,
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.primary
