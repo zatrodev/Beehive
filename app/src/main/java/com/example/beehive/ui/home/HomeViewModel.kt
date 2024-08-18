@@ -2,10 +2,10 @@ package com.example.beehive.ui.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.beehive.data.passwords.Password
-import com.example.beehive.data.passwords.PasswordsRepository
 import com.example.beehive.data.users.User
 import com.example.beehive.data.users.UsersRepository
+import com.example.beehive.domain.GetPasswordsWithIconsOfUserUseCase
+import com.example.beehive.domain.GetPasswordsWithIconsOfUserUseCase.PasswordWithIcon
 import com.example.beehive.utils.filterByName
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,12 +18,13 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class HomeViewModel(
-    private val passwordsRepository: PasswordsRepository,
-    usersRepository: UsersRepository,
+    private val getPasswordsWithIconsOfUserUseCase: GetPasswordsWithIconsOfUserUseCase,
+    private val usersRepository: UsersRepository,
 ) : ViewModel() {
     private val users = usersRepository.getAllUsersStream()
     private val _selectedUser = MutableStateFlow<User?>(null)
     private val _query = MutableStateFlow("")
+    private val _email = MutableStateFlow("")
     private val _homeUiState = MutableStateFlow<HomeScreenUiState>(HomeScreenUiState.Loading)
     private val refreshing = MutableStateFlow(false)
 
@@ -34,11 +35,17 @@ class HomeViewModel(
             combine(
                 users,
                 _query,
+                _email,
                 refreshing,
                 _selectedUser.flatMapLatest { selectedUser ->
-                    passwordsRepository.getPasswordsByUserIdStream(selectedUser?.id ?: 1)
+                    getPasswordsWithIconsOfUserUseCase(selectedUser?.id ?: 1)
                 }
-            ) { users, query, refreshing, featuredPasswords ->
+            ) { users, query, email, refreshing, userPasswords ->
+                if (users.isEmpty()) {
+                    return@combine HomeScreenUiState.InputUser(
+                        email = email,
+                    )
+                }
                 if (refreshing) {
                     return@combine HomeScreenUiState.Loading
                 }
@@ -46,7 +53,7 @@ class HomeViewModel(
                 HomeScreenUiState.Ready(
                     query = query,
                     users = users,
-                    featuredPasswords = featuredPasswords.filterByName(query),
+                    passwords = userPasswords.filterByName(query),
                 )
             }.catch { throwable ->
                 _homeUiState.value = HomeScreenUiState.Error(throwable.message)
@@ -67,6 +74,10 @@ class HomeViewModel(
 //        }
 //    }
 
+    fun onEmailChange(email: String) {
+        _email.value = email
+    }
+
     fun onQueryChange(query: String) {
         _query.value = query
     }
@@ -75,9 +86,9 @@ class HomeViewModel(
         _selectedUser.value = user
     }
 
-    fun deletePassword(id: Int) {
+    fun onCreateUser(email: String) {
         viewModelScope.launch {
-            passwordsRepository.deletePassword(id)
+            usersRepository.insertUser(User(1, email))
         }
     }
 }
@@ -89,9 +100,13 @@ sealed interface HomeScreenUiState {
         val errorMessage: String? = null
     ) : HomeScreenUiState
 
+    data class InputUser(
+        val email: String
+    ) : HomeScreenUiState
+
     data class Ready(
         val query: String,
         val users: List<User> = emptyList(),
-        val featuredPasswords: List<Password> = emptyList(),
+        val passwords: List<PasswordWithIcon> = emptyList(),
     ) : HomeScreenUiState
 }

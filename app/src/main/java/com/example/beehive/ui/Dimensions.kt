@@ -14,4 +14,5 @@ object Dimensions {
     val PasswordCardWidth = 120.dp
     val ShadowElevation = 8.dp
     val InstalledAppIconSize = 30.dp
+    val EmailTextFieldSize = 350.dp
 }
