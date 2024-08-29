@@ -9,6 +9,10 @@ import kotlinx.coroutines.withContext
 class GetInstalledAppsUseCase(
     private val packageManager: PackageManager
 ) {
+    companion object {
+        var installedApplications: List<ApplicationInfo> = emptyList()
+    }
+
     data class InstalledApp(
         val name: String,
         val packageName: String,
@@ -16,7 +20,12 @@ class GetInstalledAppsUseCase(
     )
 
     suspend operator fun invoke(): List<InstalledApp> = withContext(Dispatchers.IO) {
-        return@withContext packageManager.getInstalledApplications(0)
+        if (installedApplications.isEmpty()) {
+            installedApplications =
+                packageManager.getInstalledApplications(PackageManager.GET_META_DATA)
+        }
+
+        return@withContext installedApplications
             .filter {
                 (it.flags and ApplicationInfo.FLAG_SYSTEM) == 0
             }
@@ -31,6 +40,7 @@ class GetInstalledAppsUseCase(
                     it.name
                 }
             )
+
     }
 
 }

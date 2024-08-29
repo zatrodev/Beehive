@@ -10,4 +10,6 @@ interface UsersRepository {
     fun getUsersByEmailStream(email: String): Flow<List<User>>
 
     suspend fun insertUser(user: User)
+
+    suspend fun countUsers(): Int
 }

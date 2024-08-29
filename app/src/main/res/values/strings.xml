@@ -22,4 +22,9 @@
     <string name="package_name_placeholder">(custom password)</string>
     <string name="input_user_description">Enter the email you usually use</string>
     <string name="continue_label">Continue</string>
+    <string name="add_user_label">User\n</string>
+    <string name="add_password_label">Password\n</string>
+    <string name="add_user_desc">Enter a new email</string>
+    <string name="add_user_button">Create User</string>
+    <string name="no_username">blank</string>
 </resources>

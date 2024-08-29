@@ -7,7 +7,6 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.runtime.Composable
 import com.example.beehive.data.passwords.Password
 import com.example.beehive.ui.Dimensions.MediumPadding
-import com.example.beehive.ui.home.components.PasswordCard
 import com.example.beehive.ui.navigation.SharedElementTransition
 
 @Composable

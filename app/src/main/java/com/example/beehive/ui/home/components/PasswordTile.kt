@@ -4,7 +4,6 @@ import android.graphics.drawable.Drawable
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -17,6 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import com.example.beehive.ui.Dimensions.InstalledAppIconSize
@@ -27,19 +27,18 @@ import kotlin.math.roundToInt
 @Composable
 fun PasswordTile(
     name: String,
-    uri: String,
-    userId: Int,
     icon: Drawable?,
-    onNavigateToViewPassword: (String, Int) -> Unit,
+    onNavigateToViewPassword: (String) -> Unit,
+    backgroundColor: Color,
+    modifier: Modifier = Modifier,
+    uri: String = ""
 ) {
     Surface(
-        color = MaterialTheme.colorScheme.surfaceContainer,
+        color = backgroundColor,
         shape = RoundedCornerShape(RoundedCornerShape),
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(SmallPadding)
+        modifier = modifier
             .clickable {
-                onNavigateToViewPassword(uri, userId)
+                onNavigateToViewPassword(uri)
             }
     ) {
         Row(
@@ -64,12 +63,18 @@ fun PasswordTile(
                             }
                         })
             else
-                Icon(imageVector = Icons.Default.Person, contentDescription = null)
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onTertiaryContainer
+                )
 
             Text(
                 text = name,
                 modifier = Modifier.padding(SmallPadding),
-                style = MaterialTheme.typography.labelLarge
+                style = MaterialTheme.typography.labelLarge.copy(
+                    color = MaterialTheme.colorScheme.onSurface
+                )
             )
         }
     }

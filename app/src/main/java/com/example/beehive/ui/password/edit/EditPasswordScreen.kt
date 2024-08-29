@@ -33,7 +33,6 @@ import com.example.beehive.ui.Dimensions.LargePadding
 import com.example.beehive.ui.Dimensions.SmallPadding
 import com.example.beehive.ui.common.BeehiveButton
 import com.example.beehive.ui.common.BeehiveTextButton
-import com.example.beehive.ui.home.components.PasswordCard
 import com.example.beehive.ui.navigation.SharedElementTransition
 import com.example.beehive.ui.password.add.AddPasswordUiState
 import com.example.beehive.ui.password.add.OptionType
@@ -41,6 +40,7 @@ import com.example.beehive.ui.password.components.FeatureNameTextField
 import com.example.beehive.ui.password.components.LengthSlider
 import com.example.beehive.ui.password.components.NameSearchDialog
 import com.example.beehive.ui.password.components.OptionRow
+import com.example.beehive.ui.password.components.PasswordCard
 import com.example.beehive.utils.generatePassword
 import kotlinx.coroutines.launch
 

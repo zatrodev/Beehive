@@ -18,7 +18,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,7 +36,6 @@ import com.example.beehive.ui.password.components.NameTextField
 import com.example.beehive.ui.password.components.OptionRow
 import com.example.beehive.ui.password.components.PasswordDisplay
 import com.example.beehive.utils.generatePassword
-import kotlinx.coroutines.launch
 
 
 @Composable
@@ -45,7 +43,6 @@ fun AddPasswordScreen(
     onBack: () -> Unit,
     viewModel: AddPasswordViewModel = viewModel(factory = BeehiveViewModelProvider.Factory),
 ) {
-    val coroutineScope = rememberCoroutineScope()
     var showError by remember { mutableStateOf(false) }
 
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -57,13 +54,11 @@ fun AddPasswordScreen(
             updateUiState = viewModel::updateUiState,
             onBack = onBack,
             onCreateClick = {
-                coroutineScope.launch {
-                    val isCreated = viewModel.createPassword()
-                    if (isCreated)
-                        onBack()
-                    else
-                        showError = true
-
+                if (viewModel.uiState.name.isBlank())
+                    showError = true
+                else {
+                    viewModel.onCreatePassword()
+                    onBack()
                 }
             },
             modifier = Modifier.padding(innerPadding)

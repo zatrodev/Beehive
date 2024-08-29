@@ -24,6 +24,7 @@ class EditPasswordViewModel(
     var uiState by mutableStateOf(AddPasswordUiState())
     private var installedApps by mutableStateOf(emptyList<InstalledApp>())
     private val passwordId: Int = savedStateHandle.get<Int>("id")!!
+    private val userId: Int = savedStateHandle.get<Int>("userId")!!
 
     init {
         viewModelScope.launch {
@@ -55,7 +56,7 @@ class EditPasswordViewModel(
 
     suspend fun updatePassword(): Boolean {
         if (validateInput()) {
-            passwordsRepository.updatePassword(uiState.toPassword(passwordId))
+            passwordsRepository.updatePassword(uiState.toPassword(passwordId, userId))
 
             return true
         }

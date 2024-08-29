@@ -11,4 +11,5 @@ class UsersRepositoryImpl(private val userDao: UserDao) : UsersRepository {
         userDao.getUsersByEmail(email)
 
     override suspend fun insertUser(user: User) = userDao.insert(user)
+    override suspend fun countUsers(): Int = userDao.countUsers()
 }

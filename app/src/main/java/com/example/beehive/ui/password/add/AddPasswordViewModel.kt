@@ -3,6 +3,7 @@ package com.example.beehive.ui.password.add
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.beehive.data.passwords.Password
@@ -13,10 +14,12 @@ import com.example.beehive.utils.generatePassword
 import kotlinx.coroutines.launch
 
 class AddPasswordViewModel(
+    savedStateHandle: SavedStateHandle,
     private val passwordsRepository: PasswordsRepository,
     private val getInstalledAppsUseCase: GetInstalledAppsUseCase
 ) : ViewModel() {
     private var installedApps by mutableStateOf(emptyList<InstalledApp>())
+    private val userId: Int = savedStateHandle.get<Int>("userId")!!
     var uiState by mutableStateOf(
         AddPasswordUiState()
     )
@@ -45,18 +48,15 @@ class AddPasswordViewModel(
             }
     }
 
-    suspend fun createPassword(): Boolean {
-        if (validateInput()) {
-            passwordsRepository.insertPassword(uiState.toPassword(passwordsRepository.countPasswords() + 1))
-
-            return true
+    fun onCreatePassword() {
+        viewModelScope.launch {
+            passwordsRepository.insertPassword(
+                uiState.toPassword(
+                    passwordsRepository.countPasswords() + 1,
+                    userId
+                )
+            )
         }
-
-        return false
-    }
-
-    private fun validateInput(name: String = uiState.name): Boolean {
-        return name.isNotBlank()
     }
 }
 
@@ -67,11 +67,12 @@ data class AddPasswordUiState(
     var installedApps: List<InstalledApp> = emptyList()
 )
 
-fun AddPasswordUiState.toPassword(id: Int): Password = Password(
+fun AddPasswordUiState.toPassword(id: Int, userId: Int): Password = Password(
     id = id,
     name = name,
     uri = packageName,
-    password = password
+    password = password,
+    userId = userId
 )
 
 fun Password.toPasswordUiState(): AddPasswordUiState = AddPasswordUiState(
