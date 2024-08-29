@@ -56,6 +56,7 @@ android {
 dependencies {
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.autofill)
+    implementation(libs.androidx.material)
     annotationProcessor(libs.androidx.room.room.compiler7)
     ksp(libs.androidx.room.room.compiler7)
     implementation(libs.androidx.room.ktx)
