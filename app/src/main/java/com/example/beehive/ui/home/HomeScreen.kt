@@ -3,7 +3,6 @@ package com.example.beehive.ui.home
 import android.annotation.SuppressLint
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -17,8 +16,6 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -50,23 +47,30 @@ import com.example.beehive.ui.Dimensions.MediumPadding
 import com.example.beehive.ui.Dimensions.RoundedCornerShape
 import com.example.beehive.ui.Dimensions.SmallPadding
 import com.example.beehive.ui.common.BeehiveButton
+import com.example.beehive.ui.common.ErrorScreen
+import com.example.beehive.ui.common.LoadingScreen
 import com.example.beehive.ui.home.components.PasswordsList
 import com.example.beehive.ui.home.components.SearchBar
 import com.example.beehive.ui.home.components.UserNavigationBar
+import com.example.beehive.ui.navigation.SharedElementTransition
 import kotlinx.coroutines.launch
 
 @Composable
 fun HomeScreen(
-    onNavigateToAddPassword: () -> Unit,
+    onNavigateToAddPassword: (Int) -> Unit,
     onNavigateToViewPassword: (String, Int) -> Unit,
+    onNavigateToAddUser: () -> Unit,
+    sharedElementTransition: SharedElementTransition,
     viewModel: HomeViewModel = viewModel(factory = BeehiveViewModelProvider.Factory)
 ) {
     val homeScreenUiState by viewModel.homeUiState.collectAsStateWithLifecycle()
     when (val uiState = homeScreenUiState) {
-        is HomeScreenUiState.Loading -> HomeScreenLoading()
-        is HomeScreenUiState.Error -> HomeScreenError(
+        is HomeScreenUiState.Loading -> LoadingScreen()
+        is HomeScreenUiState.Error -> ErrorScreen(
             errorMessage = uiState.errorMessage ?: stringResource(R.string.an_error_has_occurred),
-            onRetry = {})
+            onRetry = {
+                // TODO: refresh
+            })
 
         is HomeScreenUiState.InputUser -> HomeScreenInputUser(
             email = uiState.email,
@@ -77,22 +81,14 @@ fun HomeScreen(
         is HomeScreenUiState.Ready -> HomeScreenReady(
             uiState = uiState,
             onNavigateToAddPassword = onNavigateToAddPassword,
-            onNavigateToViewPassword = onNavigateToViewPassword
+            onNavigateToViewPassword = onNavigateToViewPassword,
+            onNavigateToAddUser = onNavigateToAddUser,
+            sharedElementTransition = sharedElementTransition
         )
 
     }
 }
 
-@Composable
-private fun HomeScreenLoading(modifier: Modifier = Modifier) {
-    Surface(modifier.fillMaxSize()) {
-        Box {
-            CircularProgressIndicator(
-                modifier = Modifier.align(Alignment.Center)
-            )
-        }
-    }
-}
 
 @SuppressLint("UnrememberedMutableInteractionSource")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -170,38 +166,14 @@ private fun HomeScreenInputUser(
     }
 }
 
-@Composable
-private fun HomeScreenError(
-    errorMessage: String,
-    onRetry: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Surface(modifier = modifier) {
-        Column(
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxSize(),
-        ) {
-            Text(
-                text = stringResource(R.string.an_error_has_occurred),
-                modifier = Modifier.padding(SmallPadding)
-            )
-            Text(
-                text = errorMessage,
-                style = MaterialTheme.typography.bodySmall,
-            )
-            Button(onClick = onRetry) {
-                Text(text = stringResource(R.string.retry_label))
-            }
-        }
-    }
-}
 
 @Composable
 fun HomeScreenReady(
     uiState: HomeScreenUiState.Ready,
-    onNavigateToAddPassword: () -> Unit,
+    onNavigateToAddPassword: (Int) -> Unit,
     onNavigateToViewPassword: (String, Int) -> Unit,
+    onNavigateToAddUser: () -> Unit,
+    sharedElementTransition: SharedElementTransition,
     viewModel: HomeViewModel = viewModel(factory = BeehiveViewModelProvider.Factory)
 ) {
     val coroutineScope = rememberCoroutineScope()
@@ -219,7 +191,8 @@ fun HomeScreenReady(
                         pagerState.animateScrollToPage(index)
                     }
                 },
-                onAddPasswordClick = onNavigateToAddPassword
+                onAddPasswordClick = { onNavigateToAddPassword(viewModel.getActiveUserId()) },
+                onAddUserClick = onNavigateToAddUser
             )
         }
     ) { innerPadding ->
@@ -228,6 +201,8 @@ fun HomeScreenReady(
             pagerState = pagerState,
             onNavigateToViewPassword = onNavigateToViewPassword,
             onQueryChange = viewModel::onQueryChange,
+            refresh = viewModel::refresh,
+            sharedElementTransition = sharedElementTransition,
             modifier = Modifier.padding(innerPadding)
         )
     }
@@ -239,6 +214,8 @@ fun HomeContent(
     pagerState: PagerState,
     onNavigateToViewPassword: (String, Int) -> Unit,
     onQueryChange: (String) -> Unit,
+    refresh: () -> Unit,
+    sharedElementTransition: SharedElementTransition,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -274,8 +251,12 @@ fun HomeContent(
                 // TODO: fix pages (enable swipe)
                 HorizontalPager(state = pagerState) { page ->
                     PasswordsList(
+                        page = page,
                         passwords = uiState.passwords,
+                        refreshing = uiState.refreshing,
+                        refresh = refresh,
                         onNavigateToViewPassword = onNavigateToViewPassword,
+                        sharedElementTransition = sharedElementTransition
                     )
                 }
 

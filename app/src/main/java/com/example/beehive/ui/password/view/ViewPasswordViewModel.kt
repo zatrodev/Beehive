@@ -1,39 +1,66 @@
 package com.example.beehive.ui.password.view
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import android.graphics.drawable.Drawable
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.beehive.data.passwords.Password
 import com.example.beehive.data.passwords.PasswordsRepository
 import com.example.beehive.data.users.UsersRepository
+import com.example.beehive.domain.GetInstalledAppsUseCase
 import com.example.beehive.domain.GetPasswordsOfUserByUriUseCase
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
 class ViewPasswordViewModel(
     savedStateHandle: SavedStateHandle,
     private val passwordsRepository: PasswordsRepository,
     private val usersRepository: UsersRepository,
-    private val getPasswordsOfUserByUriUseCase: GetPasswordsOfUserByUriUseCase
+    private val getPasswordsOfUserByUriUseCase: GetPasswordsOfUserByUriUseCase,
+    private val getInstalledAppsUseCase: GetInstalledAppsUseCase
 ) : ViewModel() {
-    var uiState by mutableStateOf(ViewPasswordUiState())
+    private var _viewPasswordUiState =
+        MutableStateFlow<ViewPasswordUiState>(ViewPasswordUiState.Loading)
     private val uri: String = savedStateHandle.get<String>("uri")!!
     private val userId: Int = savedStateHandle.get<Int>("userId")!!
+    private val refreshing = MutableStateFlow(false)
+
+    var viewPasswordUiState: StateFlow<ViewPasswordUiState> = _viewPasswordUiState.asStateFlow()
 
     init {
         viewModelScope.launch {
-            uiState = ViewPasswordUiState(
-                // TODO: ask the user to add a default user for the application
-                email = usersRepository.getUserStream(userId).first().email,
-                passwords = getPasswordsOfUserByUriUseCase(uri, userId)
-                    .filterNotNull()
-                    .first()
-            )
+            combine(
+                refreshing,
+                usersRepository.getUserStream(userId),
+                getPasswordsOfUserByUriUseCase(uri, userId),
+            ) { refreshing, activeUser, passwords ->
+                if (refreshing)
+                    return@combine ViewPasswordUiState.Loading
+
+                ViewPasswordUiState.Ready(
+                    email = activeUser.email,
+                    name = passwords[0].name,
+                    icon = getInstalledAppsUseCase().find { it.packageName == uri }?.icon,
+                    passwords = passwords
+                )
+            }.catch { throwable ->
+                _viewPasswordUiState.value = ViewPasswordUiState.Error(throwable.message)
+            }.collect {
+                _viewPasswordUiState.value = it
+            }
         }
+    }
+
+    fun getUri(): String {
+        return uri
+    }
+
+    fun getActiveUserId(): Int {
+        return userId
     }
 
     fun deletePassword(id: Int) {
@@ -43,7 +70,17 @@ class ViewPasswordViewModel(
     }
 }
 
-data class ViewPasswordUiState(
-    val email: String = "",
-    val passwords: List<Password> = emptyList()
-)
+sealed interface ViewPasswordUiState {
+    data object Loading : ViewPasswordUiState
+
+    data class Error(
+        val errorMessage: String? = null
+    ) : ViewPasswordUiState
+
+    data class Ready(
+        val email: String = "",
+        val name: String = "",
+        val icon: Drawable? = null,
+        val passwords: List<Password> = emptyList()
+    ) : ViewPasswordUiState
+}

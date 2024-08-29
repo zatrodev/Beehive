@@ -26,7 +26,7 @@ class HomeViewModel(
     private val _query = MutableStateFlow("")
     private val _email = MutableStateFlow("")
     private val _homeUiState = MutableStateFlow<HomeScreenUiState>(HomeScreenUiState.Loading)
-    private val refreshing = MutableStateFlow(false)
+    private val _refreshing = MutableStateFlow(false)
 
     val homeUiState: StateFlow<HomeScreenUiState> = _homeUiState.asStateFlow()
 
@@ -36,7 +36,7 @@ class HomeViewModel(
                 users,
                 _query,
                 _email,
-                refreshing,
+                _refreshing,
                 _selectedUser.flatMapLatest { selectedUser ->
                     getPasswordsWithIconsOfUserUseCase(selectedUser?.id ?: 1)
                 }
@@ -54,6 +54,7 @@ class HomeViewModel(
                     query = query,
                     users = users,
                     passwords = userPasswords.filterByName(query),
+                    refreshing = refreshing
                 )
             }.catch { throwable ->
                 _homeUiState.value = HomeScreenUiState.Error(throwable.message)
@@ -63,16 +64,17 @@ class HomeViewModel(
         }
     }
 
-//    fun refresh() {
-//        viewModelScope.launch {
-//            runCatching {
-//                refreshing.value = true
-//                passwordsRepository.countPasswords()
-//            }.onSuccess {
-//                refreshing.value = false
-//            }
-//        }
-//    }
+    fun refresh() {
+        viewModelScope.launch {
+            _refreshing.value = true
+            _selectedUser.emit(User(getActiveUserId(), _email.value))
+            _refreshing.value = false
+        }
+    }
+
+    fun getActiveUserId(): Int {
+        return _selectedUser.value?.id ?: 1
+    }
 
     fun onEmailChange(email: String) {
         _email.value = email
@@ -108,5 +110,6 @@ sealed interface HomeScreenUiState {
         val query: String,
         val users: List<User> = emptyList(),
         val passwords: List<PasswordWithIcon> = emptyList(),
+        val refreshing: Boolean = false
     ) : HomeScreenUiState
 }
