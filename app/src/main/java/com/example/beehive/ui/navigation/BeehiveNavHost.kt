@@ -12,16 +12,20 @@ import com.example.beehive.ui.home.HomeScreen
 import com.example.beehive.ui.password.add.AddPasswordScreen
 import com.example.beehive.ui.password.edit.EditPasswordScreen
 import com.example.beehive.ui.password.view.ViewPasswordScreen
+import com.example.beehive.ui.user.AddUserScreen
 import kotlinx.serialization.Serializable
 
 @Serializable
 object Home
 
 @Serializable
-object AddPassword
+data class AddPassword(val userId: Int)
 
 @Serializable
-data class EditPassword(val id: Int)
+object AddUser
+
+@Serializable
+data class EditPassword(val id: Int, val userId: Int)
 
 @Serializable
 data class ViewPassword(val uri: String, val userId: Int)
@@ -35,8 +39,12 @@ fun BeehiveNavHost(
         NavHost(navController = navController, startDestination = Home) {
             composable<Home> {
                 HomeScreen(
-                    onNavigateToAddPassword = {
-                        navController.navigate(route = AddPassword)
+                    onNavigateToAddPassword = { userId ->
+                        navController.navigate(
+                            route = AddPassword(
+                                userId = userId
+                            )
+                        )
                     },
                     onNavigateToViewPassword = { uri, userId ->
                         navController.navigate(
@@ -45,7 +53,14 @@ fun BeehiveNavHost(
                                 userId = userId
                             )
                         )
-                    }
+                    },
+                    onNavigateToAddUser = {
+                        navController.navigate(route = AddUser)
+                    },
+                    sharedElementTransition = SharedElementTransition(
+                        sharedTransitionScope = this@SharedTransitionLayout,
+                        animatedContentScope = this@composable
+                    )
                 )
             }
             composable<AddPassword> {
@@ -55,6 +70,15 @@ fun BeehiveNavHost(
                     }
                 )
             }
+
+            composable<AddUser> {
+                AddUserScreen(
+                    onBack = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
             composable<EditPassword> {
                 EditPasswordScreen(
                     onBack = {
@@ -72,10 +96,11 @@ fun BeehiveNavHost(
                     onBack = {
                         navController.popBackStack()
                     },
-                    onNavigateToEditPassword = {
+                    onNavigateToEditPassword = { id, userId ->
                         navController.navigate(
                             route = EditPassword(
-                                id = it,
+                                id = id,
+                                userId = userId
                             )
                         )
                     },
@@ -85,6 +110,8 @@ fun BeehiveNavHost(
                     )
                 )
             }
+
+
         }
     }
 }

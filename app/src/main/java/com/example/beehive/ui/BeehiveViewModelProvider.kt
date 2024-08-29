@@ -13,11 +13,13 @@ import com.example.beehive.ui.home.HomeViewModel
 import com.example.beehive.ui.password.add.AddPasswordViewModel
 import com.example.beehive.ui.password.edit.EditPasswordViewModel
 import com.example.beehive.ui.password.view.ViewPasswordViewModel
+import com.example.beehive.ui.user.AddUserViewModel
 
 object BeehiveViewModelProvider {
     val Factory = viewModelFactory {
         initializer {
             AddPasswordViewModel(
+                this.createSavedStateHandle(),
                 beehiveApplication().container.passwordsRepository,
                 GetInstalledAppsUseCase(beehiveApplication().container.packageManager)
             )
@@ -49,7 +51,14 @@ object BeehiveViewModelProvider {
                 beehiveApplication().container.usersRepository,
                 GetPasswordsOfUserByUriUseCase(
                     beehiveApplication().container.passwordsRepository,
-                )
+                ),
+                GetInstalledAppsUseCase(beehiveApplication().container.packageManager)
+            )
+        }
+
+        initializer {
+            AddUserViewModel(
+                beehiveApplication().container.usersRepository
             )
         }
     }
