@@ -1,5 +1,6 @@
 package com.example.beehive.ui.password.edit
 
+import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -14,35 +15,37 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.beehive.R
-import com.example.beehive.domain.GetInstalledAppsUseCase.InstalledApp
 import com.example.beehive.ui.BeehiveViewModelProvider
 import com.example.beehive.ui.Dimensions.LargePadding
+import com.example.beehive.ui.Dimensions.MediumPadding
 import com.example.beehive.ui.Dimensions.SmallPadding
 import com.example.beehive.ui.common.BeehiveButton
 import com.example.beehive.ui.common.BeehiveTextButton
+import com.example.beehive.ui.common.BeehiveTextField
+import com.example.beehive.ui.home.components.PasswordTile
 import com.example.beehive.ui.navigation.SharedElementTransition
 import com.example.beehive.ui.password.add.AddPasswordUiState
 import com.example.beehive.ui.password.add.OptionType
-import com.example.beehive.ui.password.components.FeatureNameTextField
 import com.example.beehive.ui.password.components.LengthSlider
 import com.example.beehive.ui.password.components.NameSearchDialog
 import com.example.beehive.ui.password.components.OptionRow
 import com.example.beehive.ui.password.components.PasswordCard
 import com.example.beehive.utils.generatePassword
-import kotlinx.coroutines.launch
 
 
 @Composable
@@ -51,23 +54,24 @@ fun EditPasswordScreen(
     sharedElementTransition: SharedElementTransition,
     viewModel: EditPasswordViewModel = viewModel(factory = BeehiveViewModelProvider.Factory),
 ) {
-    val coroutineScope = rememberCoroutineScope()
-    var isError by remember { mutableStateOf(false) }
+    val uiState = viewModel.uiState
+    var showError by remember { mutableStateOf(false) }
 
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         EditPasswordContent(
-            installedApps = viewModel.uiState.installedApps,
-            isError = isError,
-            onClearError = { isError = false },
             uiState = viewModel.uiState,
-            updateUiState = viewModel::updateUiState,
+            onNameChange = viewModel::updateName,
+            onUsernameChange = viewModel::updateUsername,
+            onPasswordChange = viewModel::updatePassword,
+            isError = showError,
+            onClearError = { showError = false },
             onBack = onBack,
             onDoneEditingClick = {
-                coroutineScope.launch {
-                    if (viewModel.updatePassword())
-                        onBack()
-                    else
-                        isError = true
+                if (uiState.name.isBlank())
+                    showError = true
+                else {
+                    viewModel.updatePassword()
+                    onBack()
                 }
             },
             sharedElementTransition = sharedElementTransition,
@@ -76,14 +80,15 @@ fun EditPasswordScreen(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalSharedTransitionApi::class)
 @Composable
 private fun EditPasswordContent(
-    installedApps: List<InstalledApp>,
+    uiState: AddPasswordUiState,
     isError: Boolean,
     onClearError: () -> Unit,
-    uiState: AddPasswordUiState,
-    updateUiState: (String, String, String) -> Unit,
+    onNameChange: (String) -> Unit,
+    onUsernameChange: (String) -> Unit,
+    onPasswordChange: (String) -> Unit,
     onBack: () -> Unit,
     onDoneEditingClick: () -> Unit,
     sharedElementTransition: SharedElementTransition,
@@ -113,21 +118,18 @@ private fun EditPasswordContent(
         if (!showPassword)
             toggleShowPassword()
 
-        updateUiState(
-            uiState.name,
-            uiState.packageName,
-            generatePassword(sliderPosition, checkboxStates)
-        )
+        onPasswordChange(generatePassword(sliderPosition, checkboxStates))
     }
 
 
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(MediumPadding)
     ) {
-        Spacer(modifier = Modifier.weight(0.3f))
+        Spacer(modifier = Modifier.weight(1f))
         PasswordCard(
-            username = uiState.name,
+            username = uiState.username,
             password = uiState.password,
             showPassword = showPassword,
             sharedElementTransition = sharedElementTransition,
@@ -137,69 +139,104 @@ private fun EditPasswordContent(
                     toggleShowPassword()
                 }
         )
-        Spacer(modifier = Modifier.weight(0.3f))
-        Column(
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            FeatureNameTextField(
+        Spacer(modifier = Modifier.weight(1f))
+        with(sharedElementTransition.sharedTransitionScope) {
+            PasswordTile(
                 name = uiState.name,
-                packageName = uiState.packageName,
-                isError = isError,
-                onNameChange = {
+                icon = uiState.installedApps.find { it.packageName == uiState.packageName }?.icon,
+                backgroundColor = if (isError) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.tertiaryContainer,
+                onClick = { showDialog = true },
+                modifier = Modifier
+                    .sharedElement(
+                        sharedElementTransition.sharedTransitionScope.rememberSharedContentState(
+                            key = uiState.packageName
+                        ),
+                        animatedVisibilityScope = sharedElementTransition.animatedContentScope,
+                    )
+                    .padding(start = LargePadding, end = LargePadding)
+                    .align(Alignment.Start)
+            )
+        }
+        Surface(
+            shape = MaterialTheme.shapes.small,
+            color = MaterialTheme.colorScheme.surfaceContainer,
+            modifier = Modifier
+                .padding(start = LargePadding, end = LargePadding)
+        ) {
+            BeehiveTextField(
+                value = uiState.username,
+                onValueChange = { username ->
                     if (showPassword)
                         toggleShowPassword()
 
-                    updateUiState(it, uiState.packageName, uiState.password)
+                    onUsernameChange(username)
                     onClearError()
                 },
-                modifier = Modifier.clickable(
-                    enabled = true,
-                    onClick = { showDialog = true }
-                )
+                isError = isError,
+                labelColor = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(MediumPadding)
             )
-            LengthSlider(
-                length = sliderPosition,
-                onLengthChange = {
-                    if (!showPassword)
-                        toggleShowPassword()
+        }
+        Surface(
+            modifier = Modifier
+                .padding(start = LargePadding, end = LargePadding),
+            shape = MaterialTheme.shapes.small,
+            color = MaterialTheme.colorScheme.surfaceContainer
+        ) {
+            Column {
+                Text(
+                    text = "Password",
+                    style = MaterialTheme.typography.labelLarge.copy(
+                        fontWeight = FontWeight.ExtraBold
+                    ),
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(MediumPadding)
+                )
+                Column(
+                    verticalArrangement = Arrangement.Center,
+                ) {
+                    LengthSlider(
+                        length = sliderPosition,
+                        onLengthChange = {
+                            if (!showPassword)
+                                toggleShowPassword()
 
-                    sliderPosition = it.toInt()
-                    updateUiState(
-                        uiState.name,
-                        uiState.packageName,
-                        generatePassword(sliderPosition, checkboxStates)
-                    )
-                })
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(LargePadding)) {
-                    OptionRow(
-                        checked = checkboxStates[OptionType.LowerCase]!!,
-                        onCheckedChange = { onOptionChange(OptionType.LowerCase) },
-                        text = stringResource(R.string.checkbox_lowercase_label),
-                        isEnabled = checkboxStates.values.count { it } > 1 || !checkboxStates[OptionType.LowerCase]!!
-                    )
-                    OptionRow(
-                        checked = (checkboxStates[OptionType.UpperCase]!!),
-                        onCheckedChange = { onOptionChange(OptionType.UpperCase) },
-                        text = stringResource(R.string.checkbox_uppercase_label),
-                        isEnabled = checkboxStates.values.count { it } > 1 || !checkboxStates[OptionType.UpperCase]!!
-                    )
-                    OptionRow(
-                        checked = (checkboxStates[OptionType.Punctuations]!!),
-                        onCheckedChange = { onOptionChange(OptionType.Punctuations) },
-                        text = stringResource(R.string.checkbox_punctuations_label),
-                        isEnabled = checkboxStates.values.count { it } > 1 || !checkboxStates[OptionType.Punctuations]!!
-                    )
-                    OptionRow(
-                        checked = (checkboxStates[OptionType.Numbers]!!),
-                        onCheckedChange = { onOptionChange(OptionType.Numbers) },
-                        text = stringResource(R.string.checkbox_numbers_label),
-                        isEnabled = checkboxStates.values.count { it } > 1 || !checkboxStates[OptionType.Numbers]!!
-                    )
+                            sliderPosition = it.toInt()
+                            onPasswordChange(generatePassword(sliderPosition, checkboxStates))
+                        })
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        FlowRow(horizontalArrangement = Arrangement.spacedBy(LargePadding)) {
+                            OptionRow(
+                                checked = checkboxStates[OptionType.LowerCase]!!,
+                                onCheckedChange = { onOptionChange(OptionType.LowerCase) },
+                                text = stringResource(R.string.checkbox_lowercase_label),
+                                isEnabled = checkboxStates.values.count { it } > 1 || !checkboxStates[OptionType.LowerCase]!!
+                            )
+                            OptionRow(
+                                checked = (checkboxStates[OptionType.UpperCase]!!),
+                                onCheckedChange = { onOptionChange(OptionType.UpperCase) },
+                                text = stringResource(R.string.checkbox_uppercase_label),
+                                isEnabled = checkboxStates.values.count { it } > 1 || !checkboxStates[OptionType.UpperCase]!!
+                            )
+                            OptionRow(
+                                checked = (checkboxStates[OptionType.Punctuations]!!),
+                                onCheckedChange = { onOptionChange(OptionType.Punctuations) },
+                                text = stringResource(R.string.checkbox_punctuations_label),
+                                isEnabled = checkboxStates.values.count { it } > 1 || !checkboxStates[OptionType.Punctuations]!!
+                            )
+                            OptionRow(
+                                checked = (checkboxStates[OptionType.Numbers]!!),
+                                onCheckedChange = { onOptionChange(OptionType.Numbers) },
+                                text = stringResource(R.string.checkbox_numbers_label),
+                                isEnabled = checkboxStates.values.count { it } > 1 || !checkboxStates[OptionType.Numbers]!!
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -226,16 +263,14 @@ private fun EditPasswordContent(
         NameSearchDialog(
             name = uiState.name,
             openDialog = showDialog,
-            onNameChange = {
-                updateUiState(it, uiState.packageName, uiState.password)
-            },
-            appCardOnClick = { name, packageName ->
-                updateUiState(name, packageName, uiState.password)
+            onNameChange = onNameChange,
+            appCardOnClick = { name ->
+                onNameChange(name)
                 showDialog = false
             },
             disableError = onClearError,
             closeDialogBox = { showDialog = false },
-            installedApps = installedApps
+            installedApps = uiState.installedApps
         )
     }
 }
