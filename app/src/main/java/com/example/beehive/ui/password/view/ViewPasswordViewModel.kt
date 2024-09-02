@@ -25,7 +25,7 @@ class ViewPasswordViewModel(
 ) : ViewModel() {
     private var _viewPasswordUiState =
         MutableStateFlow<ViewPasswordUiState>(ViewPasswordUiState.Loading)
-    private val uri: String = savedStateHandle.get<String>("uri")!!
+    private val packageName: String = savedStateHandle.get<String>("packageName")!!
     private val userId: Int = savedStateHandle.get<Int>("userId")!!
     private val refreshing = MutableStateFlow(false)
 
@@ -36,15 +36,19 @@ class ViewPasswordViewModel(
             combine(
                 refreshing,
                 usersRepository.getUserStream(userId),
-                getPasswordsOfUserByUriUseCase(uri, userId),
+                getPasswordsOfUserByUriUseCase(packageName, userId),
             ) { refreshing, activeUser, passwords ->
+                if (passwords.isEmpty())
+                    return@combine ViewPasswordUiState.Back
+
                 if (refreshing)
                     return@combine ViewPasswordUiState.Loading
 
                 ViewPasswordUiState.Ready(
                     email = activeUser.email,
+                    packageName = packageName,
                     name = passwords[0].name,
-                    icon = getInstalledAppsUseCase().find { it.packageName == uri }?.icon,
+                    icon = getInstalledAppsUseCase().find { it.packageName == packageName }?.icon,
                     passwords = passwords
                 )
             }.catch { throwable ->
@@ -53,10 +57,6 @@ class ViewPasswordViewModel(
                 _viewPasswordUiState.value = it
             }
         }
-    }
-
-    fun getUri(): String {
-        return uri
     }
 
     fun getActiveUserId(): Int {
@@ -71,6 +71,7 @@ class ViewPasswordViewModel(
 }
 
 sealed interface ViewPasswordUiState {
+    data object Back : ViewPasswordUiState
     data object Loading : ViewPasswordUiState
 
     data class Error(
@@ -80,6 +81,7 @@ sealed interface ViewPasswordUiState {
     data class Ready(
         val email: String = "",
         val name: String = "",
+        val packageName: String = "",
         val icon: Drawable? = null,
         val passwords: List<Password> = emptyList()
     ) : ViewPasswordUiState

@@ -39,6 +39,7 @@ fun ViewPasswordScreen(
 ) {
     val viewPasswordUiState by viewModel.viewPasswordUiState.collectAsStateWithLifecycle()
     when (val uiState = viewPasswordUiState) {
+        is ViewPasswordUiState.Back -> onBack()
         is ViewPasswordUiState.Loading -> LoadingScreen()
         is ViewPasswordUiState.Error -> ErrorScreen(
             errorMessage = uiState.errorMessage
@@ -82,12 +83,11 @@ fun ViewPasswordReady(
                 PasswordTile(
                     name = uiState.name,
                     icon = uiState.icon,
-                    onNavigateToViewPassword = {},
                     backgroundColor = MaterialTheme.colorScheme.tertiaryContainer,
                     modifier = Modifier
                         .sharedElement(
                             sharedElementTransition.sharedTransitionScope.rememberSharedContentState(
-                                key = viewModel.getUri()
+                                key = uiState.packageName
                             ),
                             animatedVisibilityScope = sharedElementTransition.animatedContentScope,
                         )

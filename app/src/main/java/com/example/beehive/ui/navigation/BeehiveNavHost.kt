@@ -28,7 +28,7 @@ object AddUser
 data class EditPassword(val id: Int, val userId: Int)
 
 @Serializable
-data class ViewPassword(val uri: String, val userId: Int)
+data class ViewPassword(val packageName: String, val userId: Int)
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -49,7 +49,7 @@ fun BeehiveNavHost(
                     onNavigateToViewPassword = { uri, userId ->
                         navController.navigate(
                             route = ViewPassword(
-                                uri = uri,
+                                packageName = uri,
                                 userId = userId
                             )
                         )
