@@ -2,7 +2,6 @@ package com.example.beehive.ui.password.components
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -14,8 +13,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.beehive.ui.Dimensions.ExtraSmallPadding
 import com.example.beehive.ui.Dimensions.LargePadding
 import com.example.beehive.ui.Dimensions.RoundedCornerShape
 
@@ -29,21 +28,24 @@ fun PasswordDisplay(password: String) {
     Surface(
         modifier = Modifier
             .padding(LargePadding)
-            .fillMaxWidth()
-            .height(75.dp),
+            .fillMaxWidth(),
         shape = RoundedCornerShape(RoundedCornerShape),
         color = MaterialTheme.colorScheme.surfaceContainer
     ) {
         Box {
             Text(
                 text = password.length.toString(),
-                modifier = Modifier.padding(8.dp),
+                modifier = Modifier.padding(ExtraSmallPadding),
                 color = MaterialTheme.colorScheme.onSurface
             )
             Text(
                 text = password,
                 maxLines = 1,
-                modifier = Modifier.padding(LargePadding),
+                modifier = Modifier.padding(
+                    start = LargePadding,
+                    top = LargePadding,
+                    end = LargePadding
+                ),
                 fontSize = fontSizeValue.sp,
                 overflow = TextOverflow.Ellipsis,
                 color = MaterialTheme.colorScheme.onSurface

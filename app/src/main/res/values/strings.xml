@@ -9,6 +9,7 @@
     <string name="no">No</string>
     <string name="yes">Yes</string>
     <string name="name_placeholder">"Name"</string>
+    <string name="username_label">"Username"</string>
     <string name="site_label">"Site"</string>
     <string name="checkbox_lowercase_label">Lower Case</string>
     <string name="checkbox_uppercase_label">Upper Case</string>
@@ -27,4 +28,5 @@
     <string name="add_user_desc">Enter a new email</string>
     <string name="add_user_button">Create User</string>
     <string name="no_username">blank</string>
+    <string name="add_password_text">Add Password</string>
 </resources>

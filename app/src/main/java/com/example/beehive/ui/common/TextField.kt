@@ -42,7 +42,7 @@ fun BeehiveTextField(
             ),
             label = {
                 Text(
-                    text = stringResource(R.string.username_placeholder),
+                    text = stringResource(R.string.username_label),
                     style = MaterialTheme.typography.labelLarge.copy(
                         fontWeight = FontWeight.ExtraBold
                     ),

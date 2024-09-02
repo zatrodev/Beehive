@@ -11,6 +11,9 @@ object Dimensions {
     val RoundedCornerShape = 6.dp
     val SearchBarCornerShape = 30.dp
     val IconSize = 17.5f.dp
+    val UserIconSize = 25.dp
+    val NavIconSIze = 95.dp
+    val UserIconContainerSize = 75.dp
     val PasswordCardWidth = 120.dp
     val ShadowElevation = 8.dp
     val InstalledAppIconSize = 30.dp

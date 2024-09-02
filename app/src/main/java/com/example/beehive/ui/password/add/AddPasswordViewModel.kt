@@ -1,5 +1,6 @@
 package com.example.beehive.ui.password.add
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -8,9 +9,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.beehive.data.passwords.Password
 import com.example.beehive.data.passwords.PasswordsRepository
+import com.example.beehive.data.users.User
+import com.example.beehive.data.users.UsersRepository
 import com.example.beehive.domain.GetInstalledAppsUseCase
 import com.example.beehive.domain.GetInstalledAppsUseCase.InstalledApp
 import com.example.beehive.utils.generatePassword
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 interface PasswordInput {
@@ -41,6 +46,7 @@ interface PasswordInput {
 
 class AddPasswordViewModel(
     savedStateHandle: SavedStateHandle,
+    private val usersRepository: UsersRepository,
     private val passwordsRepository: PasswordsRepository,
     private val getInstalledAppsUseCase: GetInstalledAppsUseCase
 ) : ViewModel(), PasswordInput {
@@ -49,9 +55,12 @@ class AddPasswordViewModel(
 
     init {
         viewModelScope.launch {
+            Log.d("USER ID", userId.toString())
             uiState = uiState.copy(
+                user = usersRepository.getUserStream(userId).filterNotNull().first(),
                 installedApps = getInstalledAppsUseCase()
             )
+
         }
     }
 
@@ -72,6 +81,7 @@ data class AddPasswordUiState(
     val username: String = "",
     val packageName: String = "",
     val password: String = generatePassword(1),
+    val user: User? = null,
     var installedApps: List<InstalledApp> = emptyList()
 )
 

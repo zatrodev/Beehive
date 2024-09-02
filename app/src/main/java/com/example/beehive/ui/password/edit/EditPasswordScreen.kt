@@ -145,6 +145,7 @@ private fun EditPasswordContent(
                 name = uiState.name,
                 icon = uiState.installedApps.find { it.packageName == uiState.packageName }?.icon,
                 backgroundColor = if (isError) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.tertiaryContainer,
+                contentColor = if (isError) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onTertiaryContainer,
                 onClick = { showDialog = true },
                 modifier = Modifier
                     .sharedElement(
@@ -187,7 +188,7 @@ private fun EditPasswordContent(
         ) {
             Column {
                 Text(
-                    text = "Password",
+                    text = stringResource(R.string.add_password_label),
                     style = MaterialTheme.typography.labelLarge.copy(
                         fontWeight = FontWeight.ExtraBold
                     ),

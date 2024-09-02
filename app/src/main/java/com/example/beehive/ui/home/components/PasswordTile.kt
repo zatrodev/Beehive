@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -87,6 +88,7 @@ fun PasswordTile(
     name: String,
     onClick: () -> Unit,
     backgroundColor: Color,
+    contentColor: Color,
     modifier: Modifier = Modifier,
     icon: Drawable? = null,
 ) {
@@ -122,9 +124,9 @@ fun PasswordTile(
                         })
             else
                 Icon(
-                    imageVector = Icons.Default.Person,
+                    imageVector = Icons.Default.MoreVert,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onTertiaryContainer
+                    tint = contentColor
                 )
 
             ConditionalStyleText(
