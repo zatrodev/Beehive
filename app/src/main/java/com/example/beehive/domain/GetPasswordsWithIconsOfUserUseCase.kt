@@ -23,6 +23,8 @@ class GetPasswordsWithIconsOfUserUseCase(
                     password,
                     icons.find { it.packageName == password.uri }?.icon
                 )
+            }.distinctBy { password ->
+                password.self.name
             }
         }
     }

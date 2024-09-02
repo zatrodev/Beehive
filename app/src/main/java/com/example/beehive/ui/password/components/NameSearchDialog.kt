@@ -47,7 +47,7 @@ fun NameSearchDialog(
     name: String,
     openDialog: Boolean,
     onNameChange: (String) -> Unit,
-    appCardOnClick: (String, String) -> Unit,
+    appCardOnClick: (String) -> Unit,
     disableError: () -> Unit,
     closeDialogBox: () -> Unit,
     installedApps: List<InstalledApp>
@@ -127,12 +127,13 @@ fun NameSearchDialog(
                                 fontWeight = FontWeight.Bold
                             )
                             LazyColumn {
-                                items(installedApps) { (app, packageName, icon) ->
+                                items(installedApps) { (app, _, icon) ->
                                     InstalledAppCard(
                                         appName = app,
                                         appIcon = icon,
                                         onClick = {
-                                            appCardOnClick(app, packageName)
+                                            appCardOnClick(app)
+                                            disableError()
                                         },
                                         modifier = Modifier
                                             .fillMaxWidth()
@@ -173,7 +174,7 @@ fun PreviewNameSearchDialog() {
             name = "",
             onNameChange = {},
             openDialog = true,
-            appCardOnClick = { _, _ -> },
+            appCardOnClick = { _ -> },
             closeDialogBox = {},
             disableError = {},
             installedApps = emptyList()

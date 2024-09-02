@@ -30,6 +30,6 @@ interface PasswordDao {
     @Query("SELECT * from passwords ORDER BY name ASC")
     fun getAllPasswords(): Flow<List<Password>>
 
-    @Query("SELECT COUNT(*) FROM passwords")
+    @Query("SELECT MAX(id) from passwords")
     suspend fun countPasswords(): Int
 }

@@ -36,11 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.beehive.R
 import com.example.beehive.ui.Dimensions.ExtraSmallPadding
 import com.example.beehive.ui.Dimensions.IconSize
 import com.example.beehive.ui.Dimensions.MediumPadding
@@ -48,6 +44,7 @@ import com.example.beehive.ui.Dimensions.PasswordCardWidth
 import com.example.beehive.ui.Dimensions.RoundedCornerShape
 import com.example.beehive.ui.Dimensions.ShadowElevation
 import com.example.beehive.ui.Dimensions.SmallPadding
+import com.example.beehive.ui.common.ConditionalStyleText
 import com.example.beehive.ui.home.components.DeleteConfirmationDialog
 import com.example.beehive.ui.navigation.SharedElementTransition
 
@@ -100,15 +97,10 @@ fun PasswordCard(
                     .fillMaxWidth()
                     .verticalScroll(rememberScrollState())
             ) {
-                Text(
-                    text = username.ifBlank { stringResource(R.string.no_username) },
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.SemiBold,
-                        fontStyle = if (username.isBlank()) FontStyle.Italic else FontStyle.Normal,
-                        color = if (username.isBlank()) MaterialTheme.colorScheme.outlineVariant
-                        else MaterialTheme.colorScheme.onSurface
-                    ),
-                    modifier = Modifier.padding(SmallPadding)
+                ConditionalStyleText(
+                    text = username,
+                    fontSize = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
             Row(

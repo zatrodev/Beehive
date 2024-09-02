@@ -13,47 +13,54 @@ import com.example.beehive.domain.GetInstalledAppsUseCase.InstalledApp
 import com.example.beehive.utils.generatePassword
 import kotlinx.coroutines.launch
 
+interface PasswordInput {
+    var uiState: AddPasswordUiState
+    fun updateName(input: String) {
+        uiState = uiState.copy(
+            name = input,
+            packageName = uiState.installedApps.find { it.name == input }?.packageName ?: "",
+            installedApps = if (input.isBlank()) uiState.installedApps else uiState.installedApps.filter {
+                it.name.contains(input, ignoreCase = true)
+            }
+        )
+
+    }
+
+    fun updateUsername(input: String) {
+        uiState = uiState.copy(
+            username = input
+        )
+    }
+
+    fun updatePassword(input: String) {
+        uiState = uiState.copy(
+            password = input
+        )
+    }
+}
+
 class AddPasswordViewModel(
     savedStateHandle: SavedStateHandle,
     private val passwordsRepository: PasswordsRepository,
     private val getInstalledAppsUseCase: GetInstalledAppsUseCase
-) : ViewModel() {
-    private var installedApps by mutableStateOf(emptyList<InstalledApp>())
+) : ViewModel(), PasswordInput {
     private val userId: Int = savedStateHandle.get<Int>("userId")!!
-    var uiState by mutableStateOf(
-        AddPasswordUiState()
-    )
+    override var uiState by mutableStateOf(AddPasswordUiState())
 
     init {
         viewModelScope.launch {
-            installedApps = getInstalledAppsUseCase()
-            uiState.installedApps = installedApps
+            uiState = uiState.copy(
+                installedApps = getInstalledAppsUseCase()
+            )
         }
-    }
-
-    fun updateUiState(name: String, packageName: String, password: String) {
-        uiState = uiState.copy(
-            name = name,
-            packageName = packageName,
-            password = password
-        )
-
-        uiState.installedApps =
-            if (uiState.name.isBlank()) {
-                installedApps
-            } else {
-                installedApps.filter {
-                    it.name.contains(uiState.name, ignoreCase = true)
-                }
-            }
     }
 
     fun onCreatePassword() {
         viewModelScope.launch {
             passwordsRepository.insertPassword(
                 uiState.toPassword(
-                    passwordsRepository.countPasswords() + 1,
-                    userId
+                    id = passwordsRepository.countPasswords() + 1,
+                    userId = userId
                 )
             )
         }
@@ -62,6 +69,7 @@ class AddPasswordViewModel(
 
 data class AddPasswordUiState(
     val name: String = "",
+    val username: String = "",
     val packageName: String = "",
     val password: String = generatePassword(1),
     var installedApps: List<InstalledApp> = emptyList()
@@ -70,6 +78,7 @@ data class AddPasswordUiState(
 fun AddPasswordUiState.toPassword(id: Int, userId: Int): Password = Password(
     id = id,
     name = name,
+    username = username,
     uri = packageName,
     password = password,
     userId = userId
@@ -77,6 +86,7 @@ fun AddPasswordUiState.toPassword(id: Int, userId: Int): Password = Password(
 
 fun Password.toPasswordUiState(): AddPasswordUiState = AddPasswordUiState(
     name = name,
+    username = username,
     packageName = uri,
     password = password,
 )

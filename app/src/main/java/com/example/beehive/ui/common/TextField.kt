@@ -1,11 +1,8 @@
-package com.example.beehive.ui.password.components
+package com.example.beehive.ui.common
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -14,36 +11,30 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TextFieldDefaults.indicatorLine
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import com.example.beehive.R
 import com.example.beehive.ui.Dimensions.IndicatorLineThickness
-import com.example.beehive.ui.Dimensions.MediumPadding
-import com.example.beehive.ui.Dimensions.RoundedCornerShape
 
 @SuppressLint("UnrememberedMutableInteractionSource")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NameTextField(
-    name: String,
-    packageName: String,
-    onNameChange: (String) -> Unit,
+fun BeehiveTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
     isError: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    labelColor: Color = MaterialTheme.colorScheme.onSurface
 ) {
-    Column(
+    Box(
         modifier = modifier
-            .width(280.dp)
-            .padding(MediumPadding)
-            .clip(RoundedCornerShape(RoundedCornerShape))
     ) {
         TextField(
-            value = name,
-            onValueChange = onNameChange,
+            value = value,
+            onValueChange = onValueChange,
             maxLines = 1,
+            singleLine = true,
             colors = TextFieldDefaults.colors(
                 disabledContainerColor = Color.Transparent,
                 focusedContainerColor = Color.Transparent,
@@ -51,11 +42,11 @@ fun NameTextField(
             ),
             label = {
                 Text(
-                    text = stringResource(R.string.name_placeholder),
+                    text = stringResource(R.string.username_placeholder),
                     style = MaterialTheme.typography.labelLarge.copy(
                         fontWeight = FontWeight.ExtraBold
                     ),
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = labelColor
                 )
             },
             textStyle = MaterialTheme.typography.headlineSmall.copy(
@@ -74,15 +65,5 @@ fun NameTextField(
                 ),
 
             )
-        PackageNameText(packageName = packageName)
-        if (isError)
-            Text(
-                text = stringResource(R.string.name_error_message),
-                style = MaterialTheme.typography.labelMedium.copy(
-                    color = MaterialTheme.colorScheme.error
-                )
-            )
-
     }
-
 }
