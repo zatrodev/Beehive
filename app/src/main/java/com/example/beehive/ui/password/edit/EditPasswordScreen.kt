@@ -46,6 +46,7 @@ import com.example.beehive.ui.password.components.LengthSlider
 import com.example.beehive.ui.password.components.NameSearchDialog
 import com.example.beehive.ui.password.components.OptionRow
 import com.example.beehive.ui.password.components.PasswordCard
+import com.example.beehive.ui.password.components.PasswordDisplay
 import com.example.beehive.ui.password.components.UserDropdownMenu
 import com.example.beehive.utils.generatePassword
 
@@ -214,6 +215,10 @@ private fun EditPasswordContent(
                 Column(
                     verticalArrangement = Arrangement.Center,
                 ) {
+                    PasswordDisplay(
+                        password = uiState.password,
+                        onPasswordChange = onPasswordChange
+                    )
                     LengthSlider(
                         length = sliderPosition,
                         onLengthChange = {

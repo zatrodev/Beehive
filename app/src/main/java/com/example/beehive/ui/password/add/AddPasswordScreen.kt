@@ -174,7 +174,7 @@ private fun AddPasswordContent(
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(start = LargePadding, top = LargePadding)
                 )
-                PasswordDisplay(password = uiState.password)
+                PasswordDisplay(password = uiState.password, onPasswordChange = onPasswordChange)
                 LengthSlider(
                     length = sliderPosition,
                     onLengthChange = {
