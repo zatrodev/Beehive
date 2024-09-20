@@ -1,9 +1,11 @@
 package com.example.beehive.ui.navigation
 
 import androidx.compose.animation.AnimatedContentScope
+import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -36,9 +38,24 @@ data class ViewPassword(val packageName: String, val userId: Int)
 fun BeehiveNavHost(
     navController: NavHostController,
 ) {
+    val durationMillis = 700
     SharedTransitionLayout {
-        NavHost(navController = navController, startDestination = Home) {
-            composable<Home> {
+        NavHost(
+            navController = navController,
+            startDestination = Home,
+        ) {
+            composable<Home>(
+                exitTransition = {
+                    return@composable slideOutOfContainer(
+                        AnimatedContentTransitionScope.SlideDirection.End, tween(durationMillis)
+                    )
+                },
+                popEnterTransition = {
+                    return@composable slideIntoContainer(
+                        AnimatedContentTransitionScope.SlideDirection.Start, tween(durationMillis)
+                    )
+                }
+            ) {
                 HomeScreen(
                     onNavigateToAddPassword = { userId ->
                         navController.navigate(
@@ -65,7 +82,18 @@ fun BeehiveNavHost(
                 )
             }
 
-            composable<AddPassword> {
+            composable<AddPassword>(
+                enterTransition = {
+                    return@composable slideIntoContainer(
+                        AnimatedContentTransitionScope.SlideDirection.End, tween(durationMillis)
+                    )
+                },
+                popExitTransition = {
+                    return@composable slideOutOfContainer(
+                        AnimatedContentTransitionScope.SlideDirection.Start, tween(durationMillis)
+                    )
+                }
+            ) {
                 AddPasswordScreen(
                     onBack = {
                         navController.popBackStack()
@@ -73,7 +101,18 @@ fun BeehiveNavHost(
                 )
             }
 
-            composable<AddUser> {
+            composable<AddUser>(
+                enterTransition = {
+                    return@composable slideIntoContainer(
+                        AnimatedContentTransitionScope.SlideDirection.End, tween(durationMillis)
+                    )
+                },
+                popExitTransition = {
+                    return@composable slideOutOfContainer(
+                        AnimatedContentTransitionScope.SlideDirection.Start, tween(durationMillis)
+                    )
+                }
+            ) {
                 AddUserScreen(
                     onBack = {
                         navController.popBackStack()
