@@ -35,6 +35,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import com.example.beehive.ui.Dimensions.ExtraSmallPadding
@@ -47,6 +48,7 @@ import com.example.beehive.ui.Dimensions.SmallPadding
 import com.example.beehive.ui.common.ConditionalStyleText
 import com.example.beehive.ui.home.components.DeleteConfirmationDialog
 import com.example.beehive.ui.navigation.SharedElementTransition
+import com.example.beehive.utils.isDarkMode
 
 
 @OptIn(ExperimentalSharedTransitionApi::class)
@@ -59,7 +61,7 @@ fun PasswordCard(
     showPassword: Boolean = false,
     onDelete: (Int) -> Unit = {},
     onEdit: (Int) -> Unit = {},
-    sharedElementTransition: SharedElementTransition
+    sharedElementTransition: SharedElementTransition,
 ) {
     var localShowPassword by remember { mutableStateOf(showPassword) }
     var deleteConfirmationRequired by rememberSaveable { mutableStateOf(false) }
@@ -85,7 +87,7 @@ fun PasswordCard(
                 .size(PasswordCardWidth)
                 .padding(SmallPadding)
                 .shadow(
-                    elevation = ShadowElevation,
+                    elevation = if (isDarkMode(LocalContext.current)) 0.dp else ShadowElevation,
                     shape = RoundedCornerShape(RoundedCornerShape)
                 )
 

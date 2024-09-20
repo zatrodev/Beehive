@@ -17,9 +17,9 @@ fun OptionRow(
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
     text: String,
-    isEnabled: Boolean
+    isEnabled: Boolean,
 ) {
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.width(160.dp)) {
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.width(135.dp)) {
         Checkbox(
             checked = checked,
             onCheckedChange = onCheckedChange,
@@ -29,6 +29,6 @@ fun OptionRow(
                 checkmarkColor = MaterialTheme.colorScheme.onPrimaryContainer
             )
         )
-        Text(text = text)
+        Text(text = text, style = MaterialTheme.typography.bodySmall)
     }
 }

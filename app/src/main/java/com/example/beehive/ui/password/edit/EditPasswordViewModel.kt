@@ -7,7 +7,9 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.beehive.data.passwords.PasswordsRepository
+import com.example.beehive.data.users.UsersRepository
 import com.example.beehive.domain.GetInstalledAppsUseCase
+import com.example.beehive.domain.GetInstalledAppsUseCase.InstalledApp
 import com.example.beehive.ui.password.add.AddPasswordUiState
 import com.example.beehive.ui.password.add.PasswordInput
 import com.example.beehive.ui.password.add.toPassword
@@ -18,22 +20,27 @@ import kotlinx.coroutines.launch
 
 class EditPasswordViewModel(
     savedStateHandle: SavedStateHandle,
+    private val usersRepository: UsersRepository,
     private val passwordsRepository: PasswordsRepository,
-    private val getInstalledAppsUseCase: GetInstalledAppsUseCase
+    private val getInstalledAppsUseCase: GetInstalledAppsUseCase,
 ) : ViewModel(), PasswordInput {
     private val passwordId: Int = savedStateHandle.get<Int>("id")!!
     private val userId: Int = savedStateHandle.get<Int>("userId")!!
 
+    override var installedApps = emptyList<InstalledApp>()
     override var uiState by mutableStateOf(AddPasswordUiState())
 
     init {
         viewModelScope.launch {
+            installedApps = getInstalledAppsUseCase()
             uiState = passwordsRepository.getPasswordStream(passwordId)
                 .filterNotNull()
                 .first()
                 .toPasswordUiState()
                 .copy(
-                    installedApps = getInstalledAppsUseCase()
+                    user = usersRepository.getUserStream(userId).filterNotNull().first(),
+                    users = usersRepository.getAllUsersStream().filterNotNull().first(),
+                    installedApps = installedApps
                 )
         }
     }
@@ -43,7 +50,7 @@ class EditPasswordViewModel(
             passwordsRepository.updatePassword(
                 uiState.toPassword(
                     passwordId,
-                    userId
+                    uiState.user?.id ?: userId
                 )
             )
         }

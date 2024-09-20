@@ -23,6 +23,7 @@ import androidx.compose.ui.res.stringResource
 import com.example.beehive.R
 import com.example.beehive.data.users.User
 import com.example.beehive.ui.Dimensions.ExtraSmallPadding
+import com.example.beehive.ui.Dimensions.NavBarHeight
 import com.example.beehive.ui.Dimensions.NavIconSIze
 
 @Composable
@@ -37,7 +38,7 @@ fun UserNavigationBar(
     BottomAppBar(
         modifier = Modifier
             .fillMaxWidth()
-            .height(NavIconSIze),
+            .height(NavBarHeight),
         actions = {
             users.mapIndexed { index, user ->
                 UserButton(

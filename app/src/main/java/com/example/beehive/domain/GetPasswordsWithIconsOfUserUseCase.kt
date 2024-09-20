@@ -8,24 +8,24 @@ import kotlinx.coroutines.flow.map
 
 class GetPasswordsWithIconsOfUserUseCase(
     private val passwordsRepository: PasswordsRepository,
-    private val getInstalledAppsUseCase: GetInstalledAppsUseCase
+    private val getInstalledAppsUseCase: GetInstalledAppsUseCase,
 ) {
     data class PasswordWithIcon(
         val self: Password,
-        val icon: Drawable?
+        val icon: Drawable?,
     )
 
-    suspend operator fun invoke(userId: Int): Flow<List<PasswordWithIcon>> {
-        val icons = getInstalledAppsUseCase()
-        return passwordsRepository.getPasswordsByUserIdStream(userId).map { passwords ->
-            passwords.map { password ->
-                PasswordWithIcon(
-                    password,
-                    icons.find { it.packageName == password.uri }?.icon
-                )
-            }.distinctBy { password ->
-                password.self.name
+    suspend operator fun invoke(userId: Int): Flow<List<PasswordWithIcon>> =
+        passwordsRepository.getPasswordsByUserIdStream(userId)
+            .map { passwords ->
+                val icons =
+                    getInstalledAppsUseCase()
+                passwords.map { password ->
+                    PasswordWithIcon(
+                        password,
+                        icons.find { it.packageName == password.uri }?.icon
+                    )
+                }
             }
-        }
-    }
+            .map { it.distinctBy { password -> password.self.name } }
 }

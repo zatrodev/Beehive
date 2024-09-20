@@ -25,7 +25,7 @@ fun BeehiveTextField(
     onValueChange: (String) -> Unit,
     isError: Boolean,
     modifier: Modifier = Modifier,
-    labelColor: Color = MaterialTheme.colorScheme.onSurface
+    labelColor: Color = MaterialTheme.colorScheme.onSurface,
 ) {
     Box(
         modifier = modifier
@@ -43,13 +43,13 @@ fun BeehiveTextField(
             label = {
                 Text(
                     text = stringResource(R.string.username_label),
-                    style = MaterialTheme.typography.labelLarge.copy(
+                    style = MaterialTheme.typography.titleSmall.copy(
                         fontWeight = FontWeight.ExtraBold
                     ),
                     color = labelColor
                 )
             },
-            textStyle = MaterialTheme.typography.headlineSmall.copy(
+            textStyle = MaterialTheme.typography.bodyMedium.copy(
                 color = MaterialTheme.colorScheme.onSurface,
             ),
             modifier = Modifier

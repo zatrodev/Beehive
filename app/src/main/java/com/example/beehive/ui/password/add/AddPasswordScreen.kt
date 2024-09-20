@@ -8,10 +8,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -25,23 +23,22 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.beehive.R
+import com.example.beehive.data.users.User
 import com.example.beehive.ui.BeehiveViewModelProvider
 import com.example.beehive.ui.Dimensions.LargePadding
 import com.example.beehive.ui.Dimensions.MediumPadding
 import com.example.beehive.ui.Dimensions.SmallPadding
-import com.example.beehive.ui.Dimensions.UserIconContainerSize
 import com.example.beehive.ui.common.BeehiveButton
 import com.example.beehive.ui.common.BeehiveTextButton
 import com.example.beehive.ui.common.BeehiveTextField
 import com.example.beehive.ui.home.components.PasswordTile
-import com.example.beehive.ui.home.components.UserButton
 import com.example.beehive.ui.password.components.LengthSlider
 import com.example.beehive.ui.password.components.NameSearchDialog
 import com.example.beehive.ui.password.components.OptionRow
 import com.example.beehive.ui.password.components.PasswordDisplay
+import com.example.beehive.ui.password.components.UserDropdownMenu
 import com.example.beehive.utils.generatePassword
 
 
@@ -61,6 +58,7 @@ fun AddPasswordScreen(
             onNameChange = viewModel::updateName,
             onUsernameChange = viewModel::updateUsername,
             onPasswordChange = viewModel::updatePassword,
+            onUserChange = viewModel::updateUser,
             onBack = onBack,
             onCreateClick = {
                 if (uiState.name.isBlank())
@@ -86,6 +84,7 @@ private fun AddPasswordContent(
     onNameChange: (String) -> Unit,
     onUsernameChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
+    onUserChange: (User) -> Unit,
     onBack: () -> Unit,
     onCreateClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -116,16 +115,15 @@ private fun AddPasswordContent(
         ) {
             Text(
                 text = stringResource(R.string.add_password_text),
-                style = MaterialTheme.typography.headlineMedium,
+                style = MaterialTheme.typography.headlineSmall,
             )
             if (uiState.user != null)
-                UserButton(
-                    user = uiState.user,
-                    backgroundColor = MaterialTheme.colorScheme.secondaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                    onClick = {},
-                    modifier = Modifier.width(UserIconContainerSize)
+                UserDropdownMenu(
+                    activeUser = uiState.user,
+                    users = uiState.users,
+                    onClick = onUserChange
                 )
+
         }
         Spacer(modifier = Modifier.weight(1f))
         PasswordTile(
@@ -139,7 +137,7 @@ private fun AddPasswordContent(
         if (isError)
             Text(
                 text = stringResource(R.string.name_error_message),
-                style = MaterialTheme.typography.labelMedium.copy(
+                style = MaterialTheme.typography.bodySmall.copy(
                     color = MaterialTheme.colorScheme.error
                 ),
                 modifier = Modifier.padding(
@@ -172,9 +170,7 @@ private fun AddPasswordContent(
             Column {
                 Text(
                     text = stringResource(R.string.add_password_label),
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontWeight = FontWeight.ExtraBold
-                    ),
+                    style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(start = LargePadding, top = LargePadding)
                 )
@@ -186,7 +182,9 @@ private fun AddPasswordContent(
                         onPasswordChange(generatePassword(sliderPosition, checkboxStates))
                     })
                 Column(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(LargePadding),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(LargePadding)) {
@@ -222,8 +220,7 @@ private fun AddPasswordContent(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(LargePadding)
-                .navigationBarsPadding(),
+                .padding(LargePadding),
             horizontalArrangement = Arrangement.End
         ) {
             BeehiveTextButton(text = stringResource(R.string.back_button), onClick = onBack)

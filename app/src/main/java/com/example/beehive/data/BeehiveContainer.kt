@@ -11,6 +11,7 @@ interface BeehiveContainer {
     val passwordsRepository: PasswordsRepository
     val usersRepository: UsersRepository
     val packageManager: PackageManager
+    val context: Context
 }
 
 class BeehiveContainerImpl(private val applicationContext: Context) : BeehiveContainer {
@@ -25,4 +26,5 @@ class BeehiveContainerImpl(private val applicationContext: Context) : BeehiveCon
     override val packageManager: PackageManager
         get() = applicationContext.packageManager
 
+    override val context: Context = applicationContext
 }

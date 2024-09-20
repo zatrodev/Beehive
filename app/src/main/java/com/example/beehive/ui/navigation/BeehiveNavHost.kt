@@ -15,6 +15,7 @@ import com.example.beehive.ui.password.view.ViewPasswordScreen
 import com.example.beehive.ui.user.AddUserScreen
 import kotlinx.serialization.Serializable
 
+
 @Serializable
 object Home
 
@@ -33,7 +34,7 @@ data class ViewPassword(val packageName: String, val userId: Int)
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun BeehiveNavHost(
-    navController: NavHostController
+    navController: NavHostController,
 ) {
     SharedTransitionLayout {
         NavHost(navController = navController, startDestination = Home) {
@@ -63,6 +64,7 @@ fun BeehiveNavHost(
                     )
                 )
             }
+
             composable<AddPassword> {
                 AddPasswordScreen(
                     onBack = {
@@ -110,8 +112,6 @@ fun BeehiveNavHost(
                     )
                 )
             }
-
-
         }
     }
 }

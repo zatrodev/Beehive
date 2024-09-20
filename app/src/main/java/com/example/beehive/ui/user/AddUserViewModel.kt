@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class AddUserViewModel(
-    private val usersRepository: UsersRepository
+    private val usersRepository: UsersRepository,
 ) : ViewModel() {
     private val _email = MutableStateFlow("")
     val email = _email.asStateFlow()
@@ -20,7 +20,7 @@ class AddUserViewModel(
 
     fun onCreateUser(email: String) {
         viewModelScope.launch {
-            usersRepository.insertUser(User(id = usersRepository.countUsers(), email = email))
+            usersRepository.insertUser(User(id = usersRepository.countUsers() + 1, email = email))
         }
     }
 }

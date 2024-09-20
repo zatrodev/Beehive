@@ -6,6 +6,8 @@ import androidx.navigation.compose.rememberNavController
 import com.example.beehive.ui.navigation.BeehiveNavHost
 
 @Composable
-fun BeehiveApp(navController: NavHostController = rememberNavController()) {
+fun BeehiveApp(
+    navController: NavHostController = rememberNavController(),
+) {
     BeehiveNavHost(navController = navController)
 }

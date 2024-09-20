@@ -27,7 +27,7 @@ fun PasswordDisplay(password: String) {
     }
     Surface(
         modifier = Modifier
-            .padding(LargePadding)
+            .padding(start = LargePadding, end = LargePadding, bottom = LargePadding)
             .fillMaxWidth(),
         shape = RoundedCornerShape(RoundedCornerShape),
         color = MaterialTheme.colorScheme.surfaceContainer

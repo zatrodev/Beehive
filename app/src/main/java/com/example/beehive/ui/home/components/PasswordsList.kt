@@ -27,7 +27,7 @@ fun PasswordsList(
     refreshing: Boolean,
     refresh: () -> Unit,
     onNavigateToViewPassword: (String, Int) -> Unit,
-    sharedElementTransition: SharedElementTransition
+    sharedElementTransition: SharedElementTransition,
 ) {
     val pullRefreshState = rememberPullRefreshState(refreshing, refresh)
 
@@ -43,8 +43,8 @@ fun PasswordsList(
                 with(sharedElementTransition.sharedTransitionScope) {
                     PasswordTile(
                         name = password.self.name,
-                        uri = password.self.uri,
                         icon = password.icon,
+                        packageName = password.self.uri,
                         onNavigateToViewPassword = { email ->
                             onNavigateToViewPassword(
                                 email,

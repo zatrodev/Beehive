@@ -34,7 +34,7 @@ fun UserButton(
         shape = CircleShape,
         colors = ButtonDefaults.textButtonColors(
             containerColor = backgroundColor,
-            contentColor = MaterialTheme.colorScheme.onSurface // Set content color directly
+            contentColor = MaterialTheme.colorScheme.onSurface
         ),
         modifier = modifier
     ) {
@@ -48,14 +48,13 @@ fun UserButton(
                 tint = contentColor,
                 modifier = Modifier.size(UserIconSize)
             )
-            if (backgroundColor == Color.Transparent)
-                Text(
-                    text = user.email.split("@")[0],
-                    color = MaterialTheme.colorScheme.onSurface,
-                    style = MaterialTheme.typography.labelSmall,
-                    textAlign = TextAlign.Center,
-                    overflow = TextOverflow.Clip
-                )
+            Text(
+                text = user.email.split("@")[0],
+                color = MaterialTheme.colorScheme.onSurface,
+                style = MaterialTheme.typography.labelSmall,
+                textAlign = TextAlign.Center,
+                overflow = TextOverflow.Clip
+            )
         }
     }
 }

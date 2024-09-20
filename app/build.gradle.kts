@@ -9,12 +9,12 @@ plugins {
 
 android {
     namespace = "com.example.beehive"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.example.beehive"
         minSdk = 28
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
@@ -57,6 +57,8 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.autofill)
     implementation(libs.androidx.material)
+    implementation(libs.androidx.biometric.ktx)
+    implementation(libs.androidx.appcompat)
     annotationProcessor(libs.androidx.room.room.compiler7)
     ksp(libs.androidx.room.room.compiler7)
     implementation(libs.androidx.room.ktx)

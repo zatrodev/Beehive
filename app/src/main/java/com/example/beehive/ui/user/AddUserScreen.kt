@@ -1,6 +1,7 @@
 package com.example.beehive.ui.user
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -35,7 +36,7 @@ import com.example.beehive.R
 import com.example.beehive.ui.BeehiveViewModelProvider
 import com.example.beehive.ui.Dimensions.EmailTextFieldSize
 import com.example.beehive.ui.Dimensions.IndicatorLineThickness
-import com.example.beehive.ui.Dimensions.MediumPadding
+import com.example.beehive.ui.Dimensions.LargePadding
 import com.example.beehive.ui.Dimensions.RoundedCornerShape
 import com.example.beehive.ui.Dimensions.SmallPadding
 import com.example.beehive.ui.common.BeehiveButton
@@ -44,7 +45,7 @@ import com.example.beehive.ui.common.BeehiveTextButton
 @Composable
 fun AddUserScreen(
     onBack: () -> Unit,
-    viewModel: AddUserViewModel = viewModel(factory = BeehiveViewModelProvider.Factory)
+    viewModel: AddUserViewModel = viewModel(factory = BeehiveViewModelProvider.Factory),
 ) {
     val email by viewModel.email.collectAsStateWithLifecycle()
 
@@ -53,7 +54,11 @@ fun AddUserScreen(
             email = email,
             onBack = onBack,
             onEmailChange = viewModel::onEmailChange,
-            onCreateUser = viewModel::onCreateUser,
+            onCreateUser = { email ->
+                Log.d("EMAIL", email)
+                viewModel.onCreateUser(email)
+                onBack()
+            },
             modifier = Modifier.padding(it)
         )
     }
@@ -67,7 +72,7 @@ fun AddUserContent(
     onBack: () -> Unit,
     onEmailChange: (String) -> Unit,
     onCreateUser: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     var isError by remember { mutableStateOf(false) }
 
@@ -118,7 +123,7 @@ fun AddUserContent(
             verticalAlignment = Alignment.Bottom,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(MediumPadding)
+                .padding(LargePadding)
                 .navigationBarsPadding()
         ) {
             BeehiveTextButton(text = stringResource(R.string.back_button), onClick = onBack)

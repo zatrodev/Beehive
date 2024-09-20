@@ -30,6 +30,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.beehive.R
+import com.example.beehive.data.users.User
 import com.example.beehive.ui.BeehiveViewModelProvider
 import com.example.beehive.ui.Dimensions.LargePadding
 import com.example.beehive.ui.Dimensions.MediumPadding
@@ -45,6 +46,7 @@ import com.example.beehive.ui.password.components.LengthSlider
 import com.example.beehive.ui.password.components.NameSearchDialog
 import com.example.beehive.ui.password.components.OptionRow
 import com.example.beehive.ui.password.components.PasswordCard
+import com.example.beehive.ui.password.components.UserDropdownMenu
 import com.example.beehive.utils.generatePassword
 
 
@@ -63,6 +65,7 @@ fun EditPasswordScreen(
             onNameChange = viewModel::updateName,
             onUsernameChange = viewModel::updateUsername,
             onPasswordChange = viewModel::updatePassword,
+            onUserChange = viewModel::updateUser,
             isError = showError,
             onClearError = { showError = false },
             onBack = onBack,
@@ -89,10 +92,11 @@ private fun EditPasswordContent(
     onNameChange: (String) -> Unit,
     onUsernameChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
+    onUserChange: (User) -> Unit,
     onBack: () -> Unit,
     onDoneEditingClick: () -> Unit,
     sharedElementTransition: SharedElementTransition,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     var showDialog by remember { mutableStateOf(false) }
@@ -127,7 +131,7 @@ private fun EditPasswordContent(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(MediumPadding)
     ) {
-        Spacer(modifier = Modifier.weight(1f))
+        Spacer(modifier = Modifier.weight(1.5f))
         PasswordCard(
             username = uiState.username,
             password = uiState.password,
@@ -140,23 +144,35 @@ private fun EditPasswordContent(
                 }
         )
         Spacer(modifier = Modifier.weight(1f))
-        with(sharedElementTransition.sharedTransitionScope) {
-            PasswordTile(
-                name = uiState.name,
-                icon = uiState.installedApps.find { it.packageName == uiState.packageName }?.icon,
-                backgroundColor = if (isError) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.tertiaryContainer,
-                contentColor = if (isError) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onTertiaryContainer,
-                onClick = { showDialog = true },
-                modifier = Modifier
-                    .sharedElement(
-                        sharedElementTransition.sharedTransitionScope.rememberSharedContentState(
-                            key = uiState.packageName
-                        ),
-                        animatedVisibilityScope = sharedElementTransition.animatedContentScope,
-                    )
-                    .padding(start = LargePadding, end = LargePadding)
-                    .align(Alignment.Start)
-            )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = LargePadding)
+        ) {
+            with(sharedElementTransition.sharedTransitionScope) {
+                PasswordTile(
+                    name = uiState.name,
+                    icon = uiState.installedApps.find { it.packageName == uiState.packageName }?.icon,
+                    backgroundColor = if (isError) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.tertiaryContainer,
+                    contentColor = if (isError) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onTertiaryContainer,
+                    onClick = { showDialog = true },
+                    modifier = Modifier
+                        .sharedElement(
+                            sharedElementTransition.sharedTransitionScope.rememberSharedContentState(
+                                key = uiState.packageName
+                            ),
+                            animatedVisibilityScope = sharedElementTransition.animatedContentScope,
+                        )
+                )
+            }
+            if (uiState.user != null)
+                UserDropdownMenu(
+                    activeUser = uiState.user,
+                    users = uiState.users,
+                    onClick = onUserChange
+                )
         }
         Surface(
             shape = MaterialTheme.shapes.small,
@@ -208,7 +224,9 @@ private fun EditPasswordContent(
                             onPasswordChange(generatePassword(sliderPosition, checkboxStates))
                         })
                     Column(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(LargePadding),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         FlowRow(horizontalArrangement = Arrangement.spacedBy(LargePadding)) {

@@ -99,17 +99,17 @@ sealed interface HomeScreenUiState {
     data object Loading : HomeScreenUiState
 
     data class Error(
-        val errorMessage: String? = null
+        val errorMessage: String? = null,
     ) : HomeScreenUiState
 
     data class InputUser(
-        val email: String
+        val email: String,
     ) : HomeScreenUiState
 
     data class Ready(
         val query: String,
         val users: List<User> = emptyList(),
         val passwords: List<PasswordWithIcon> = emptyList(),
-        val refreshing: Boolean = false
+        val refreshing: Boolean = false,
     ) : HomeScreenUiState
 }
