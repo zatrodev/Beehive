@@ -12,9 +12,11 @@ import android.service.autofill.FillResponse
 import android.service.autofill.SaveCallback
 import android.service.autofill.SaveInfo
 import android.service.autofill.SaveRequest
+import android.view.View
 import android.view.autofill.AutofillId
 import android.view.autofill.AutofillValue
 import android.widget.RemoteViews
+import com.example.beehive.R
 import com.example.beehive.data.BeehiveContainer
 import com.example.beehive.data.BeehiveContainerImpl
 import com.example.beehive.data.passwords.Password
@@ -50,7 +52,7 @@ class BeehiveAutofillService : AutofillService() {
     override fun onFillRequest(
         request: FillRequest,
         cancellationSignal: CancellationSignal,
-        callback: FillCallback
+        callback: FillCallback,
     ) {
         /*
         TODO: account for more than two text fields (?)
@@ -62,11 +64,6 @@ class BeehiveAutofillService : AutofillService() {
         val (usernameId: AutofillId?, passwordId: AutofillId?, _, _, appUri: String) = parseStructure(
             structure
         )
-
-        if (usernameId == null && passwordId == null) {
-            callback.onFailure("No text fields found")
-            return
-        }
 
         coroutineScope.launch {
             getPasswordsWithUserByUriUseCase(appUri).collectLatest { passwords ->
@@ -80,17 +77,26 @@ class BeehiveAutofillService : AutofillService() {
                     return@collectLatest
                 }
 
+                if (usernameId == null || passwordId == null) {
+                    callback.onFailure("Unable to autofill.")
+                    return@collectLatest
+                }
+
                 val fillResponseBuilder = FillResponse.Builder()
-                passwords.forEach { password ->
+                passwords.forEachIndexed { i, password ->
                     fillResponseBuilder.addDataset(
                         Dataset.Builder()
                             .setValue(
-                                usernameId!!,
-                                AutofillValue.forText(password.user.email),
-                                createPresentation(password.user.email)
+                                usernameId,
+                                AutofillValue.forText(password.username.ifBlank { password.user.email }),
+                                createPresentation(
+                                    password.username,
+                                    password.user.email,
+                                    isFirstIteration = i == 0
+                                )
                             )
                             .setValue(
-                                passwordId!!,
+                                passwordId,
                                 AutofillValue.forText(password.password)
                             )
                             .build()
@@ -195,12 +201,24 @@ class BeehiveAutofillService : AutofillService() {
         return null
     }
 
-    private fun createPresentation(text: String): RemoteViews {
-        val newPresentation = RemoteViews(packageName, android.R.layout.simple_list_item_1)
-        newPresentation.setTextViewText(
-            android.R.id.text1,
-            text
-        )
+    private fun createPresentation(
+        title: String = "",
+        subtitle: String = "",
+        isFirstIteration: Boolean = true,
+    ): RemoteViews {
+        val newPresentation =
+            RemoteViews(packageName, R.xml.password_autofill)
+
+        if (isFirstIteration)
+            newPresentation.setViewVisibility(R.id.app_name, View.VISIBLE)
+
+        if (title.isBlank()) {
+            newPresentation.setTextViewText(R.id.line_a, subtitle)
+            newPresentation.setTextViewText(R.id.line_b, "<no username>")
+        } else {
+            newPresentation.setTextViewText(R.id.line_a, title)
+            newPresentation.setTextViewText(R.id.line_b, subtitle)
+        }
 
         return newPresentation
     }
@@ -211,6 +229,6 @@ data class ParsedStructure(
     var passwordId: AutofillId? = null,
     var usernameValue: String = "",
     var passwordValue: String = "",
-    var appUri: String = ""
+    var appUri: String = "",
 )
 

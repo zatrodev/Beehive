@@ -10,18 +10,19 @@ import kotlinx.coroutines.flow.map
 
 class GetPasswordsWithUserByUriUseCase(
     private val passwordsRepository: PasswordsRepository,
-    private val usersRepository: UsersRepository
+    private val usersRepository: UsersRepository,
 ) {
     data class PasswordWithUser(
         val password: String,
-        val user: User
+        val username: String,
+        val user: User,
     )
 
     operator fun invoke(uri: String): Flow<List<PasswordWithUser>> =
         passwordsRepository.getPasswordsByUriStream(uri).map { passwords ->
             passwords.map { password ->
                 val user = usersRepository.getUserStream(password.userId).filterNotNull().first()
-                PasswordWithUser(password.password, user)
+                PasswordWithUser(password.password, password.username, user)
             }
         }
 
