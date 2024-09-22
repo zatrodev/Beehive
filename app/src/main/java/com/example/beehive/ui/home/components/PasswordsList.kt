@@ -2,6 +2,7 @@ package com.example.beehive.ui.home.components
 
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -23,20 +24,20 @@ import com.example.beehive.ui.navigation.SharedElementTransition
 @Composable
 fun PasswordsList(
     page: Int,
-    passwords: List<PasswordWithIcon>,
-    refreshing: Boolean,
+    isRefreshing: Boolean,
     refresh: () -> Unit,
+    passwords: List<PasswordWithIcon>,
     onNavigateToViewPassword: (String, Int) -> Unit,
     sharedElementTransition: SharedElementTransition,
 ) {
-    val pullRefreshState = rememberPullRefreshState(refreshing, refresh)
+    val pullRefreshState = rememberPullRefreshState(isRefreshing, refresh)
 
     Box(
-        modifier = Modifier
-            .pullRefresh(pullRefreshState)
+        modifier = Modifier.pullRefresh(pullRefreshState)
     ) {
         LazyColumn(
             modifier = Modifier
+                .fillMaxSize()
                 .padding(MediumPadding)
         ) {
             items(passwords) { password ->
@@ -66,7 +67,7 @@ fun PasswordsList(
             }
         }
         PullRefreshIndicator(
-            refreshing = refreshing,
+            refreshing = isRefreshing,
             state = pullRefreshState,
             modifier = Modifier.align(Alignment.TopCenter)
         )

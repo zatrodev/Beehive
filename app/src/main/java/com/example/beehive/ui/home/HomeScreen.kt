@@ -61,16 +61,15 @@ fun HomeScreen(
     onNavigateToViewPassword: (String, Int) -> Unit,
     onNavigateToAddUser: () -> Unit,
     sharedElementTransition: SharedElementTransition,
-    viewModel: HomeViewModel = viewModel(factory = BeehiveViewModelProvider.Factory)
+    viewModel: HomeViewModel = viewModel(factory = BeehiveViewModelProvider.Factory),
 ) {
     val homeScreenUiState by viewModel.homeUiState.collectAsStateWithLifecycle()
     when (val uiState = homeScreenUiState) {
         is HomeScreenUiState.Loading -> LoadingScreen()
         is HomeScreenUiState.Error -> ErrorScreen(
             errorMessage = uiState.errorMessage ?: stringResource(R.string.an_error_has_occurred),
-            onRetry = {
-                // TODO: refresh
-            })
+            onRetry = viewModel::refresh
+        )
 
         is HomeScreenUiState.InputUser -> HomeScreenInputUser(
             email = uiState.email,
@@ -97,7 +96,7 @@ private fun HomeScreenInputUser(
     email: String,
     onEmailChange: (String) -> Unit,
     onCreateUser: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     var isError by remember { mutableStateOf(false) }
 
@@ -174,7 +173,7 @@ fun HomeScreenReady(
     onNavigateToViewPassword: (String, Int) -> Unit,
     onNavigateToAddUser: () -> Unit,
     sharedElementTransition: SharedElementTransition,
-    viewModel: HomeViewModel = viewModel(factory = BeehiveViewModelProvider.Factory)
+    viewModel: HomeViewModel = viewModel(factory = BeehiveViewModelProvider.Factory),
 ) {
     val coroutineScope = rememberCoroutineScope()
     val pagerState = rememberPagerState(pageCount = { uiState.users.size })
@@ -216,12 +215,10 @@ fun HomeContent(
     onQueryChange: (String) -> Unit,
     refresh: () -> Unit,
     sharedElementTransition: SharedElementTransition,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = modifier
-            .navigationBarsPadding()
-
+        modifier = modifier.navigationBarsPadding()
     ) {
         Spacer(modifier = Modifier.height(LargePadding))
         Text(
@@ -253,7 +250,7 @@ fun HomeContent(
                     PasswordsList(
                         page = page,
                         passwords = uiState.passwords,
-                        refreshing = uiState.refreshing,
+                        isRefreshing = uiState.isRefreshing,
                         refresh = refresh,
                         onNavigateToViewPassword = onNavigateToViewPassword,
                         sharedElementTransition = sharedElementTransition

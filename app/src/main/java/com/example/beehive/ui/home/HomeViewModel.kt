@@ -26,7 +26,7 @@ class HomeViewModel(
     private val _query = MutableStateFlow("")
     private val _email = MutableStateFlow("")
     private val _homeUiState = MutableStateFlow<HomeScreenUiState>(HomeScreenUiState.Loading)
-    private val _refreshing = MutableStateFlow(false)
+    private val _isRefreshing = MutableStateFlow(false)
 
     val homeUiState: StateFlow<HomeScreenUiState> = _homeUiState.asStateFlow()
 
@@ -36,25 +36,22 @@ class HomeViewModel(
                 users,
                 _query,
                 _email,
-                _refreshing,
+                _isRefreshing,
                 _selectedUser.flatMapLatest { selectedUser ->
                     getPasswordsWithIconsOfUserUseCase(selectedUser?.id ?: 1)
                 }
-            ) { users, query, email, refreshing, userPasswords ->
+            ) { users, query, email, isRefreshing, userPasswords ->
                 if (users.isEmpty()) {
                     return@combine HomeScreenUiState.InputUser(
                         email = email,
                     )
-                }
-                if (refreshing) {
-                    return@combine HomeScreenUiState.Loading
                 }
 
                 HomeScreenUiState.Ready(
                     query = query,
                     users = users,
                     passwords = userPasswords.filterByName(query),
-                    refreshing = refreshing
+                    isRefreshing = isRefreshing
                 )
             }.catch { throwable ->
                 _homeUiState.value = HomeScreenUiState.Error(throwable.message)
@@ -66,9 +63,9 @@ class HomeViewModel(
 
     fun refresh() {
         viewModelScope.launch {
-            _refreshing.value = true
+            _isRefreshing.value = true
             _selectedUser.emit(User(getActiveUserId(), _email.value))
-            _refreshing.value = false
+            _isRefreshing.value = false
         }
     }
 
@@ -110,6 +107,6 @@ sealed interface HomeScreenUiState {
         val query: String,
         val users: List<User> = emptyList(),
         val passwords: List<PasswordWithIcon> = emptyList(),
-        val refreshing: Boolean = false,
+        val isRefreshing: Boolean = false,
     ) : HomeScreenUiState
 }
