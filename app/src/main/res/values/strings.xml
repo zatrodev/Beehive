@@ -30,6 +30,4 @@
     <string name="no_username">blank</string>
     <string name="add_password_text">Add Password</string>
     <string name="subtitle">The password manager for you.</string>
-    <string name="prompt_title">Login with your Biometrics</string>
-    <string name="fingerprint_title">Biometrics Login\n</string>
 </resources>

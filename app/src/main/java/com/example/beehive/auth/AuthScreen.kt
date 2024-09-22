@@ -36,12 +36,15 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.beehive.R
 import com.example.beehive.auth.BiometricPromptManager.BiometricResult
 import com.example.beehive.ui.Dimensions.SmallPadding
+import kotlinx.coroutines.delay
 
 
 @Composable
 fun AuthScreen(
     onNavigateToHome: () -> Unit,
+    returnToService: () -> Unit,
     promptManager: BiometricPromptManager,
+    isFromService: Boolean,
 ) {
     Box(
         modifier = Modifier
@@ -65,7 +68,6 @@ fun AuthScreen(
                     onResult = {
                         println(it)
                     })
-
 
             LaunchedEffect(biometricResult) {
                 if (biometricResult is BiometricResult.AuthenticationNotSet) {
@@ -110,10 +112,21 @@ fun AuthScreen(
             }
 
             biometricResult?.takeIf { it is BiometricResult.AuthenticationSuccess }?.let {
+                if (isFromService) {
+                    returnToService()
+                    return
+                }
+
                 onNavigateToHome()
+
             }
         }
 
+        if (isFromService)
+            LaunchedEffect(Unit) {
+                delay(500)
+                promptManager.authenticateWithBiometric("Authenticate Autofill")
+            }
 //            Surface(
 //                color = Color.Transparent,
 //                shape = MaterialTheme.shapes.small,

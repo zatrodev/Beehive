@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
-class GetPasswordsWithUserByUriUseCase(
+class GetPasswordWithUserUseCase(
     private val passwordsRepository: PasswordsRepository,
     private val usersRepository: UsersRepository,
 ) {
@@ -19,13 +19,9 @@ class GetPasswordsWithUserByUriUseCase(
         val user: User,
     )
 
-    operator fun invoke(uri: String): Flow<List<PasswordWithUser>> =
-        passwordsRepository.getPasswordsByUriStream(uri).map { passwords ->
-            passwords.map { password ->
-                val user = usersRepository.getUserStream(password.userId).filterNotNull().first()
-                PasswordWithUser(password.id, password.password, password.username, user)
-            }
+    operator fun invoke(id: Int): Flow<PasswordWithUser> =
+        passwordsRepository.getPasswordStream(id).map { password ->
+            val user = usersRepository.getUserStream(password.userId).filterNotNull().first()
+            PasswordWithUser(password.id, password.password, password.username, user)
         }
-
 }
-

@@ -1,6 +1,9 @@
 package com.example.beehive.service.autofill
 
+import android.app.PendingIntent
 import android.app.assist.AssistStructure
+import android.content.Intent
+import android.content.IntentSender
 import android.os.Bundle
 import android.os.CancellationSignal
 import android.service.autofill.AutofillService
@@ -17,6 +20,7 @@ import android.view.autofill.AutofillId
 import android.view.autofill.AutofillValue
 import android.widget.RemoteViews
 import com.example.beehive.R
+import com.example.beehive.auth.AuthActivity
 import com.example.beehive.data.BeehiveContainer
 import com.example.beehive.data.BeehiveContainerImpl
 import com.example.beehive.data.passwords.Password
@@ -38,6 +42,32 @@ class BeehiveAutofillService : AutofillService() {
 
     companion object {
         private const val DEFAULT_NEW_PASSWORD_LENGTH = 12
+
+        const val EXTRA_PASSWORD_ID = "passwordId"
+        const val EXTRA_FROM_SERVICE = "fromService"
+
+        fun createPresentation(
+            packageName: String,
+            title: String = "",
+            subtitle: String = "",
+            isFirstIteration: Boolean = true,
+        ): RemoteViews {
+            val newPresentation =
+                RemoteViews(packageName, R.xml.password_autofill)
+
+            if (isFirstIteration)
+                newPresentation.setViewVisibility(R.id.app_name, View.VISIBLE)
+
+            if (title.isBlank()) {
+                newPresentation.setTextViewText(R.id.line_a, subtitle)
+                newPresentation.setTextViewText(R.id.line_b, "<no username>")
+            } else {
+                newPresentation.setTextViewText(R.id.line_a, title)
+                newPresentation.setTextViewText(R.id.line_b, subtitle)
+            }
+
+            return newPresentation
+        }
     }
 
     override fun onConnected() {
@@ -54,16 +84,13 @@ class BeehiveAutofillService : AutofillService() {
         cancellationSignal: CancellationSignal,
         callback: FillCallback,
     ) {
-        /*
-        TODO: account for more than two text fields (?)
-              save request
-        */
         val context: List<FillContext> = request.fillContexts
         val structure: AssistStructure = context[context.size - 1].structure
 
         val (usernameId: AutofillId?, passwordId: AutofillId?, _, _, appUri: String) = parseStructure(
             structure
         )
+
 
         coroutineScope.launch {
             getPasswordsWithUserByUriUseCase(appUri).collectLatest { passwords ->
@@ -88,16 +115,16 @@ class BeehiveAutofillService : AutofillService() {
                         Dataset.Builder()
                             .setValue(
                                 usernameId,
-                                AutofillValue.forText(password.username.ifBlank { password.user.email }),
+                                null,
                                 createPresentation(
+                                    packageName,
                                     password.username,
                                     password.user.email,
                                     isFirstIteration = i == 0
                                 )
                             )
-                            .setValue(
-                                passwordId,
-                                AutofillValue.forText(password.password)
+                            .setAuthentication(
+                                createIntentSender(password.id)
                             )
                             .build()
                     )
@@ -137,6 +164,21 @@ class BeehiveAutofillService : AutofillService() {
     override fun onDestroy() {
         super.onDestroy()
         job.cancel()
+    }
+
+    private fun createIntentSender(passwordId: Int): IntentSender {
+        val authIntent = Intent(this, AuthActivity::class.java).apply {
+            putExtra(EXTRA_PASSWORD_ID, passwordId)
+            putExtra(EXTRA_FROM_SERVICE, true)
+        }
+        val intentSender: IntentSender = PendingIntent.getActivity(
+            this,
+            passwordId,
+            authIntent,
+            PendingIntent.FLAG_MUTABLE
+        ).intentSender
+
+        return intentSender
     }
 
     private fun requestSignUp(usernameId: AutofillId?, passwordId: AutofillId?): FillResponse? {
@@ -201,27 +243,7 @@ class BeehiveAutofillService : AutofillService() {
         return null
     }
 
-    private fun createPresentation(
-        title: String = "",
-        subtitle: String = "",
-        isFirstIteration: Boolean = true,
-    ): RemoteViews {
-        val newPresentation =
-            RemoteViews(packageName, R.xml.password_autofill)
 
-        if (isFirstIteration)
-            newPresentation.setViewVisibility(R.id.app_name, View.VISIBLE)
-
-        if (title.isBlank()) {
-            newPresentation.setTextViewText(R.id.line_a, subtitle)
-            newPresentation.setTextViewText(R.id.line_b, "<no username>")
-        } else {
-            newPresentation.setTextViewText(R.id.line_a, title)
-            newPresentation.setTextViewText(R.id.line_b, subtitle)
-        }
-
-        return newPresentation
-    }
 }
 
 data class ParsedStructure(
