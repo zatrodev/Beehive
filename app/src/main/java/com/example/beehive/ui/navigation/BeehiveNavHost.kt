@@ -10,10 +10,9 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.beehive.ui.credential.add.AddCredentialScreen
+import com.example.beehive.ui.credential.edit.EditCredentialScreen
 import com.example.beehive.ui.home.HomeScreen
-import com.example.beehive.ui.password.add.AddPasswordScreen
-import com.example.beehive.ui.password.edit.EditPasswordScreen
-import com.example.beehive.ui.password.view.ViewPasswordScreen
 import com.example.beehive.ui.user.AddUserScreen
 import kotlinx.serialization.Serializable
 
@@ -29,9 +28,6 @@ object AddUser
 
 @Serializable
 data class EditPassword(val id: Int, val userId: Int)
-
-@Serializable
-data class ViewPassword(val packageName: String, val userId: Int)
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -64,10 +60,10 @@ fun BeehiveNavHost(
                             )
                         )
                     },
-                    onNavigateToViewPassword = { uri, userId ->
+                    onNavigateToEditPassword = { id, userId ->
                         navController.navigate(
-                            route = ViewPassword(
-                                packageName = uri,
+                            route = EditPassword(
+                                id = id,
                                 userId = userId
                             )
                         )
@@ -94,7 +90,7 @@ fun BeehiveNavHost(
                     )
                 }
             ) {
-                AddPasswordScreen(
+                AddCredentialScreen(
                     onBack = {
                         navController.popBackStack()
                     }
@@ -121,29 +117,9 @@ fun BeehiveNavHost(
             }
 
             composable<EditPassword> {
-                EditPasswordScreen(
+                EditCredentialScreen(
                     onBack = {
                         navController.popBackStack()
-                    },
-                    sharedElementTransition = SharedElementTransition(
-                        sharedTransitionScope = this@SharedTransitionLayout,
-                        animatedContentScope = this@composable
-                    )
-                )
-            }
-
-            composable<ViewPassword> {
-                ViewPasswordScreen(
-                    onBack = {
-                        navController.popBackStack()
-                    },
-                    onNavigateToEditPassword = { id, userId ->
-                        navController.navigate(
-                            route = EditPassword(
-                                id = id,
-                                userId = userId
-                            )
-                        )
                     },
                     sharedElementTransition = SharedElementTransition(
                         sharedTransitionScope = this@SharedTransitionLayout,

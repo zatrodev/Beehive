@@ -6,31 +6,29 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.beehive.BeehiveApplication
+import com.example.beehive.domain.GetCategorizedCredentialsWithUserByPackageUseCase
 import com.example.beehive.domain.GetInstalledAppsUseCase
-import com.example.beehive.domain.GetPasswordsOfUserByUriUseCase
-import com.example.beehive.domain.GetPasswordsWithIconsOfUserUseCase
+import com.example.beehive.ui.credential.add.AddCredentialViewModel
+import com.example.beehive.ui.credential.edit.EditCredentialViewModel
 import com.example.beehive.ui.home.HomeViewModel
-import com.example.beehive.ui.password.add.AddPasswordViewModel
-import com.example.beehive.ui.password.edit.EditPasswordViewModel
-import com.example.beehive.ui.password.view.ViewPasswordViewModel
 import com.example.beehive.ui.user.AddUserViewModel
 
 object BeehiveViewModelProvider {
     val Factory = viewModelFactory {
         initializer {
-            AddPasswordViewModel(
+            AddCredentialViewModel(
                 this.createSavedStateHandle(),
-                beehiveApplication().container.usersRepository,
-                beehiveApplication().container.passwordsRepository,
+                beehiveApplication().container.userRepository,
+                beehiveApplication().container.credentialRepository,
                 GetInstalledAppsUseCase(beehiveApplication().container.packageManager)
             )
         }
 
         initializer {
-            EditPasswordViewModel(
+            EditCredentialViewModel(
                 this.createSavedStateHandle(),
-                beehiveApplication().container.usersRepository,
-                beehiveApplication().container.passwordsRepository,
+                beehiveApplication().container.userRepository,
+                beehiveApplication().container.credentialRepository,
                 GetInstalledAppsUseCase(beehiveApplication().container.packageManager)
 
             )
@@ -38,29 +36,18 @@ object BeehiveViewModelProvider {
 
         initializer {
             HomeViewModel(
-                GetPasswordsWithIconsOfUserUseCase(
-                    beehiveApplication().container.passwordsRepository,
+                beehiveApplication().container.credentialRepository,
+                beehiveApplication().container.userRepository,
+                GetCategorizedCredentialsWithUserByPackageUseCase(
+                    beehiveApplication().container.userRepository,
                     GetInstalledAppsUseCase(beehiveApplication().container.packageManager)
-                ),
-                beehiveApplication().container.usersRepository,
-            )
-        }
-
-        initializer {
-            ViewPasswordViewModel(
-                this.createSavedStateHandle(),
-                beehiveApplication().container.passwordsRepository,
-                beehiveApplication().container.usersRepository,
-                GetPasswordsOfUserByUriUseCase(
-                    beehiveApplication().container.passwordsRepository,
-                ),
-                GetInstalledAppsUseCase(beehiveApplication().container.packageManager)
+                )
             )
         }
 
         initializer {
             AddUserViewModel(
-                beehiveApplication().container.usersRepository
+                beehiveApplication().container.userRepository
             )
         }
     }

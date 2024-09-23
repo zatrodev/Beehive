@@ -15,7 +15,7 @@ object Dimensions {
     val UserIconSize = 25.dp
     val NavIconSIze = 95.dp
     val UserIconContainerHeight = 65.dp
-    val PasswordCardWidth = 120.dp
+    val PasswordCardHeight = 120.dp
     val ShadowElevation = 8.dp
     val InstalledAppIconSize = 30.dp
     val EmailTextFieldSize = 350.dp

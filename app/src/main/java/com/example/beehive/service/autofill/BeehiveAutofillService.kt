@@ -23,8 +23,9 @@ import com.example.beehive.R
 import com.example.beehive.auth.AuthActivity
 import com.example.beehive.data.BeehiveContainer
 import com.example.beehive.data.BeehiveContainerImpl
-import com.example.beehive.data.passwords.Password
-import com.example.beehive.domain.GetPasswordsWithUserByUriUseCase
+import com.example.beehive.data.credential.Credential
+import com.example.beehive.data.credential.PasswordApp
+import com.example.beehive.domain.GetCredentialsWithUserByUriUseCase
 import com.example.beehive.service.autofill.parsing.parseStructure
 import com.example.beehive.utils.generatePassword
 import kotlinx.coroutines.CoroutineScope
@@ -35,7 +36,7 @@ import kotlinx.coroutines.launch
 
 @Suppress("DEPRECATION")
 class BeehiveAutofillService : AutofillService() {
-    private lateinit var getPasswordsWithUserByUriUseCase: GetPasswordsWithUserByUriUseCase
+    private lateinit var getCredentialsWithUserByUriUseCase: GetCredentialsWithUserByUriUseCase
     private lateinit var beehiveContainer: BeehiveContainer
     private val job = SupervisorJob()
     private val coroutineScope = CoroutineScope(Dispatchers.IO + job)
@@ -73,9 +74,9 @@ class BeehiveAutofillService : AutofillService() {
     override fun onConnected() {
         super.onConnected()
         beehiveContainer = BeehiveContainerImpl(this.applicationContext)
-        getPasswordsWithUserByUriUseCase = GetPasswordsWithUserByUriUseCase(
-            beehiveContainer.passwordsRepository,
-            beehiveContainer.usersRepository
+        getCredentialsWithUserByUriUseCase = GetCredentialsWithUserByUriUseCase(
+            beehiveContainer.credentialRepository,
+            beehiveContainer.userRepository
         )
     }
 
@@ -91,9 +92,8 @@ class BeehiveAutofillService : AutofillService() {
             structure
         )
 
-
         coroutineScope.launch {
-            getPasswordsWithUserByUriUseCase(appUri).collectLatest { passwords ->
+            getCredentialsWithUserByUriUseCase(appUri).collectLatest { passwords ->
                 if (passwords.isEmpty()) {
                     // sign up
                     val requestFillResponse = requestSignUp(usernameId, passwordId)
@@ -139,7 +139,7 @@ class BeehiveAutofillService : AutofillService() {
         val context: List<FillContext> = request.fillContexts
         val structure: AssistStructure = context[context.size - 1].structure
 
-        val (_, _, username: String, password: String, _) = parseStructure(
+        val (_, _, username: String, password: String, packageName) = parseStructure(
             structure
         )
 
@@ -149,11 +149,17 @@ class BeehiveAutofillService : AutofillService() {
         }
 
         coroutineScope.launch {
-            beehiveContainer.passwordsRepository.insertPassword(
-                Password(
-                    beehiveContainer.passwordsRepository.countPasswords() + 1,
-                    username,
-                    password
+            beehiveContainer.credentialRepository.insertCredential(
+                Credential(
+                    id = beehiveContainer.credentialRepository.getNextId() + 1,
+                    username = username,
+                    password = password,
+                    userId = beehiveContainer.userRepository.getNextId(),
+                    app = PasswordApp(
+                        // TODO: edit name
+                        name = "Instagram",
+                        packageName = packageName
+                    )
                 )
             )
 

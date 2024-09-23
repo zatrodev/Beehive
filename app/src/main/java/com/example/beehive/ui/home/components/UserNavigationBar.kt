@@ -21,14 +21,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.example.beehive.R
-import com.example.beehive.data.users.User
+import com.example.beehive.data.user.User
 import com.example.beehive.ui.Dimensions.ExtraSmallPadding
 import com.example.beehive.ui.Dimensions.NavBarHeight
 import com.example.beehive.ui.Dimensions.NavIconSIze
 
 @Composable
 fun UserNavigationBar(
-    users: List<User>,
+    users: Set<User>,
     onClick: (User, Int) -> Unit,
     onAddPasswordClick: () -> Unit,
     onAddUserClick: () -> Unit,

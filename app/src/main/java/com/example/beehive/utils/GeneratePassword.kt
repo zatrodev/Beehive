@@ -1,6 +1,6 @@
 package com.example.beehive.utils
 
-import com.example.beehive.ui.password.add.OptionType
+import com.example.beehive.ui.credential.add.OptionType
 
 fun generatePassword(
     length: Int,

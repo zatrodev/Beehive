@@ -4,14 +4,14 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.example.beehive.data.passwords.Password
-import com.example.beehive.data.passwords.PasswordDao
-import com.example.beehive.data.users.User
-import com.example.beehive.data.users.UserDao
+import com.example.beehive.data.credential.Credential
+import com.example.beehive.data.credential.CredentialDao
+import com.example.beehive.data.user.User
+import com.example.beehive.data.user.UserDao
 
-@Database(entities = [Password::class, User::class], version = 5, exportSchema = false)
+@Database(entities = [Credential::class, User::class], version = 6, exportSchema = false)
 abstract class BeehiveDatabase : RoomDatabase() {
-    abstract fun passwordDao(): PasswordDao
+    abstract fun passwordDao(): CredentialDao
     abstract fun userDao(): UserDao
 
     companion object {

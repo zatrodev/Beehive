@@ -2,25 +2,25 @@ package com.example.beehive.data
 
 import android.content.Context
 import android.content.pm.PackageManager
-import com.example.beehive.data.passwords.PasswordsRepository
-import com.example.beehive.data.passwords.PasswordsRepositoryImpl
-import com.example.beehive.data.users.UsersRepository
-import com.example.beehive.data.users.UsersRepositoryImpl
+import com.example.beehive.data.credential.CredentialRepository
+import com.example.beehive.data.credential.CredentialRepositoryImpl
+import com.example.beehive.data.user.UserRepository
+import com.example.beehive.data.user.UserRepositoryImpl
 
 interface BeehiveContainer {
-    val passwordsRepository: PasswordsRepository
-    val usersRepository: UsersRepository
+    val credentialRepository: CredentialRepository
+    val userRepository: UserRepository
     val packageManager: PackageManager
     val context: Context
 }
 
 class BeehiveContainerImpl(private val applicationContext: Context) : BeehiveContainer {
-    override val passwordsRepository: PasswordsRepository by lazy {
-        PasswordsRepositoryImpl(BeehiveDatabase.getDatabase(applicationContext).passwordDao())
+    override val credentialRepository: CredentialRepository by lazy {
+        CredentialRepositoryImpl(BeehiveDatabase.getDatabase(applicationContext).passwordDao())
     }
 
-    override val usersRepository: UsersRepository by lazy {
-        UsersRepositoryImpl(BeehiveDatabase.getDatabase(applicationContext).userDao())
+    override val userRepository: UserRepository by lazy {
+        UserRepositoryImpl(BeehiveDatabase.getDatabase(applicationContext).userDao())
     }
 
     override val packageManager: PackageManager

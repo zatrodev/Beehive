@@ -3,6 +3,7 @@ package com.example.beehive.ui.home
 import android.annotation.SuppressLint
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -12,10 +13,16 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -35,7 +42,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.beehive.R
@@ -49,7 +55,8 @@ import com.example.beehive.ui.Dimensions.SmallPadding
 import com.example.beehive.ui.common.BeehiveButton
 import com.example.beehive.ui.common.ErrorScreen
 import com.example.beehive.ui.common.LoadingScreen
-import com.example.beehive.ui.home.components.PasswordsList
+import com.example.beehive.ui.home.components.PasswordTile
+import com.example.beehive.ui.home.components.PasswordsGrid
 import com.example.beehive.ui.home.components.SearchBar
 import com.example.beehive.ui.home.components.UserNavigationBar
 import com.example.beehive.ui.navigation.SharedElementTransition
@@ -58,7 +65,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun HomeScreen(
     onNavigateToAddPassword: (Int) -> Unit,
-    onNavigateToViewPassword: (String, Int) -> Unit,
+    onNavigateToEditPassword: (Int, Int) -> Unit,
     onNavigateToAddUser: () -> Unit,
     sharedElementTransition: SharedElementTransition,
     viewModel: HomeViewModel = viewModel(factory = BeehiveViewModelProvider.Factory),
@@ -80,7 +87,7 @@ fun HomeScreen(
         is HomeScreenUiState.Ready -> HomeScreenReady(
             uiState = uiState,
             onNavigateToAddPassword = onNavigateToAddPassword,
-            onNavigateToViewPassword = onNavigateToViewPassword,
+            onNavigateToEditPassword = onNavigateToEditPassword,
             onNavigateToAddUser = onNavigateToAddUser,
             sharedElementTransition = sharedElementTransition
         )
@@ -170,27 +177,27 @@ private fun HomeScreenInputUser(
 fun HomeScreenReady(
     uiState: HomeScreenUiState.Ready,
     onNavigateToAddPassword: (Int) -> Unit,
-    onNavigateToViewPassword: (String, Int) -> Unit,
+    onNavigateToEditPassword: (Int, Int) -> Unit,
     onNavigateToAddUser: () -> Unit,
     sharedElementTransition: SharedElementTransition,
     viewModel: HomeViewModel = viewModel(factory = BeehiveViewModelProvider.Factory),
 ) {
     val coroutineScope = rememberCoroutineScope()
-    val pagerState = rememberPagerState(pageCount = { uiState.users.size })
+    val pagerState = rememberPagerState(pageCount = { uiState.userPasswordMap.size })
 
     Scaffold(
         modifier = Modifier
             .fillMaxSize(),
         bottomBar = {
             UserNavigationBar(
-                users = uiState.users,
+                users = uiState.userPasswordMap.keys,
                 onClick = { user, index ->
                     viewModel.onUserSelected(user)
                     coroutineScope.launch {
                         pagerState.animateScrollToPage(index)
                     }
                 },
-                onAddPasswordClick = { onNavigateToAddPassword(viewModel.getActiveUserId()) },
+                onAddPasswordClick = { onNavigateToAddPassword(uiState.selectedUser.id) },
                 onAddUserClick = onNavigateToAddUser
             )
         }
@@ -198,7 +205,10 @@ fun HomeScreenReady(
         HomeContent(
             uiState = uiState,
             pagerState = pagerState,
-            onNavigateToViewPassword = onNavigateToViewPassword,
+            onDelete = viewModel::deletePassword,
+            onEdit = { id ->
+                onNavigateToEditPassword(id, uiState.selectedUser.id)
+            },
             onQueryChange = viewModel::onQueryChange,
             refresh = viewModel::refresh,
             sharedElementTransition = sharedElementTransition,
@@ -207,11 +217,13 @@ fun HomeScreenReady(
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun HomeContent(
     uiState: HomeScreenUiState.Ready,
     pagerState: PagerState,
-    onNavigateToViewPassword: (String, Int) -> Unit,
+    onDelete: (Int) -> Unit,
+    onEdit: (Int) -> Unit,
     onQueryChange: (String) -> Unit,
     refresh: () -> Unit,
     sharedElementTransition: SharedElementTransition,
@@ -235,30 +247,53 @@ fun HomeContent(
                 query = uiState.query,
                 onValueChanged = { onQueryChange(it) },
             )
-            if (uiState.passwords.isEmpty()) {
-                Spacer(modifier = Modifier.weight(0.6f))
-                Text(
-                    text = stringResource(R.string.no_password_description),
-                    style = MaterialTheme.typography.displayMedium.copy(
-                        textAlign = TextAlign.Center
-                    ),
-                    color = MaterialTheme.colorScheme.surfaceVariant,
-                )
-            } else {
-                // TODO: fix pages (enable swipe)
-                HorizontalPager(state = pagerState) { page ->
-                    PasswordsList(
-                        page = page,
-                        passwords = uiState.passwords,
-                        isRefreshing = uiState.isRefreshing,
-                        refresh = refresh,
-                        onNavigateToViewPassword = onNavigateToViewPassword,
-                        sharedElementTransition = sharedElementTransition
+            HorizontalPager(state = pagerState) {
+                val pullRefreshState = rememberPullRefreshState(uiState.isRefreshing, refresh)
+                Box(
+                    modifier = Modifier
+                        .pullRefresh(pullRefreshState)
+                        .fillMaxSize()
+                        .padding(SmallPadding)
+                ) {
+                    val credentials = uiState.userPasswordMap[uiState.selectedUser]
+
+                    if (credentials == null) {
+                        ErrorScreen("No credentials found.", refresh)
+                        return@Box
+                    }
+
+                    if (credentials.isEmpty())
+                        Text(
+                            text = "No bees found",
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = MaterialTheme.colorScheme.outlineVariant,
+                            modifier = Modifier.align(Alignment.Center)
+                        )
+                    else
+                        LazyColumn {
+                            items(credentials.toList()) { appPasswordPair ->
+                                PasswordTile(
+                                    name = appPasswordPair.first.name,
+                                    icon = appPasswordPair.first.icon,
+                                    backgroundColor = MaterialTheme.colorScheme.secondaryContainer,
+                                    modifier = Modifier.padding(horizontal = MediumPadding)
+                                )
+                                PasswordsGrid(
+                                    credentials = appPasswordPair.second,
+                                    onDelete = onDelete,
+                                    onEdit = onEdit,
+                                    sharedElementTransition = sharedElementTransition
+                                )
+
+                            }
+                        }
+                    PullRefreshIndicator(
+                        refreshing = uiState.isRefreshing,
+                        state = pullRefreshState,
+                        modifier = Modifier.align(Alignment.TopCenter)
                     )
                 }
-
             }
-            Spacer(modifier = Modifier.weight(1f))
         }
     }
 }

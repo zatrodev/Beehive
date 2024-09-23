@@ -17,15 +17,17 @@ class BiometricPromptManager(
     private val biometricManager = BiometricManager.from(activity)
     private val resultChannel = Channel<BiometricResult>()
 
+    companion object {
+        val ALLOWED_AUTHENTICATORS =
+            if (Build.VERSION.SDK_INT >= 30) BIOMETRIC_STRONG or DEVICE_CREDENTIAL else BIOMETRIC_STRONG
+    }
+
     val promptResults = resultChannel.receiveAsFlow()
 
     fun authenticateWithBiometric(
         title: String,
     ) {
-        val authenticators =
-            if (Build.VERSION.SDK_INT >= 30) BIOMETRIC_STRONG or DEVICE_CREDENTIAL else BIOMETRIC_STRONG
-
-        when (biometricManager.canAuthenticate(authenticators)) {
+        when (biometricManager.canAuthenticate(ALLOWED_AUTHENTICATORS)) {
             BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE -> {
                 resultChannel.trySend(BiometricResult.HardwareUnavailable)
                 return
@@ -38,10 +40,9 @@ class BiometricPromptManager(
 
             else -> Unit
         }
-
         val promptInfo = PromptInfo.Builder()
             .setTitle(title)
-            .setAllowedAuthenticators(authenticators)
+            .setAllowedAuthenticators(ALLOWED_AUTHENTICATORS)
 
         val prompt = BiometricPrompt(
             activity,
@@ -53,7 +54,6 @@ class BiometricPromptManager(
 
                 override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                     super.onAuthenticationSucceeded(result)
-                    CipherManager.cipher = result.cryptoObject?.cipher
                     resultChannel.trySend(BiometricResult.AuthenticationSuccess)
                 }
 
@@ -64,7 +64,11 @@ class BiometricPromptManager(
             }
         )
 
-        prompt.authenticate(promptInfo.build())
+        // TODO: don't need to encrypt or decrypt functions, just pass passphrase to SupportFactory
+
+        prompt.authenticate(
+            promptInfo.build(),
+        )
     }
 
     sealed interface BiometricResult {

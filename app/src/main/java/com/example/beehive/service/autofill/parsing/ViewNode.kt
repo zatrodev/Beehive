@@ -29,7 +29,7 @@ fun parseNode(
 }
 
 private fun identifyEmailField(
-    viewNode: ViewNode
+    viewNode: ViewNode,
 ): AutofillId? {
     val className = viewNode.className ?: return null
     if (!className.contains("EditText")) return null
@@ -48,7 +48,7 @@ private fun identifyEmailField(
 }
 
 private fun identifyPasswordField(
-    viewNode: ViewNode
+    viewNode: ViewNode,
 ): AutofillId? {
     val className = viewNode.className ?: return null
     if (!className.contains("EditText")) return null
