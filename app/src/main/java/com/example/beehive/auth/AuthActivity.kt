@@ -2,6 +2,7 @@ package com.example.beehive.auth
 
 import android.app.Activity
 import android.app.assist.AssistStructure
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.service.autofill.Dataset
@@ -11,6 +12,7 @@ import android.view.autofill.AutofillValue
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.datastore.dataStore
 import com.example.beehive.MainActivity
 import com.example.beehive.data.BeehiveContainerImpl
 import com.example.beehive.data.credential.CredentialRepository
@@ -28,18 +30,20 @@ import kotlinx.coroutines.launch
 class AuthActivity : AppCompatActivity() {
     private lateinit var credentialRepository: CredentialRepository
 
+    private val Context.dataStore by dataStore(
+        fileName = "room-key",
+        serializer = RoomKeySerializer(CryptoManager())
+    )
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
     private val promptManager by lazy {
         BiometricPromptManager(
             this,
+            dataStore
         )
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        credentialRepository = BeehiveContainerImpl(this.applicationContext).credentialRepository
-
         enableEdgeToEdge()
         setContent {
             BeehiveTheme {
@@ -50,6 +54,9 @@ class AuthActivity : AppCompatActivity() {
                         finish()
                     },
                     returnToService = {
+                        credentialRepository =
+                            BeehiveContainerImpl(this.applicationContext).credentialRepository
+
                         val structure =
                             intent.getParcelableExtra<AssistStructure>(EXTRA_ASSIST_STRUCTURE)
                         val id = intent.getIntExtra(EXTRA_PASSWORD_ID, -1)

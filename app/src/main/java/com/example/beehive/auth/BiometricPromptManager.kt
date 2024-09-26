@@ -7,15 +7,23 @@ import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
 import androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
 import androidx.biometric.BiometricPrompt
 import androidx.biometric.BiometricPrompt.PromptInfo
+import androidx.datastore.core.DataStore
+import com.example.beehive.utils.generatePassword
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.launch
 
 
 class BiometricPromptManager(
     private val activity: AppCompatActivity,
+    private val dataStore: DataStore<String>,
 ) {
     private val biometricManager = BiometricManager.from(activity)
     private val resultChannel = Channel<BiometricResult>()
+    private val coroutineScope = CoroutineScope(Dispatchers.IO)
 
     companion object {
         val ALLOWED_AUTHENTICATORS =
@@ -54,6 +62,18 @@ class BiometricPromptManager(
 
                 override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                     super.onAuthenticationSucceeded(result)
+
+                    coroutineScope.launch {
+                        dataStore.data.collectLatest { randomKey ->
+                            if (randomKey.isBlank())
+                                CryptoManager.passphrase = dataStore.updateData {
+                                    generatePassword(16)
+                                }.toByteArray()
+                            else
+                                CryptoManager.passphrase = randomKey.toByteArray()
+                        }
+                    }
+
                     resultChannel.trySend(BiometricResult.AuthenticationSuccess)
                 }
 
@@ -64,10 +84,8 @@ class BiometricPromptManager(
             }
         )
 
-        // TODO: don't need to encrypt or decrypt functions, just pass passphrase to SupportFactory
-
         prompt.authenticate(
-            promptInfo.build(),
+            promptInfo.build()
         )
     }
 

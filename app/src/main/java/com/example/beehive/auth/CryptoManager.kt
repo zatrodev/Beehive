@@ -15,7 +15,7 @@ class CryptoManager {
         load(null)
     }
 
-    val encryptCipher: Cipher = Cipher.getInstance(TRANSFORMATION).apply {
+    private val encryptCipher: Cipher = Cipher.getInstance(TRANSFORMATION).apply {
         init(Cipher.ENCRYPT_MODE, getSecretKey())
     }
 
@@ -30,25 +30,28 @@ class CryptoManager {
         private const val BLOCK_MODE = KeyProperties.BLOCK_MODE_CBC
         private const val PADDING = KeyProperties.ENCRYPTION_PADDING_PKCS7
         private const val TRANSFORMATION = "$ALGORITHM/$BLOCK_MODE/$PADDING"
+        private const val ALIAS = "room-key"
+
+        var passphrase: ByteArray? = null
     }
 
     private fun createSecretKey(): SecretKey {
         return KeyGenerator.getInstance(ALGORITHM).apply {
             init(
                 KeyGenParameterSpec.Builder(
-                    "secret",
+                    ALIAS,
                     KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
                 )
                     .setBlockModes(BLOCK_MODE)
                     .setEncryptionPaddings(PADDING)
-                    .setUserAuthenticationRequired(true)
+                    .setUserAuthenticationRequired(false)
                     .build()
             )
         }.generateKey()
     }
 
     private fun getSecretKey(): SecretKey {
-        val existingKey = keyStore.getEntry("secret", null) as? KeyStore.SecretKeyEntry
+        val existingKey = keyStore.getEntry(ALIAS, null) as? KeyStore.SecretKeyEntry
         return existingKey?.secretKey ?: createSecretKey()
     }
 
