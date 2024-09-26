@@ -116,7 +116,18 @@ fun BeehiveNavHost(
                 )
             }
 
-            composable<EditPassword> {
+            composable<EditPassword>(
+                enterTransition = {
+                    return@composable slideIntoContainer(
+                        AnimatedContentTransitionScope.SlideDirection.Up, tween(durationMillis)
+                    )
+                },
+                popExitTransition = {
+                    return@composable slideOutOfContainer(
+                        AnimatedContentTransitionScope.SlideDirection.Down, tween(durationMillis)
+                    )
+                }
+            ) {
                 EditCredentialScreen(
                     onBack = {
                         navController.popBackStack()

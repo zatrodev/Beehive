@@ -37,6 +37,7 @@ import com.example.beehive.ui.BeehiveViewModelProvider
 import com.example.beehive.ui.Dimensions.EmailTextFieldSize
 import com.example.beehive.ui.Dimensions.IndicatorLineThickness
 import com.example.beehive.ui.Dimensions.LargePadding
+import com.example.beehive.ui.Dimensions.MediumPadding
 import com.example.beehive.ui.Dimensions.RoundedCornerShape
 import com.example.beehive.ui.Dimensions.SmallPadding
 import com.example.beehive.ui.common.BeehiveButton
@@ -69,10 +70,11 @@ fun AddUserScreen(
 @Composable
 fun AddUserContent(
     email: String,
-    onBack: () -> Unit,
     onEmailChange: (String) -> Unit,
     onCreateUser: (String) -> Unit,
     modifier: Modifier = Modifier,
+    onBack: () -> Unit = {},
+    labelText: String = stringResource(R.string.add_user_desc),
 ) {
     var isError by remember { mutableStateOf(false) }
 
@@ -82,21 +84,22 @@ fun AddUserContent(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = stringResource(R.string.add_user_desc),
+                text = labelText,
             )
             TextField(
                 value = email,
                 onValueChange = onEmailChange,
                 maxLines = 1,
+                singleLine = true,
                 colors = TextFieldDefaults.colors(
                     disabledContainerColor = Color.Transparent,
                     focusedContainerColor = Color.Transparent,
                     unfocusedContainerColor = Color.Transparent,
                 ),
-                modifier = modifier
+                modifier = Modifier
                     .width(EmailTextFieldSize)
-                    .padding(SmallPadding)
                     .clip(RoundedCornerShape(RoundedCornerShape))
+                    .padding(MediumPadding)
                     .indicatorLine(
                         enabled = true,
                         isError = isError,

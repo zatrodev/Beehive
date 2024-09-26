@@ -1,58 +1,37 @@
 package com.example.beehive.ui.home
 
-import android.annotation.SuppressLint
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.TextFieldDefaults.indicatorLine
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.beehive.R
 import com.example.beehive.ui.BeehiveViewModelProvider
-import com.example.beehive.ui.Dimensions.EmailTextFieldSize
-import com.example.beehive.ui.Dimensions.IndicatorLineThickness
 import com.example.beehive.ui.Dimensions.LargePadding
 import com.example.beehive.ui.Dimensions.MediumPadding
-import com.example.beehive.ui.Dimensions.RoundedCornerShape
 import com.example.beehive.ui.Dimensions.SmallPadding
-import com.example.beehive.ui.common.BeehiveButton
 import com.example.beehive.ui.common.ErrorScreen
 import com.example.beehive.ui.common.LoadingScreen
 import com.example.beehive.ui.home.components.PasswordTile
@@ -60,6 +39,7 @@ import com.example.beehive.ui.home.components.PasswordsGrid
 import com.example.beehive.ui.home.components.SearchBar
 import com.example.beehive.ui.home.components.UserNavigationBar
 import com.example.beehive.ui.navigation.SharedElementTransition
+import com.example.beehive.ui.user.AddUserContent
 import kotlinx.coroutines.launch
 
 @Composable
@@ -78,10 +58,11 @@ fun HomeScreen(
             onRetry = viewModel::refresh
         )
 
-        is HomeScreenUiState.InputUser -> HomeScreenInputUser(
+        is HomeScreenUiState.InputUser -> AddUserContent(
             email = uiState.email,
             onEmailChange = viewModel::onEmailChange,
-            onCreateUser = viewModel::onCreateUser
+            onCreateUser = viewModel::onCreateUser,
+            labelText = stringResource(R.string.input_user_description),
         )
 
         is HomeScreenUiState.Ready -> HomeScreenReady(
@@ -94,84 +75,6 @@ fun HomeScreen(
 
     }
 }
-
-
-@SuppressLint("UnrememberedMutableInteractionSource")
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun HomeScreenInputUser(
-    email: String,
-    onEmailChange: (String) -> Unit,
-    onCreateUser: (String) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    var isError by remember { mutableStateOf(false) }
-
-    Surface(modifier.fillMaxSize()) {
-        Column(
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = stringResource(R.string.input_user_description),
-            )
-            TextField(
-                value = email,
-                onValueChange = onEmailChange,
-                maxLines = 1,
-                colors = TextFieldDefaults.colors(
-                    disabledContainerColor = Color.Transparent,
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent,
-                ),
-                modifier = modifier
-                    .width(EmailTextFieldSize)
-                    .padding(MediumPadding)
-                    .clip(RoundedCornerShape(RoundedCornerShape))
-                    .indicatorLine(
-                        enabled = true,
-                        isError = isError,
-                        colors = TextFieldDefaults.colors(
-                            focusedIndicatorColor = MaterialTheme.colorScheme.tertiary,
-                            unfocusedIndicatorColor = MaterialTheme.colorScheme.tertiary,
-                        ),
-                        interactionSource = MutableInteractionSource(),
-                        unfocusedIndicatorLineThickness = IndicatorLineThickness,
-                    ),
-
-                )
-            if (isError)
-                Text(
-                    text = stringResource(R.string.email_error_message),
-                    style = MaterialTheme.typography.labelMedium.copy(
-                        color = MaterialTheme.colorScheme.error
-                    ),
-                    modifier = Modifier.padding(SmallPadding)
-                )
-        }
-        Row(
-            horizontalArrangement = Arrangement.End,
-            verticalAlignment = Alignment.Bottom,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(MediumPadding)
-                .navigationBarsPadding()
-        ) {
-            BeehiveButton(
-                text = stringResource(R.string.continue_label),
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-                onClick = {
-                    if (email.isEmpty())
-                        isError = true
-                    else
-                        onCreateUser(email)
-                },
-            )
-        }
-    }
-}
-
 
 @Composable
 fun HomeScreenReady(

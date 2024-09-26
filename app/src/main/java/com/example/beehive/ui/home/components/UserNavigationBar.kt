@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.BottomAppBar
@@ -40,12 +41,16 @@ fun UserNavigationBar(
             .fillMaxWidth()
             .height(NavBarHeight),
         actions = {
-            users.mapIndexed { index, user ->
-                UserButton(
-                    user = user,
-                    onClick = { onClick(user, index) },
-                    modifier = Modifier.width(NavIconSIze)
-                )
+            LazyRow {
+                users.mapIndexed { index, user ->
+                    item {
+                        UserButton(
+                            user = user,
+                            onClick = { onClick(user, index) },
+                            modifier = Modifier.width(NavIconSIze)
+                        )
+                    }
+                }
             }
         },
         floatingActionButton = {

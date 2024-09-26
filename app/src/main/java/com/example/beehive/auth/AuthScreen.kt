@@ -127,29 +127,5 @@ fun AuthScreen(
                 delay(500)
                 promptManager.authenticateWithBiometric("Authenticate Autofill")
             }
-//            Surface(
-//                color = Color.Transparent,
-//                shape = MaterialTheme.shapes.small,
-//                border = BorderStroke(2.dp, Color.Black),
-//                modifier = Modifier
-//                    .clickable {
-//                        promptManager.authenticateWithBiometric("Login with Biometrics")
-//                    }
-//            ) {
-//                Column(
-//                    horizontalAlignment = Alignment.CenterHorizontally,
-//                    modifier = Modifier.padding(MediumPadding)
-//                ) {
-//                    Text(
-//                        text = stringResource(R.string.fingerprint_title),
-//                        style = MaterialTheme.typography.bodySmall.copy(
-//                            fontSize = 2.25.em
-//                        ),
-//                        lineHeight = 0.5.em
-//                    )
-//                }
-//            }
-
-
     }
 }
