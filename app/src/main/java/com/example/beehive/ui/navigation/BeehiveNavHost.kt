@@ -32,6 +32,7 @@ data class EditPassword(val id: Int, val userId: Int)
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun BeehiveNavHost(
+    restartApp: () -> Unit = {},
     navController: NavHostController,
 ) {
     val durationMillis = 700
@@ -71,6 +72,7 @@ fun BeehiveNavHost(
                     onNavigateToAddUser = {
                         navController.navigate(route = AddUser)
                     },
+                    restartApp = restartApp,
                     sharedElementTransition = SharedElementTransition(
                         sharedTransitionScope = this@SharedTransitionLayout,
                         animatedContentScope = this@composable
@@ -119,12 +121,12 @@ fun BeehiveNavHost(
             composable<EditPassword>(
                 enterTransition = {
                     return@composable slideIntoContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Up, tween(durationMillis)
+                        AnimatedContentTransitionScope.SlideDirection.End, tween(durationMillis)
                     )
                 },
                 popExitTransition = {
                     return@composable slideOutOfContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Down, tween(durationMillis)
+                        AnimatedContentTransitionScope.SlideDirection.Start, tween(durationMillis)
                     )
                 }
             ) {

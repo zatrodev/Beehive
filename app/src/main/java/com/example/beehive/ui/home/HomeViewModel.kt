@@ -1,5 +1,6 @@
 package com.example.beehive.ui.home
 
+import android.database.sqlite.SQLiteException
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.beehive.data.credential.Credential
@@ -8,6 +9,7 @@ import com.example.beehive.data.credential.PasswordApp
 import com.example.beehive.data.user.User
 import com.example.beehive.data.user.UserRepository
 import com.example.beehive.domain.GetCategorizedCredentialsWithUserByPackageUseCase
+import com.example.beehive.utils.filter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -53,12 +55,21 @@ class HomeViewModel(
 
                 HomeScreenUiState.Ready(
                     query = query,
-                    userPasswordMap = userPasswordMap,
+                    userPasswordMap = userPasswordMap.filter(query),
                     selectedUser = selectedUser ?: userPasswordMap.keys.first(),
                     isRefreshing = isRefreshing
                 )
             }.catch { throwable ->
-                _homeUiState.value = HomeScreenUiState.Error(throwable.message)
+                _homeUiState.value = when (throwable) {
+                    is SQLiteException -> {
+                        HomeScreenUiState.Error(
+                            "Unauthenticated user detected!\nPlease restart the app and authenticate first.",
+                            throwable
+                        )
+                    }
+
+                    else -> HomeScreenUiState.Error(throwable.message)
+                }
             }.collect {
                 _homeUiState.value = it
             }
@@ -109,6 +120,7 @@ sealed interface HomeScreenUiState {
 
     data class Error(
         val errorMessage: String? = null,
+        val errorType: Throwable? = null,
     ) : HomeScreenUiState
 
     data class InputUser(

@@ -7,7 +7,8 @@ import com.example.beehive.ui.navigation.BeehiveNavHost
 
 @Composable
 fun BeehiveApp(
+    restartApp: () -> Unit = {},
     navController: NavHostController = rememberNavController(),
 ) {
-    BeehiveNavHost(navController = navController)
+    BeehiveNavHost(restartApp = restartApp, navController = navController)
 }

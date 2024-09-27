@@ -12,31 +12,45 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import com.example.beehive.R
+import com.example.beehive.ui.Dimensions.LargePadding
 import com.example.beehive.ui.Dimensions.SmallPadding
 
 @Composable
 fun ErrorScreen(
     errorMessage: String,
     onRetry: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onClose: (() -> Unit)? = null,
 ) {
     Surface(modifier = modifier) {
         Column(
-            verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(LargePadding),
         ) {
-            Text(
-                text = stringResource(R.string.an_error_has_occurred),
-                modifier = Modifier.padding(SmallPadding)
-            )
-            Text(
-                text = errorMessage,
-                style = MaterialTheme.typography.bodySmall,
-            )
-            Button(onClick = onRetry) {
-                Text(text = stringResource(R.string.retry_label))
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier.padding(LargePadding)
+            ) {
+                Text(
+                    text = stringResource(R.string.an_error_has_occurred),
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(SmallPadding)
+                )
+                Text(
+                    text = errorMessage,
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+            Button(onClick = onClose ?: onRetry) {
+                Text(text = stringResource(R.string.retry_label).takeIf { onClose == null }
+                    ?: stringResource(R.string.restart_label))
             }
         }
     }

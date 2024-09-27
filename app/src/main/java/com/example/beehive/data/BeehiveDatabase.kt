@@ -17,14 +17,17 @@ abstract class BeehiveDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
 
     companion object {
+        private const val DATABASE_NAME = "beehive_database.db"
+
         @Volatile
         private var Instance: BeehiveDatabase? = null
 
         fun getDatabase(context: Context): BeehiveDatabase {
             System.loadLibrary("sqlcipher")
 
-            val databaseFile = context.getDatabasePath("beehive_database.db")
-            val factory = SupportOpenHelperFactory(CryptoManager.passphrase)
+            val databaseFile = context.getDatabasePath(DATABASE_NAME)
+            val factory =
+                SupportOpenHelperFactory(CryptoManager.passphrase)
 
             return Instance ?: synchronized(this) {
                 Room.databaseBuilder(
