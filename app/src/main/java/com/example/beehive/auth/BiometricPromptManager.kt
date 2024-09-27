@@ -62,18 +62,7 @@ class BiometricPromptManager(
 
                 override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                     super.onAuthenticationSucceeded(result)
-
-                    coroutineScope.launch {
-                        dataStore.data.collectLatest { randomKey ->
-                            if (randomKey.isBlank())
-                                CryptoManager.passphrase = dataStore.updateData {
-                                    generatePassword(16)
-                                }.toByteArray()
-                            else
-                                CryptoManager.passphrase = randomKey.toByteArray()
-                        }
-                    }
-
+                    setRoomPassphrase()
                     resultChannel.trySend(BiometricResult.AuthenticationSuccess)
                 }
 
@@ -87,6 +76,19 @@ class BiometricPromptManager(
         prompt.authenticate(
             promptInfo.build()
         )
+    }
+
+    private fun setRoomPassphrase() {
+        coroutineScope.launch {
+            dataStore.data.collectLatest { randomKey ->
+                if (randomKey.isBlank())
+                    CryptoManager.passphrase = dataStore.updateData {
+                        generatePassword(16)
+                    }.toByteArray()
+                else
+                    CryptoManager.passphrase = randomKey.toByteArray()
+            }
+        }
     }
 
     sealed interface BiometricResult {
