@@ -73,7 +73,7 @@ fun AddUserContent(
     onEmailChange: (String) -> Unit,
     onCreateUser: (String) -> Unit,
     modifier: Modifier = Modifier,
-    onBack: () -> Unit = {},
+    onBack: (() -> Unit)? = null,
     labelText: String = stringResource(R.string.add_user_desc),
 ) {
     var isError by remember { mutableStateOf(false) }
@@ -129,7 +129,12 @@ fun AddUserContent(
                 .padding(LargePadding)
                 .navigationBarsPadding()
         ) {
-            BeehiveTextButton(text = stringResource(R.string.back_button), onClick = onBack)
+            onBack?.let {
+                BeehiveTextButton(
+                    text = stringResource(R.string.back_button),
+                    onClick = it
+                )
+            }
             BeehiveButton(
                 text = stringResource(R.string.add_user_button),
                 containerColor = MaterialTheme.colorScheme.primary,

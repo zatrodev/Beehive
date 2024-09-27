@@ -24,62 +24,6 @@ import com.example.beehive.ui.Dimensions.SmallPadding
 import com.example.beehive.ui.common.ConditionalStyleText
 import kotlin.math.roundToInt
 
-//@Composable
-//fun PasswordTile(
-//    name: String,
-//    backgroundColor: Color,
-//    modifier: Modifier = Modifier,
-//    icon: Drawable? = null,
-//    onNavigateToViewPassword: (String) -> Unit = {},
-//    uri: String = "",
-//) {
-//    Surface(
-//        color = backgroundColor,
-//        shape = RoundedCornerShape(RoundedCornerShape),
-//        modifier = modifier
-//            .clickable {
-//                onNavigateToViewPassword(uri)
-//            }
-//
-//    ) {
-//        Row(
-//            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-//            modifier = Modifier.padding(SmallPadding)
-//        ) {
-//            if (icon != null)
-//                Box(
-//                    modifier = Modifier
-//                        .requiredSize(InstalledAppIconSize)
-//                        .drawBehind {
-//                            drawIntoCanvas { canvas ->
-//                                icon.let {
-//                                    it.setBounds(
-//                                        0,
-//                                        0,
-//                                        size.width.roundToInt(),
-//                                        size.height.roundToInt()
-//                                    )
-//                                    it.draw(canvas.nativeCanvas)
-//                                }
-//                            }
-//                        })
-//            else
-//                Icon(
-//                    imageVector = Icons.Default.MoreVert,
-//                    contentDescription = null,
-//                    tint = MaterialTheme.colorScheme.onTertiaryContainer
-//                )
-//
-//            Text(
-//                text = name,
-//                modifier = Modifier.padding(SmallPadding),
-//                style = MaterialTheme.typography.labelLarge.copy(
-//                    color = MaterialTheme.colorScheme.onSurface
-//                )
-//            )
-//        }
-//    }
-//}
 
 @Composable
 fun PasswordTile(

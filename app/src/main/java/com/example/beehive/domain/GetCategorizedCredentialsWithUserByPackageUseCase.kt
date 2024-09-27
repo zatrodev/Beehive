@@ -1,6 +1,5 @@
 package com.example.beehive.domain
 
-import android.util.Log
 import com.example.beehive.data.credential.Credential
 import com.example.beehive.data.credential.PasswordApp
 import com.example.beehive.data.user.User
@@ -14,7 +13,6 @@ class GetCategorizedCredentialsWithUserByPackageUseCase(
 ) {
     operator fun invoke(): Flow<Map<User, Map<PasswordApp, List<Credential>>>> =
         userRepository.getUsersWithCredentials().map { userWithCredentials ->
-            Log.d("GetCategorizedCredentialsOfUserByPackageUseCase", "invoke called")
             userWithCredentials.associate { userWithCredential ->
                 userWithCredential.user to userWithCredential.credentials.groupBy { credential ->
                     credential.app.apply {
