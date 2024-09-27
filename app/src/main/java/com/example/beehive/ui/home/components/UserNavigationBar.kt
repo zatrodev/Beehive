@@ -29,8 +29,8 @@ import com.example.beehive.ui.Dimensions.NavIconSIze
 
 @Composable
 fun UserNavigationBar(
-    users: Set<User>,
-    onClick: (User, Int) -> Unit,
+    users: List<User>,
+    onClick: (Int) -> Unit,
     onAddPasswordClick: () -> Unit,
     onAddUserClick: () -> Unit,
 ) {
@@ -46,7 +46,7 @@ fun UserNavigationBar(
                     item {
                         UserButton(
                             user = user,
-                            onClick = { onClick(user, index) },
+                            onClick = { onClick(index) },
                             modifier = Modifier.width(NavIconSIze)
                         )
                     }

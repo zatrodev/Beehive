@@ -1,5 +1,6 @@
 package com.example.beehive.ui.home
 
+import android.database.sqlite.SQLiteException
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -20,6 +21,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -47,6 +49,7 @@ fun HomeScreen(
     onNavigateToAddPassword: (Int) -> Unit,
     onNavigateToEditPassword: (Int, Int) -> Unit,
     onNavigateToAddUser: () -> Unit,
+    restartApp: () -> Unit,
     sharedElementTransition: SharedElementTransition,
     viewModel: HomeViewModel = viewModel(factory = BeehiveViewModelProvider.Factory),
 ) {
@@ -54,8 +57,9 @@ fun HomeScreen(
     when (val uiState = homeScreenUiState) {
         is HomeScreenUiState.Loading -> LoadingScreen()
         is HomeScreenUiState.Error -> ErrorScreen(
-            errorMessage = uiState.errorMessage ?: stringResource(R.string.an_error_has_occurred),
-            onRetry = viewModel::refresh
+            errorMessage = uiState.errorMessage ?: "",
+            onRetry = viewModel::refresh,
+            onClose = if (uiState.errorType is SQLiteException) restartApp else null
         )
 
         is HomeScreenUiState.InputUser -> AddUserContent(
@@ -87,15 +91,19 @@ fun HomeScreenReady(
 ) {
     val coroutineScope = rememberCoroutineScope()
     val pagerState = rememberPagerState(pageCount = { uiState.userPasswordMap.size })
+    val users = uiState.userPasswordMap.keys.toList()
+
+    LaunchedEffect(pagerState.currentPage) {
+        viewModel.onUserSelected(users[pagerState.currentPage])
+    }
 
     Scaffold(
         modifier = Modifier
             .fillMaxSize(),
         bottomBar = {
             UserNavigationBar(
-                users = uiState.userPasswordMap.keys,
-                onClick = { user, index ->
-                    viewModel.onUserSelected(user)
+                users = users,
+                onClick = { index ->
                     coroutineScope.launch {
                         pagerState.animateScrollToPage(index)
                     }
@@ -150,7 +158,9 @@ fun HomeContent(
                 query = uiState.query,
                 onValueChanged = { onQueryChange(it) },
             )
-            HorizontalPager(state = pagerState) {
+            HorizontalPager(
+                state = pagerState,
+            ) {
                 val pullRefreshState = rememberPullRefreshState(uiState.isRefreshing, refresh)
                 Box(
                     modifier = Modifier
@@ -161,13 +171,13 @@ fun HomeContent(
                     val credentials = uiState.userPasswordMap[uiState.selectedUser]
 
                     if (credentials == null) {
-                        ErrorScreen("No credentials found.", refresh)
+                        ErrorScreen(stringResource(R.string.no_credentials_found), refresh)
                         return@Box
                     }
 
                     if (credentials.isEmpty())
                         Text(
-                            text = "No bees found",
+                            text = stringResource(R.string.no_bees_found),
                             style = MaterialTheme.typography.headlineSmall,
                             color = MaterialTheme.colorScheme.outlineVariant,
                             modifier = Modifier.align(Alignment.Center)
