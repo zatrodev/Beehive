@@ -22,7 +22,6 @@ fun ErrorScreen(
     errorMessage: String,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
-    onClose: (() -> Unit)? = null,
 ) {
     Surface(modifier = modifier) {
         Column(
@@ -48,9 +47,8 @@ fun ErrorScreen(
                     style = MaterialTheme.typography.bodySmall,
                 )
             }
-            Button(onClick = onClose ?: onRetry) {
-                Text(text = stringResource(R.string.retry_label).takeIf { onClose == null }
-                    ?: stringResource(R.string.restart_label))
+            Button(onClick = onRetry) {
+                Text(text = stringResource(R.string.restart_label))
             }
         }
     }

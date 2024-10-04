@@ -33,6 +33,7 @@ import com.example.beehive.ui.Dimensions.SmallPadding
 import com.example.beehive.ui.common.BeehiveButton
 import com.example.beehive.ui.common.BeehiveTextButton
 import com.example.beehive.ui.common.BeehiveTextField
+import com.example.beehive.ui.credential.components.ErrorText
 import com.example.beehive.ui.credential.components.LengthSlider
 import com.example.beehive.ui.credential.components.NameSearchDialog
 import com.example.beehive.ui.credential.components.OptionRow
@@ -44,6 +45,7 @@ import com.example.beehive.utils.generatePassword
 
 @Composable
 fun AddCredentialScreen(
+    onNavigateToAddUser: () -> Unit,
     onBack: () -> Unit,
     viewModel: AddCredentialViewModel = viewModel(factory = BeehiveViewModelProvider.Factory),
 ) {
@@ -55,13 +57,14 @@ fun AddCredentialScreen(
             uiState = uiState,
             isError = showError,
             onClearError = { showError = false },
+            onNavigateToAddUser = onNavigateToAddUser,
             onNameChange = viewModel::updateName,
             onUsernameChange = viewModel::updateUsername,
             onPasswordChange = viewModel::updatePassword,
             onUserChange = viewModel::updateUser,
             onBack = onBack,
             onCreateClick = {
-                if (uiState.name.isBlank())
+                if (uiState.name.isBlank() || uiState.user == null)
                     showError = true
                 else {
                     viewModel.onCreateCredential()
@@ -81,6 +84,7 @@ private fun AddCredentialContent(
     uiState: AddPasswordUiState,
     isError: Boolean,
     onClearError: () -> Unit,
+    onNavigateToAddUser: () -> Unit,
     onNameChange: (String) -> Unit,
     onUsernameChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
@@ -117,33 +121,32 @@ private fun AddCredentialContent(
                 text = stringResource(R.string.add_password_text),
                 style = MaterialTheme.typography.headlineSmall,
             )
-            if (uiState.user != null)
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(SmallPadding)
+            ) {
                 UserDropdownMenu(
                     activeUser = uiState.user,
                     users = uiState.users,
-                    onClick = onUserChange
+                    onClick = onUserChange,
+                    onNavigateToAddUser = onNavigateToAddUser,
+                    isError = isError && uiState.user == null,
                 )
-
+                if (isError && uiState.user == null)
+                    ErrorText(text = stringResource(R.string.user_error_message))
+            }
         }
         Spacer(modifier = Modifier.weight(1f))
         PasswordTile(
             name = uiState.name,
             icon = uiState.icon,
-            backgroundColor = if (isError) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.tertiaryContainer,
-            contentColor = if (isError) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onTertiaryContainer,
+            backgroundColor = if (isError && uiState.name.isBlank()) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.tertiaryContainer,
+            contentColor = if (isError && uiState.name.isBlank()) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onTertiaryContainer,
             onClick = { showDialog = true },
             modifier = Modifier.padding(horizontal = LargePadding)
         )
-        if (isError)
-            Text(
-                text = stringResource(R.string.name_error_message),
-                style = MaterialTheme.typography.bodySmall.copy(
-                    color = MaterialTheme.colorScheme.error
-                ),
-                modifier = Modifier.padding(
-                    horizontal = MediumPadding
-                )
-            )
+        if (isError && uiState.name.isBlank())
+            ErrorText(text = stringResource(R.string.name_error_message))
 
         Surface(
             shape = MaterialTheme.shapes.small,
@@ -154,7 +157,6 @@ private fun AddCredentialContent(
             BeehiveTextField(
                 value = uiState.username,
                 onValueChange = onUsernameChange,
-                isError = isError,
                 labelColor = MaterialTheme.colorScheme.primary,
                 modifier = Modifier
                     .fillMaxWidth()

@@ -1,7 +1,6 @@
 package com.example.beehive.ui.user
 
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -56,7 +55,6 @@ fun AddUserScreen(
             onBack = onBack,
             onEmailChange = viewModel::onEmailChange,
             onCreateUser = { email ->
-                Log.d("EMAIL", email)
                 viewModel.onCreateUser(email)
                 onBack()
             },

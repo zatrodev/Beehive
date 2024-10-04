@@ -11,12 +11,17 @@ object Dimensions {
     val RoundedCornerShape = 6.dp
     val SearchBarCornerShape = 30.dp
     val IconSize = 17.5f.dp
-    val NavBarHeight = 120.dp
-    val UserIconSize = 25.dp
-    val NavIconSIze = 95.dp
-    val UserIconContainerHeight = 65.dp
+    val ActionIconSize = 35.dp
+    val UserIconSize = 30.dp
+    val UserIconContainerWidth = 95.dp
+    val UserIconContainerHeight = 75.dp
     val PasswordCardHeight = 120.dp
     val ShadowElevation = 8.dp
     val InstalledAppIconSize = 30.dp
     val EmailTextFieldSize = 350.dp
+    val LoadingIconSize = 100.dp
+    val DropdownMenuMaxHeight = 100.dp
+    val DropdownMenuBaseHeight = 50.dp
+    val FabIconSize = 60.dp
+    val FingerprintIconSize = 55.dp
 }

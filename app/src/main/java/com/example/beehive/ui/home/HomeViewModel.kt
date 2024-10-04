@@ -1,14 +1,16 @@
 package com.example.beehive.ui.home
 
 import android.database.sqlite.SQLiteException
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.beehive.data.credential.Credential
+import com.example.beehive.data.credential.CredentialAndUser
 import com.example.beehive.data.credential.CredentialRepository
 import com.example.beehive.data.credential.PasswordApp
 import com.example.beehive.data.user.User
 import com.example.beehive.data.user.UserRepository
-import com.example.beehive.domain.GetCategorizedCredentialsWithUserByPackageUseCase
+import com.example.beehive.domain.GetCategorizedCredentialsAndUserByPackageUseCase
 import com.example.beehive.utils.filter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -24,30 +26,35 @@ import kotlinx.coroutines.launch
 class HomeViewModel(
     private val credentialRepository: CredentialRepository,
     private val userRepository: UserRepository,
-    private val getCategorizedCredentialsWithUserByPackageUseCase: GetCategorizedCredentialsWithUserByPackageUseCase,
+    private val getCategorizedCredentialsAndUserByPackageUseCase: GetCategorizedCredentialsAndUserByPackageUseCase,
+    private val dataStore: DataStore<Preferences>,
 ) : ViewModel() {
-    private var userPasswordMap =
-        MutableStateFlow(getCategorizedCredentialsWithUserByPackageUseCase())
-    private val _selectedUser = MutableStateFlow<User?>(null)
+    private var appCredentialMap =
+        MutableStateFlow(getCategorizedCredentialsAndUserByPackageUseCase())
     private val _query = MutableStateFlow("")
     private val _email = MutableStateFlow("")
     private val _homeUiState = MutableStateFlow<HomeScreenUiState>(HomeScreenUiState.Loading)
     private val _isRefreshing = MutableStateFlow(false)
 
-    val homeUiState: StateFlow<HomeScreenUiState> = _homeUiState.asStateFlow()
+    val uiState: StateFlow<HomeScreenUiState> = _homeUiState.asStateFlow()
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
             combine(
-                userPasswordMap.flatMapLatest {
+                appCredentialMap.flatMapLatest {
                     it
                 },
                 _query,
                 _email,
                 _isRefreshing,
-                _selectedUser,
-            ) { userPasswordMap, query, email, isRefreshing, selectedUser ->
-                if (userPasswordMap.isEmpty()) {
+                dataStore.data
+            ) { appCredentialMap, query, email, isRefreshing, preferences ->
+//                if (!preferences.contains(booleanPreferencesKey("tutorial_shown"))) {
+//                    return@combine HomeScreenUiState.Tutorial
+//                }
+
+
+                if (userRepository.getNextId() == 0) {
                     return@combine HomeScreenUiState.InputUser(
                         email = email,
                     )
@@ -55,8 +62,7 @@ class HomeViewModel(
 
                 HomeScreenUiState.Ready(
                     query = query,
-                    userPasswordMap = userPasswordMap.filter(query),
-                    selectedUser = selectedUser ?: userPasswordMap.keys.first(),
+                    appCredentialMap = appCredentialMap.filter(query),
                     isRefreshing = isRefreshing
                 )
             }.catch { throwable ->
@@ -80,7 +86,7 @@ class HomeViewModel(
         viewModelScope.launch(Dispatchers.IO) {
             _isRefreshing.value = true
             try {
-                userPasswordMap.value = getCategorizedCredentialsWithUserByPackageUseCase()
+                appCredentialMap.value = getCategorizedCredentialsAndUserByPackageUseCase()
             } catch (e: Exception) {
                 _homeUiState.value = HomeScreenUiState.Error(e.message)
             } finally {
@@ -97,20 +103,15 @@ class HomeViewModel(
         _query.value = query
     }
 
-    fun onUserSelected(user: User) {
-        _selectedUser.value = user
-    }
-
     fun onCreateUser(email: String) {
         viewModelScope.launch(Dispatchers.IO) {
             userRepository.insertUser(User(1, email))
-            refresh()
         }
     }
 
-    fun deletePassword(id: Int) {
+    fun trashPassword(id: Int) {
         viewModelScope.launch(Dispatchers.IO) {
-            credentialRepository.deleteCredential(id)
+            credentialRepository.trashCredential(id)
         }
     }
 }
@@ -123,14 +124,15 @@ sealed interface HomeScreenUiState {
         val errorType: Throwable? = null,
     ) : HomeScreenUiState
 
+    data object Tutorial : HomeScreenUiState
+
     data class InputUser(
         val email: String,
     ) : HomeScreenUiState
 
     data class Ready(
         val query: String,
-        val userPasswordMap: Map<User, Map<PasswordApp, List<Credential>>>,
-        val selectedUser: User,
+        val appCredentialMap: Map<PasswordApp, List<CredentialAndUser>>,
         val isRefreshing: Boolean = false,
     ) : HomeScreenUiState
 }

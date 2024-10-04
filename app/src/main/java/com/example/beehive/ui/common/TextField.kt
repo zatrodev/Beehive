@@ -23,7 +23,6 @@ import com.example.beehive.ui.Dimensions.IndicatorLineThickness
 fun BeehiveTextField(
     value: String,
     onValueChange: (String) -> Unit,
-    isError: Boolean,
     modifier: Modifier = Modifier,
     labelColor: Color = MaterialTheme.colorScheme.onSurface,
 ) {
@@ -55,7 +54,7 @@ fun BeehiveTextField(
             modifier = Modifier
                 .indicatorLine(
                     enabled = true,
-                    isError = isError,
+                    isError = false,
                     colors = TextFieldDefaults.colors(
                         focusedIndicatorColor = MaterialTheme.colorScheme.tertiary,
                         unfocusedIndicatorColor = MaterialTheme.colorScheme.tertiary,

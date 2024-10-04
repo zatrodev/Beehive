@@ -76,7 +76,8 @@ fun PasswordTile(
             ConditionalStyleText(
                 text = name,
                 fontSize = MaterialTheme.typography.labelMedium,
-                color = contentColor
+                color = contentColor,
+                modifier = Modifier.padding(SmallPadding)
             )
         }
     }

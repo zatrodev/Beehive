@@ -3,6 +3,7 @@ package com.example.beehive.data.user
 import kotlinx.coroutines.flow.Flow
 
 interface UserRepository {
+
     fun getAllUsersStream(): Flow<List<User>>
 
     fun getUserStream(id: Int): Flow<User>
@@ -10,6 +11,10 @@ interface UserRepository {
     fun getUsersWithCredentials(): Flow<List<UserWithCredentials>>
 
     suspend fun insertUser(user: User)
+
+    suspend fun deleteUser(user: User)
+
+    suspend fun deleteById(id: Int)
 
     suspend fun getNextId(): Int
 }

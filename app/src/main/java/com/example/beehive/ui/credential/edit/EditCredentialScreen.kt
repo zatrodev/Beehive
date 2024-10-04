@@ -38,12 +38,12 @@ import com.example.beehive.ui.Dimensions.SmallPadding
 import com.example.beehive.ui.common.BeehiveButton
 import com.example.beehive.ui.common.BeehiveTextButton
 import com.example.beehive.ui.common.BeehiveTextField
+import com.example.beehive.ui.common.PasswordCard
 import com.example.beehive.ui.credential.add.AddPasswordUiState
 import com.example.beehive.ui.credential.add.OptionType
 import com.example.beehive.ui.credential.components.LengthSlider
 import com.example.beehive.ui.credential.components.NameSearchDialog
 import com.example.beehive.ui.credential.components.OptionRow
-import com.example.beehive.ui.credential.components.PasswordCard
 import com.example.beehive.ui.credential.components.PasswordDisplay
 import com.example.beehive.ui.credential.components.UserDropdownMenu
 import com.example.beehive.ui.home.components.PasswordTile
@@ -53,6 +53,7 @@ import com.example.beehive.utils.generatePassword
 
 @Composable
 fun EditCredentialScreen(
+    onNavigateToAddUser: () -> Unit,
     onBack: () -> Unit,
     sharedElementTransition: SharedElementTransition,
     viewModel: EditCredentialViewModel = viewModel(factory = BeehiveViewModelProvider.Factory),
@@ -63,6 +64,7 @@ fun EditCredentialScreen(
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         EditCredentialContent(
             uiState = viewModel.uiState,
+            onNavigateToAddUser = onNavigateToAddUser,
             onNameChange = viewModel::updateName,
             onUsernameChange = viewModel::updateUsername,
             onPasswordChange = viewModel::updatePassword,
@@ -90,6 +92,7 @@ private fun EditCredentialContent(
     uiState: AddPasswordUiState,
     isError: Boolean,
     onClearError: () -> Unit,
+    onNavigateToAddUser: () -> Unit,
     onNameChange: (String) -> Unit,
     onUsernameChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
@@ -136,6 +139,7 @@ private fun EditCredentialContent(
         PasswordCard(
             username = uiState.username,
             password = uiState.password,
+            user = uiState.user!!,
             showPassword = showPassword,
             sharedElementTransition = sharedElementTransition,
             modifier = Modifier
@@ -168,12 +172,12 @@ private fun EditCredentialContent(
                         )
                 )
             }
-            if (uiState.user != null)
-                UserDropdownMenu(
-                    activeUser = uiState.user,
-                    users = uiState.users,
-                    onClick = onUserChange
-                )
+            UserDropdownMenu(
+                activeUser = uiState.user,
+                users = uiState.users,
+                onClick = onUserChange,
+                onNavigateToAddUser = onNavigateToAddUser
+            )
         }
         Surface(
             shape = MaterialTheme.shapes.small,
@@ -190,7 +194,6 @@ private fun EditCredentialContent(
                     onUsernameChange(username)
                     onClearError()
                 },
-                isError = isError,
                 labelColor = MaterialTheme.colorScheme.primary,
                 modifier = Modifier
                     .fillMaxWidth()
