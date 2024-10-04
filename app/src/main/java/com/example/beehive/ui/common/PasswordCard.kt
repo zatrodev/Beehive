@@ -1,4 +1,4 @@
-package com.example.beehive.ui.credential.components
+package com.example.beehive.ui.common
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -11,6 +11,7 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -40,8 +41,12 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.example.beehive.R
+import com.example.beehive.data.user.User
 import com.example.beehive.ui.Dimensions.ExtraSmallPadding
 import com.example.beehive.ui.Dimensions.IconSize
 import com.example.beehive.ui.Dimensions.MediumPadding
@@ -49,8 +54,7 @@ import com.example.beehive.ui.Dimensions.PasswordCardHeight
 import com.example.beehive.ui.Dimensions.RoundedCornerShape
 import com.example.beehive.ui.Dimensions.ShadowElevation
 import com.example.beehive.ui.Dimensions.SmallPadding
-import com.example.beehive.ui.common.ConditionalStyleText
-import com.example.beehive.ui.home.components.DeleteConfirmationDialog
+import com.example.beehive.ui.home.components.ConfirmationDialog
 import com.example.beehive.ui.navigation.SharedElementTransition
 import com.example.beehive.utils.isDarkMode
 
@@ -62,13 +66,14 @@ fun PasswordCard(
     id: Int? = null,
     username: String,
     password: String,
+    user: User,
     showPassword: Boolean = false,
     onDelete: (Int) -> Unit = {},
-    onEdit: (Int) -> Unit = {},
+    onEdit: (Int, Int) -> Unit = { _: Int, _: Int -> },
     sharedElementTransition: SharedElementTransition,
 ) {
     var localShowPassword by remember { mutableStateOf(showPassword) }
-    var deleteConfirmationRequired by rememberSaveable { mutableStateOf(false) }
+    var deleteConfirmation by rememberSaveable { mutableStateOf(false) }
     val isEditing = id == null
     val interactionSource = remember { MutableInteractionSource() }
     val passwordModifier = if (isEditing) modifier else Modifier.clickable(
@@ -99,17 +104,26 @@ fun PasswordCard(
                 )
 
         ) {
-            Row(
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically,
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
                 modifier = Modifier
+                    .padding(MediumPadding)
                     .fillMaxWidth()
                     .verticalScroll(rememberScrollState())
             ) {
+                Text(
+                    text = user.email,
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        color = MaterialTheme.colorScheme.onSurface
+                    ),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
                 ConditionalStyleText(
                     text = username,
-                    fontSize = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface
+                    fontSize = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
             }
             Row(
@@ -119,7 +133,7 @@ fun PasswordCard(
                     .padding(ExtraSmallPadding)
             ) {
                 IconButton(
-                    onClick = { if (id != null) onEdit(id) },
+                    onClick = { if (id != null) onEdit(id, user.id) },
                     modifier = Modifier.size(IconSize)
                 ) {
                     Icon(
@@ -130,7 +144,7 @@ fun PasswordCard(
                     )
                 }
                 IconButton(
-                    onClick = { if (id != null) deleteConfirmationRequired = true },
+                    onClick = { if (id != null) deleteConfirmation = true },
                     modifier = Modifier.size(IconSize)
                 ) {
                     Icon(
@@ -154,15 +168,17 @@ fun PasswordCard(
             ) {
                 DisplayPassword(password = password)
             }
-            if (deleteConfirmationRequired) {
-                DeleteConfirmationDialog(
-                    onDeleteConfirm = {
+            if (deleteConfirmation) {
+                ConfirmationDialog(
+                    title = stringResource(R.string.delete_title),
+                    message = stringResource(R.string.delete_question),
+                    onConfirm = {
                         onDelete(id!!)
-                        deleteConfirmationRequired = false
-                    }, onDeleteCancel = {
-                        deleteConfirmationRequired = false
+                        deleteConfirmation = false
                     },
-                    modifier = Modifier.padding(MediumPadding)
+                    onCancel = {
+                        deleteConfirmation = false
+                    },
                 )
             }
         }
