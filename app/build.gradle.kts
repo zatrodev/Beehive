@@ -62,6 +62,8 @@ dependencies {
     implementation(libs.sqlcipher.android)
     implementation(libs.androidx.sqlite)
     implementation(libs.androidx.datastore)
+    implementation(libs.lottie.compose)
+    implementation(libs.androidx.datastore.preferences)
     annotationProcessor(libs.androidx.room.room.compiler7)
     ksp(libs.androidx.room.room.compiler7)
     implementation(libs.androidx.room.ktx)
