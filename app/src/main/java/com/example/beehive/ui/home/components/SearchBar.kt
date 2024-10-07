@@ -3,7 +3,6 @@ package com.example.beehive.ui.home.components
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Icon
@@ -23,7 +22,6 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.res.stringResource
 import com.example.beehive.R
 import com.example.beehive.ui.Dimensions.LargePadding
-import com.example.beehive.ui.Dimensions.SearchBarCornerShape
 
 @Composable
 fun SearchBar(
@@ -35,7 +33,7 @@ fun SearchBar(
 
     Surface(
         color = surfaceColor,
-        shape = RoundedCornerShape(SearchBarCornerShape),
+        shape = MaterialTheme.shapes.extraLarge,
         modifier = Modifier
             .fillMaxWidth()
             .padding(

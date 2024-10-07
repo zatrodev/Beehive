@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.beehive.R
 import com.example.beehive.auth.BiometricPromptManager.BiometricResult
+import com.example.beehive.ui.Dimensions.FingerprintIconSize
 import com.example.beehive.ui.Dimensions.SmallPadding
 import kotlinx.coroutines.delay
 
@@ -81,6 +82,13 @@ fun AuthScreen(
 
                         launcher.launch(enrollIntent)
                     }
+                } else if (biometricResult is BiometricResult.AuthenticationSuccess) {
+                    if (isFromService) {
+                        returnToService()
+                        return@LaunchedEffect
+                    }
+                    
+                    onNavigateToHome()
                 }
             }
 
@@ -102,23 +110,14 @@ fun AuthScreen(
                 onClick = {
                     promptManager.authenticateWithBiometric("Login with Biometrics")
                 },
-                modifier = Modifier.size(50.dp)
+                modifier = Modifier
+                    .size(FingerprintIconSize)
             ) {
                 Icon(
                     painter = painterResource(R.drawable.ic_fingerprint),
                     contentDescription = "fingerprint",
                     tint = Color.White,
                 )
-            }
-
-            biometricResult?.takeIf { it is BiometricResult.AuthenticationSuccess }?.let {
-                if (isFromService) {
-                    returnToService()
-                    return
-                }
-
-                onNavigateToHome()
-
             }
         }
 
