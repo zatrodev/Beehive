@@ -10,7 +10,9 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.beehive.ui.DrawerItemsManager
 import com.example.beehive.ui.credential.add.AddCredentialScreen
+import com.example.beehive.ui.credential.deleted.DeletedCredentialsScreen
 import com.example.beehive.ui.credential.edit.EditCredentialScreen
 import com.example.beehive.ui.home.HomeScreen
 import com.example.beehive.ui.user.AddUserScreen
@@ -21,13 +23,16 @@ import kotlinx.serialization.Serializable
 object Home
 
 @Serializable
-data class AddPassword(val userId: Int)
+object AddCredential
 
 @Serializable
 object AddUser
 
 @Serializable
-data class EditPassword(val id: Int, val userId: Int)
+data class EditCredential(val id: Int, val userId: Int)
+
+@Serializable
+object DeletedCredentials
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -35,6 +40,7 @@ fun BeehiveNavHost(
     restartApp: () -> Unit = {},
     navController: NavHostController,
 ) {
+    DrawerItemsManager.setDrawerItems(navController)
     val durationMillis = 700
     SharedTransitionLayout {
         NavHost(
@@ -54,23 +60,18 @@ fun BeehiveNavHost(
                 }
             ) {
                 HomeScreen(
-                    onNavigateToAddPassword = { userId ->
+                    onNavigateToAddPassword = {
                         navController.navigate(
-                            route = AddPassword(
-                                userId = userId
-                            )
+                            route = AddCredential
                         )
                     },
                     onNavigateToEditPassword = { id, userId ->
                         navController.navigate(
-                            route = EditPassword(
+                            route = EditCredential(
                                 id = id,
                                 userId = userId
                             )
                         )
-                    },
-                    onNavigateToAddUser = {
-                        navController.navigate(route = AddUser)
                     },
                     restartApp = restartApp,
                     sharedElementTransition = SharedElementTransition(
@@ -80,7 +81,7 @@ fun BeehiveNavHost(
                 )
             }
 
-            composable<AddPassword>(
+            composable<AddCredential>(
                 enterTransition = {
                     return@composable slideIntoContainer(
                         AnimatedContentTransitionScope.SlideDirection.End, tween(durationMillis)
@@ -93,6 +94,11 @@ fun BeehiveNavHost(
                 }
             ) {
                 AddCredentialScreen(
+                    onNavigateToAddUser = {
+                        navController.navigate(
+                            route = AddUser
+                        )
+                    },
                     onBack = {
                         navController.popBackStack()
                     }
@@ -118,7 +124,7 @@ fun BeehiveNavHost(
                 )
             }
 
-            composable<EditPassword>(
+            composable<EditCredential>(
                 enterTransition = {
                     return@composable slideIntoContainer(
                         AnimatedContentTransitionScope.SlideDirection.End, tween(durationMillis)
@@ -131,6 +137,11 @@ fun BeehiveNavHost(
                 }
             ) {
                 EditCredentialScreen(
+                    onNavigateToAddUser = {
+                        navController.navigate(
+                            route = AddUser
+                        )
+                    },
                     onBack = {
                         navController.popBackStack()
                     },
@@ -139,6 +150,10 @@ fun BeehiveNavHost(
                         animatedContentScope = this@composable
                     )
                 )
+            }
+
+            composable<DeletedCredentials> {
+                DeletedCredentialsScreen()
             }
         }
     }

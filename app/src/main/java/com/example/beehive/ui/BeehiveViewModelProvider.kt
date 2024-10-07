@@ -6,9 +6,10 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.beehive.BeehiveApplication
-import com.example.beehive.domain.GetCategorizedCredentialsWithUserByPackageUseCase
+import com.example.beehive.domain.GetCategorizedCredentialsAndUserByPackageUseCase
 import com.example.beehive.domain.GetInstalledAppsUseCase
 import com.example.beehive.ui.credential.add.AddCredentialViewModel
+import com.example.beehive.ui.credential.deleted.DeletedCredentialsViewModel
 import com.example.beehive.ui.credential.edit.EditCredentialViewModel
 import com.example.beehive.ui.home.HomeViewModel
 import com.example.beehive.ui.user.AddUserViewModel
@@ -17,7 +18,6 @@ object BeehiveViewModelProvider {
     val Factory = viewModelFactory {
         initializer {
             AddCredentialViewModel(
-                this.createSavedStateHandle(),
                 beehiveApplication().container.userRepository,
                 beehiveApplication().container.credentialRepository,
                 GetInstalledAppsUseCase(beehiveApplication().container.packageManager)
@@ -38,16 +38,23 @@ object BeehiveViewModelProvider {
             HomeViewModel(
                 beehiveApplication().container.credentialRepository,
                 beehiveApplication().container.userRepository,
-                GetCategorizedCredentialsWithUserByPackageUseCase(
-                    beehiveApplication().container.userRepository,
+                GetCategorizedCredentialsAndUserByPackageUseCase(
+                    beehiveApplication().container.credentialRepository,
                     GetInstalledAppsUseCase(beehiveApplication().container.packageManager)
-                )
+                ),
+                beehiveApplication().container.dataStore
             )
         }
 
         initializer {
             AddUserViewModel(
                 beehiveApplication().container.userRepository
+            )
+        }
+
+        initializer {
+            DeletedCredentialsViewModel(
+                beehiveApplication().container.credentialRepository
             )
         }
     }

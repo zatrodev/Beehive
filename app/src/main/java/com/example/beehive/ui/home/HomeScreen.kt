@@ -36,11 +36,11 @@ import com.example.beehive.ui.Dimensions.FabIconSize
 import com.example.beehive.ui.Dimensions.LargePadding
 import com.example.beehive.ui.Dimensions.MediumPadding
 import com.example.beehive.ui.Dimensions.SmallPadding
+import com.example.beehive.ui.DrawerItemsManager
 import com.example.beehive.ui.common.BeehiveDrawer
 import com.example.beehive.ui.common.BeehiveTopBar
 import com.example.beehive.ui.common.ErrorScreen
 import com.example.beehive.ui.common.LoadingScreen
-import com.example.beehive.ui.common.NavigationItem
 import com.example.beehive.ui.home.components.PasswordTile
 import com.example.beehive.ui.home.components.PasswordsGrid
 import com.example.beehive.ui.home.components.SearchBar
@@ -49,7 +49,6 @@ import com.example.beehive.ui.user.AddUserContent
 
 @Composable
 fun HomeScreen(
-    drawerItems: List<NavigationItem>,
     onNavigateToAddPassword: () -> Unit,
     onNavigateToEditPassword: (Int, Int) -> Unit,
     restartApp: () -> Unit,
@@ -73,7 +72,6 @@ fun HomeScreen(
 
         is HomeScreenUiState.Ready -> HomeScreenReady(
             uiState = state,
-            drawerItems = drawerItems,
             onNavigateToAddPassword = onNavigateToAddPassword,
             onNavigateToEditPassword = onNavigateToEditPassword,
             sharedElementTransition = sharedElementTransition
@@ -86,7 +84,6 @@ fun HomeScreen(
 @Composable
 fun HomeScreenReady(
     uiState: HomeScreenUiState.Ready,
-    drawerItems: List<NavigationItem>,
     onNavigateToAddPassword: () -> Unit,
     onNavigateToEditPassword: (Int, Int) -> Unit,
     sharedElementTransition: SharedElementTransition,
@@ -96,7 +93,7 @@ fun HomeScreenReady(
 
     BeehiveDrawer(
         drawerState = drawerState,
-        items = drawerItems
+        items = DrawerItemsManager.allItems
     ) {
         Scaffold(
             modifier = Modifier

@@ -9,7 +9,6 @@ object Dimensions {
     val LargePadding = 24.dp
     val IndicatorLineThickness = 3.dp
     val RoundedCornerShape = 6.dp
-    val SearchBarCornerShape = 30.dp
     val IconSize = 17.5f.dp
     val ActionIconSize = 35.dp
     val UserIconSize = 30.dp
@@ -24,4 +23,5 @@ object Dimensions {
     val DropdownMenuBaseHeight = 50.dp
     val FabIconSize = 60.dp
     val FingerprintIconSize = 55.dp
+    val CenterIconSize = 150.dp
 }

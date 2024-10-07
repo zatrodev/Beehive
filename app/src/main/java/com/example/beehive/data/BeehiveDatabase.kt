@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
 import com.example.beehive.auth.CryptoManager
 import com.example.beehive.data.credential.Credential
 import com.example.beehive.data.credential.CredentialDao
@@ -11,7 +12,8 @@ import com.example.beehive.data.user.User
 import com.example.beehive.data.user.UserDao
 import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
 
-@Database(entities = [Credential::class, User::class], version = 1, exportSchema = false)
+@Database(entities = [Credential::class, User::class], version = 2, exportSchema = false)
+@TypeConverters(Converters::class)
 abstract class BeehiveDatabase : RoomDatabase() {
     abstract fun passwordDao(): CredentialDao
     abstract fun userDao(): UserDao

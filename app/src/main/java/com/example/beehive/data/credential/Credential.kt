@@ -7,6 +7,7 @@ import androidx.room.Ignore
 import androidx.room.PrimaryKey
 import androidx.room.Relation
 import com.example.beehive.data.user.User
+import java.util.Date
 
 @Entity(tableName = "credential")
 data class Credential(
@@ -14,6 +15,7 @@ data class Credential(
     val username: String = "",
     val password: String,
     val userId: Int,
+    val deletionDate: Date? = null,
     @Embedded val app: PasswordApp,
 )
 
@@ -25,7 +27,7 @@ data class PasswordApp(
     var icon: Drawable? = null
 }
 
-data class CredentialWithUser(
+data class CredentialAndUser(
     @Embedded val credential: Credential,
     @Relation(
         parentColumn = "userId",

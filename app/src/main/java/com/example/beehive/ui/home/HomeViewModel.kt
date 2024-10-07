@@ -11,6 +11,7 @@ import com.example.beehive.data.credential.PasswordApp
 import com.example.beehive.data.user.User
 import com.example.beehive.data.user.UserRepository
 import com.example.beehive.domain.GetCategorizedCredentialsAndUserByPackageUseCase
+import com.example.beehive.ui.DrawerItemsManager
 import com.example.beehive.utils.filter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -53,6 +54,14 @@ class HomeViewModel(
 //                    return@combine HomeScreenUiState.Tutorial
 //                }
 
+                if (DrawerItemsManager.allItems[2].badgeCount == null) {
+                    DrawerItemsManager.setBadgeCount(
+                        2,
+                        appCredentialMap.values.sumOf { credentials ->
+                            credentials.count { credentialAndUser -> credentialAndUser.credential.deletionDate != null }
+                        }
+                    )
+                }
 
                 if (userRepository.getNextId() == 0) {
                     return@combine HomeScreenUiState.InputUser(
@@ -133,6 +142,7 @@ sealed interface HomeScreenUiState {
     data class Ready(
         val query: String,
         val appCredentialMap: Map<PasswordApp, List<CredentialAndUser>>,
+        val trashedCredentialsCount: Int? = null,
         val isRefreshing: Boolean = false,
     ) : HomeScreenUiState
 }
