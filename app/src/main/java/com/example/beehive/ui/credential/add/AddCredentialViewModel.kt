@@ -13,7 +13,6 @@ import com.example.beehive.data.user.User
 import com.example.beehive.data.user.UserRepository
 import com.example.beehive.domain.GetInstalledAppsUseCase
 import com.example.beehive.domain.GetInstalledAppsUseCase.InstalledApp
-import com.example.beehive.ui.credential.PasswordInput
 import com.example.beehive.utils.generatePassword
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
@@ -24,9 +23,10 @@ class AddCredentialViewModel(
     private val userRepository: UserRepository,
     private val credentialRepository: CredentialRepository,
     private val getInstalledAppsUseCase: GetInstalledAppsUseCase,
-) : ViewModel(), PasswordInput {
-    override var uiState by mutableStateOf(AddPasswordUiState())
-    override lateinit var installedApps: List<InstalledApp>
+) : ViewModel() {
+    var uiState by mutableStateOf(AddPasswordUiState())
+    var installedApps: List<InstalledApp> = emptyList()
+        private set
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
@@ -34,16 +34,41 @@ class AddCredentialViewModel(
             userRepository.getAllUsersStream().collectLatest { users ->
                 uiState = uiState.copy(
                     users = users,
-                    installedApps = installedApps
                 )
             }
         }
     }
 
-    fun onCreateCredential() {
+    fun updateName(input: String) {
+        uiState = uiState.copy(
+            name = input,
+            packageName = installedApps.find { it.name == input }?.packageName ?: "",
+            icon = installedApps.find { it.name == input }?.icon,
+        )
+    }
+
+    fun updateUsername(input: String) {
+        uiState = uiState.copy(
+            username = input
+        )
+    }
+
+    fun updatePassword(input: String) {
+        uiState = uiState.copy(
+            password = input
+        )
+    }
+
+    fun updateUser(input: User) {
+        uiState = uiState.copy(
+            user = input
+        )
+    }
+
+    fun createCredential() {
         viewModelScope.launch(Dispatchers.IO) {
             credentialRepository.insertCredential(
-                uiState.toPassword(
+                uiState.toCredential(
                     id = credentialRepository.getNextId() + 1,
                     userId = uiState.user!!.id
                 )
@@ -60,10 +85,9 @@ data class AddPasswordUiState(
     val password: String = generatePassword(1),
     val user: User? = null,
     val users: List<User> = emptyList(),
-    var installedApps: List<InstalledApp> = emptyList(),
 )
 
-fun AddPasswordUiState.toPassword(id: Int, userId: Int): Credential = Credential(
+fun AddPasswordUiState.toCredential(id: Int, userId: Int): Credential = Credential(
     id = id,
     username = username,
     password = password,

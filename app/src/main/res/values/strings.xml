@@ -26,7 +26,7 @@
     <string name="add_user_desc">Enter a new email</string>
     <string name="add_user_button">Create User</string>
     <string name="no_username">blank</string>
-    <string name="add_password_text">Add Password</string>
+    <string name="add_password_title">Add password</string>
     <string name="subtitle">The password manager for you.</string>
     <string name="no_bees_found">No bees found.</string>
     <string name="no_credentials_found">No credentials found.</string>

@@ -11,9 +11,9 @@ object Dimensions {
     val RoundedCornerShape = 6.dp
     val IconSize = 17.5f.dp
     val ActionIconSize = 35.dp
-    val UserIconSize = 30.dp
-    val UserIconContainerWidth = 95.dp
-    val UserIconContainerHeight = 75.dp
+    val UserIconSize = 20.dp
+    val UserIconContainerWidth = 85.dp
+    val UserIconContainerHeight = 65.dp
     val PasswordCardHeight = 120.dp
     val ShadowElevation = 8.dp
     val InstalledAppIconSize = 30.dp

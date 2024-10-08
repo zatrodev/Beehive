@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.beehive.data.credential.CredentialAndUser
 import com.example.beehive.data.credential.CredentialRepository
 import com.example.beehive.ui.DrawerItemsManager
+import com.example.beehive.ui.DrawerItemsManager.DELETED_INDEX
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,7 +26,7 @@ class DeletedCredentialsViewModel(
             credentialRepository.deleteExpiredCredentials()
             deletedCredentials.collect {
                 DrawerItemsManager.setBadgeCount(
-                    2,
+                    DELETED_INDEX,
                     it.size
                 )
                 _uiState.value = DeletedCredentialsUiState.Ready(it)

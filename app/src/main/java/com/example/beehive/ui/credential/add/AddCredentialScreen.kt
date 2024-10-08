@@ -26,6 +26,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.beehive.R
 import com.example.beehive.data.user.User
+import com.example.beehive.domain.GetInstalledAppsUseCase.InstalledApp
 import com.example.beehive.ui.BeehiveViewModelProvider
 import com.example.beehive.ui.Dimensions.LargePadding
 import com.example.beehive.ui.Dimensions.MediumPadding
@@ -55,7 +56,8 @@ fun AddCredentialScreen(
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         AddCredentialContent(
             uiState = uiState,
-            isError = showError,
+            showError = showError,
+            installedApps = viewModel.installedApps,
             onClearError = { showError = false },
             onNavigateToAddUser = onNavigateToAddUser,
             onNameChange = viewModel::updateName,
@@ -67,7 +69,7 @@ fun AddCredentialScreen(
                 if (uiState.name.isBlank() || uiState.user == null)
                     showError = true
                 else {
-                    viewModel.onCreateCredential()
+                    viewModel.createCredential()
                     onBack()
                 }
             },
@@ -82,7 +84,8 @@ fun AddCredentialScreen(
 @Composable
 private fun AddCredentialContent(
     uiState: AddPasswordUiState,
-    isError: Boolean,
+    showError: Boolean,
+    installedApps: List<InstalledApp>,
     onClearError: () -> Unit,
     onNavigateToAddUser: () -> Unit,
     onNameChange: (String) -> Unit,
@@ -118,8 +121,8 @@ private fun AddCredentialContent(
                 .padding(MediumPadding)
         ) {
             Text(
-                text = stringResource(R.string.add_password_text),
-                style = MaterialTheme.typography.headlineSmall,
+                text = stringResource(R.string.add_password_title),
+                style = MaterialTheme.typography.headlineMedium,
             )
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -130,9 +133,9 @@ private fun AddCredentialContent(
                     users = uiState.users,
                     onClick = onUserChange,
                     onNavigateToAddUser = onNavigateToAddUser,
-                    isError = isError && uiState.user == null,
+                    isError = showError && uiState.user == null,
                 )
-                if (isError && uiState.user == null)
+                if (showError && uiState.user == null)
                     ErrorText(text = stringResource(R.string.user_error_message))
             }
         }
@@ -140,12 +143,12 @@ private fun AddCredentialContent(
         PasswordTile(
             name = uiState.name,
             icon = uiState.icon,
-            backgroundColor = if (isError && uiState.name.isBlank()) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.tertiaryContainer,
-            contentColor = if (isError && uiState.name.isBlank()) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onTertiaryContainer,
+            backgroundColor = if (showError && uiState.name.isBlank()) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.tertiaryContainer,
+            contentColor = if (showError && uiState.name.isBlank()) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onTertiaryContainer,
             onClick = { showDialog = true },
             modifier = Modifier.padding(horizontal = LargePadding)
         )
-        if (isError && uiState.name.isBlank())
+        if (showError && uiState.name.isBlank())
             ErrorText(text = stringResource(R.string.name_error_message))
 
         Surface(
@@ -247,7 +250,7 @@ private fun AddCredentialContent(
             },
             disableError = onClearError,
             closeDialogBox = { showDialog = false },
-            installedApps = uiState.installedApps
+            installedApps = installedApps
         )
     }
 }

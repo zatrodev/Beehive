@@ -149,6 +149,7 @@ fun BeehiveNavHost(
                     onBack = {
                         navController.popBackStack()
                     },
+                    restartApp = restartApp,
                     sharedElementTransition = SharedElementTransition(
                         sharedTransitionScope = this@SharedTransitionLayout,
                         animatedContentScope = this@composable

@@ -59,7 +59,7 @@ fun HomeScreen(
     when (val state = uiState) {
         is HomeScreenUiState.Loading -> LoadingScreen()
         is HomeScreenUiState.Error -> ErrorScreen(
-            errorMessage = state.errorMessage ?: "",
+            errorMessage = state.errorMessage,
             onRetry = restartApp,
         )
 
@@ -82,7 +82,7 @@ fun HomeScreen(
 }
 
 @Composable
-fun HomeScreenReady(
+private fun HomeScreenReady(
     uiState: HomeScreenUiState.Ready,
     onNavigateToAddPassword: () -> Unit,
     onNavigateToEditPassword: (Int, Int) -> Unit,

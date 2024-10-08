@@ -13,6 +13,7 @@ import com.example.beehive.data.user.User
 import com.example.beehive.data.user.UserRepository
 import com.example.beehive.domain.GetCategorizedCredentialsAndUserByPackageUseCase
 import com.example.beehive.ui.DrawerItemsManager
+import com.example.beehive.ui.DrawerItemsManager.DELETED_INDEX
 import com.example.beehive.ui.settings.SettingsViewModel.Companion.RETENTION_PERIOD
 import com.example.beehive.utils.addDaysToDate
 import com.example.beehive.utils.filter
@@ -59,9 +60,9 @@ class HomeViewModel(
 //                    return@combine HomeScreenUiState.Tutorial
 //                }
 
-                if (DrawerItemsManager.allItems[2].badgeCount == null) {
+                if (DrawerItemsManager.allItems[DELETED_INDEX].badgeCount == null) {
                     DrawerItemsManager.setBadgeCount(
-                        2,
+                        DELETED_INDEX,
                         credentialRepository.countTrashedCredentials().first()
                     )
                 }
