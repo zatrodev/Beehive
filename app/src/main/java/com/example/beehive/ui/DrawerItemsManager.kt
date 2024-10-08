@@ -3,11 +3,9 @@ package com.example.beehive.ui
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -29,6 +27,7 @@ object DrawerItemsManager {
         var badgeCount: Int? = null,
     )
 
+    const val DELETED_INDEX = 1
     private val items = mutableListOf<NavigationItem>()
 
     val allItems: List<NavigationItem>
@@ -59,24 +58,6 @@ object DrawerItemsManager {
                         navController.navigate(
                             route = Home
                         )
-                    }
-                ),
-                NavigationItem(
-                    label = { Text(text = stringResource(R.string.secrets_title)) },
-                    selectedIcon = {
-                        Icon(
-                            imageVector = Icons.Filled.Lock,
-                            contentDescription = "super duper secrets"
-                        )
-                    },
-                    unselectedIcon = {
-                        Icon(
-                            imageVector = Icons.Outlined.Lock,
-                            contentDescription = "super duper secrets"
-                        )
-                    },
-                    navigate = {
-                        // TODO
                     }
                 ),
                 NavigationItem(
