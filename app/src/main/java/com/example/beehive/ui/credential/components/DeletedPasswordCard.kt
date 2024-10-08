@@ -24,6 +24,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.Badge
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -118,15 +119,20 @@ fun DeletedPasswordCard(
             )
         }
         Row(
+            horizontalArrangement = Arrangement.spacedBy(SmallPadding),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(ExtraSmallPadding)
         ) {
-            Text(
-                text = remainingDays.toString(),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
+            Badge(
+                containerColor = MaterialTheme.colorScheme.errorContainer,
+                contentColor = MaterialTheme.colorScheme.onErrorContainer
+            ) {
+                Text(
+                    text = "$remainingDays days",
+                    style = MaterialTheme.typography.labelSmall,
+                )
+            }
             Spacer(modifier = Modifier.weight(1f))
             IconButton(
                 onClick = {

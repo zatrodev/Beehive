@@ -39,22 +39,26 @@ import com.example.beehive.ui.Dimensions.SmallPadding
 import com.example.beehive.ui.DrawerItemsManager
 import com.example.beehive.ui.common.BeehiveDrawer
 import com.example.beehive.ui.common.BeehiveTopBar
+import com.example.beehive.ui.common.ErrorScreen
 import com.example.beehive.ui.common.LoadingScreen
 import com.example.beehive.ui.credential.components.DeletedPasswordCard
 import com.example.beehive.ui.home.components.ConfirmationDialog
-import java.time.LocalDate
-import java.time.ZoneId
-import java.time.temporal.ChronoUnit
-import java.util.Date
+import com.example.beehive.utils.getDaysDifferenceFromNow
 
 @Composable
 fun DeletedCredentialsScreen(
+    restartApp: () -> Unit,
     viewModel: DeletedCredentialsViewModel = viewModel(factory = BeehiveViewModelProvider.Factory),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     when (val state = uiState) {
         is DeletedCredentialsUiState.Loading -> LoadingScreen()
+        is DeletedCredentialsUiState.Error -> ErrorScreen(
+            errorMessage = state.errorMessage,
+            onRetry = restartApp
+        )
+
         is DeletedCredentialsUiState.Ready -> DeletedCredentialsScreenReady(
             credentials = state.deletedCredentials,
             onDelete = viewModel::deleteCredential,
@@ -180,7 +184,7 @@ fun DeletedCredentialsContent(
                         username = credential.credential.username,
                         appName = credential.credential.app.name,
                         user = credential.user,
-                        remainingDays = getDaysDifference(credential.credential.deletionDate!!),
+                        remainingDays = getDaysDifferenceFromNow(credential.credential.deletionDate!!),
                         onDelete = onDelete,
                         onRestore = onRestore
                     )
@@ -190,9 +194,3 @@ fun DeletedCredentialsContent(
     }
 }
 
-fun getDaysDifference(specificDate: Date): Long {
-    val specificLocalDate = specificDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
-    val currentLocalDate = LocalDate.now()
-
-    return ChronoUnit.DAYS.between(currentLocalDate, specificLocalDate)
-}

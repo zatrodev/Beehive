@@ -15,6 +15,7 @@ import com.example.beehive.ui.credential.add.AddCredentialScreen
 import com.example.beehive.ui.credential.deleted.DeletedCredentialsScreen
 import com.example.beehive.ui.credential.edit.EditCredentialScreen
 import com.example.beehive.ui.home.HomeScreen
+import com.example.beehive.ui.settings.SettingsScreen
 import com.example.beehive.ui.user.AddUserScreen
 import kotlinx.serialization.Serializable
 
@@ -33,6 +34,9 @@ data class EditCredential(val id: Int, val userId: Int)
 
 @Serializable
 object DeletedCredentials
+
+@Serializable
+object Settings
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -153,7 +157,19 @@ fun BeehiveNavHost(
             }
 
             composable<DeletedCredentials> {
-                DeletedCredentialsScreen()
+                DeletedCredentialsScreen(
+                    restartApp = restartApp
+                )
+            }
+
+            composable<Settings> {
+                SettingsScreen(
+                    onBack = {
+                        navController.navigate(
+                            route = Home
+                        )
+                    }
+                )
             }
         }
     }

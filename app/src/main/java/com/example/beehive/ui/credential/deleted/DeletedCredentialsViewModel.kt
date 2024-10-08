@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.beehive.data.credential.CredentialAndUser
 import com.example.beehive.data.credential.CredentialRepository
 import com.example.beehive.ui.DrawerItemsManager
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -20,7 +21,7 @@ class DeletedCredentialsViewModel(
     val uiState: StateFlow<DeletedCredentialsUiState> = _uiState.asStateFlow()
 
     init {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             credentialRepository.deleteExpiredCredentials()
             deletedCredentials.collect {
                 DrawerItemsManager.setBadgeCount(
@@ -33,19 +34,19 @@ class DeletedCredentialsViewModel(
     }
 
     fun deleteCredential(id: Int) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             credentialRepository.deleteCredential(id)
         }
     }
 
     fun deleteAllCredentials() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             credentialRepository.deleteAllTrashedCredentials()
         }
     }
 
     fun restoreCredential(id: Int) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             credentialRepository.restoreCredential(id)
         }
     }
@@ -53,5 +54,8 @@ class DeletedCredentialsViewModel(
 
 sealed interface DeletedCredentialsUiState {
     data object Loading : DeletedCredentialsUiState
+    data class Error(val errorMessage: String) :
+        DeletedCredentialsUiState
+
     data class Ready(val deletedCredentials: List<CredentialAndUser>) : DeletedCredentialsUiState
 }

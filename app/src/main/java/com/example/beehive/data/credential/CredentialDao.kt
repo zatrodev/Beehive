@@ -7,8 +7,6 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
-import java.time.LocalDate
-import java.time.ZoneId
 import java.util.Date
 
 @Dao
@@ -34,6 +32,13 @@ interface CredentialDao {
     @Query("SELECT * from credential WHERE deletionDate IS NOT NULL")
     fun getTrashedCredentials(): Flow<List<CredentialAndUser>>
 
+    @Transaction
+    @Query("SELECT * from credential WHERE id = :id")
+    fun getCredentialWithUser(id: Int): Flow<CredentialAndUser>
+
+    @Query("SELECT COUNT(*) from credential WHERE deletionDate IS NOT NULL")
+    fun countTrashedCredentials(): Flow<Int>
+
     @Query("DELETE FROM credential WHERE deletionDate IS NOT NULL")
     suspend fun deleteAllTrashedCredentials()
 
@@ -43,18 +48,15 @@ interface CredentialDao {
     @Query("UPDATE credential SET deletionDate = :deletedDate WHERE id = :id")
     suspend fun trashCredential(
         id: Int,
-        deletedDate: Date = Date.from(
-            LocalDate.now().plusDays(30).atStartOfDay(ZoneId.systemDefault()).toInstant()
-        ),
+        deletedDate: Date,
     )
 
     @Query("UPDATE credential SET deletionDate = NULL WHERE id = :id")
     suspend fun restoreCredential(id: Int)
 
-    @Transaction
-    @Query("SELECT * from credential WHERE id = :id")
-    fun getCredentialWithUser(id: Int): Flow<CredentialAndUser>
-
     @Query("SELECT MAX(id) from credential")
     suspend fun getNextId(): Int
+
+    @Query("UPDATE credential SET deletionDate = :deletionDate WHERE id = :id")
+    suspend fun updateDeletionDate(id: Int, deletionDate: Date)
 }

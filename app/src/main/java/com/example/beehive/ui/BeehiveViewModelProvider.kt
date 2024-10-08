@@ -12,6 +12,7 @@ import com.example.beehive.ui.credential.add.AddCredentialViewModel
 import com.example.beehive.ui.credential.deleted.DeletedCredentialsViewModel
 import com.example.beehive.ui.credential.edit.EditCredentialViewModel
 import com.example.beehive.ui.home.HomeViewModel
+import com.example.beehive.ui.settings.SettingsViewModel
 import com.example.beehive.ui.user.AddUserViewModel
 
 object BeehiveViewModelProvider {
@@ -54,7 +55,14 @@ object BeehiveViewModelProvider {
 
         initializer {
             DeletedCredentialsViewModel(
-                beehiveApplication().container.credentialRepository
+                beehiveApplication().container.credentialRepository,
+            )
+        }
+
+        initializer {
+            SettingsViewModel(
+                beehiveApplication().container.credentialRepository,
+                beehiveApplication().container.dataStore
             )
         }
     }

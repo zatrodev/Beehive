@@ -12,9 +12,12 @@ import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
+import com.example.beehive.R
 import com.example.beehive.ui.navigation.DeletedCredentials
 import com.example.beehive.ui.navigation.Home
+import com.example.beehive.ui.navigation.Settings
 
 
 object DrawerItemsManager {
@@ -32,10 +35,14 @@ object DrawerItemsManager {
         get() = items
 
     fun setDrawerItems(navController: NavController) {
+        if (items.isNotEmpty()) {
+            items.clear()
+        }
+
         items.addAll(
             listOf(
                 NavigationItem(
-                    label = { Text(text = "Home") },
+                    label = { Text(text = stringResource(R.string.home_title)) },
                     selectedIcon = {
                         Icon(
                             imageVector = Icons.Filled.Home,
@@ -55,7 +62,7 @@ object DrawerItemsManager {
                     }
                 ),
                 NavigationItem(
-                    label = { Text(text = "Super Duper Secrets") },
+                    label = { Text(text = stringResource(R.string.secrets_title)) },
                     selectedIcon = {
                         Icon(
                             imageVector = Icons.Filled.Lock,
@@ -73,7 +80,7 @@ object DrawerItemsManager {
                     }
                 ),
                 NavigationItem(
-                    label = { Text(text = "Deleted") },
+                    label = { Text(text = stringResource(R.string.deleted_title)) },
                     selectedIcon = {
                         Icon(imageVector = Icons.Filled.Delete, contentDescription = "deleted")
                     },
@@ -87,7 +94,7 @@ object DrawerItemsManager {
                     }
                 ),
                 NavigationItem(
-                    label = { Text(text = "Settings") },
+                    label = { Text(text = stringResource(R.string.settings_title)) },
                     selectedIcon = {
                         Icon(imageVector = Icons.Filled.Settings, contentDescription = "settings")
                     },
@@ -95,7 +102,9 @@ object DrawerItemsManager {
                         Icon(imageVector = Icons.Outlined.Settings, contentDescription = "settings")
                     },
                     navigate = {
-                        // TODO
+                        navController.navigate(
+                            route = Settings
+                        )
                     }
                 )
             )

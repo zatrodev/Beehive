@@ -24,4 +24,5 @@ object Dimensions {
     val FabIconSize = 60.dp
     val FingerprintIconSize = 55.dp
     val CenterIconSize = 150.dp
+    val TopBarElevation = 10.dp
 }

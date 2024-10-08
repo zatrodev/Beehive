@@ -13,7 +13,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.unit.dp
+import com.example.beehive.ui.Dimensions.TopBarElevation
 import kotlinx.coroutines.launch
 
 @Composable
@@ -26,7 +26,7 @@ fun BeehiveTopBar(
     val coroutineScope = rememberCoroutineScope()
 
     Surface(
-        shadowElevation = 10.dp,
+        shadowElevation = TopBarElevation,
     ) {
         TopAppBar(
             navigationIcon = {

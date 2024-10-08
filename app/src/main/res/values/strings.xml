@@ -41,4 +41,10 @@
     <string name="cancel">Cancel</string>
     <string name="confirm">OK</string>
     <string name="delete_title">Delete password</string>
+    <string name="settings_title">Settings</string>
+    <string name="deleted_title">Deleted</string>
+    <string name="secrets_title">Super Duper Secrets</string>
+    <string name="home_title">Home</string>
+    <string name="retention_title">Retention period</string>
+    <string name="retention_desc">Set how many days a deleted credential would stay in the bin.</string>
 </resources>

@@ -3,6 +3,7 @@ package com.example.beehive.ui.home
 import android.database.sqlite.SQLiteException
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.beehive.data.credential.CredentialAndUser
@@ -12,6 +13,8 @@ import com.example.beehive.data.user.User
 import com.example.beehive.data.user.UserRepository
 import com.example.beehive.domain.GetCategorizedCredentialsAndUserByPackageUseCase
 import com.example.beehive.ui.DrawerItemsManager
+import com.example.beehive.ui.settings.SettingsViewModel.Companion.RETENTION_PERIOD
+import com.example.beehive.utils.addDaysToDate
 import com.example.beehive.utils.filter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -20,8 +23,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
+import java.util.Date
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class HomeViewModel(
@@ -57,9 +62,7 @@ class HomeViewModel(
                 if (DrawerItemsManager.allItems[2].badgeCount == null) {
                     DrawerItemsManager.setBadgeCount(
                         2,
-                        appCredentialMap.values.sumOf { credentials ->
-                            credentials.count { credentialAndUser -> credentialAndUser.credential.deletionDate != null }
-                        }
+                        credentialRepository.countTrashedCredentials().first()
                     )
                 }
 
@@ -83,7 +86,7 @@ class HomeViewModel(
                         )
                     }
 
-                    else -> HomeScreenUiState.Error(throwable.message)
+                    else -> HomeScreenUiState.Error(throwable.message ?: "Unknown error")
                 }
             }.collect {
                 _homeUiState.value = it
@@ -97,7 +100,7 @@ class HomeViewModel(
             try {
                 appCredentialMap.value = getCategorizedCredentialsAndUserByPackageUseCase()
             } catch (e: Exception) {
-                _homeUiState.value = HomeScreenUiState.Error(e.message)
+                _homeUiState.value = HomeScreenUiState.Error(e.message ?: "Unknown error")
             } finally {
                 _isRefreshing.value = false
             }
@@ -120,7 +123,14 @@ class HomeViewModel(
 
     fun trashPassword(id: Int) {
         viewModelScope.launch(Dispatchers.IO) {
-            credentialRepository.trashCredential(id)
+            val retentionPeriod = dataStore.data.first()[intPreferencesKey(RETENTION_PERIOD)] ?: 30
+            credentialRepository.trashCredential(
+                id,
+                addDaysToDate(
+                    Date(),
+                    retentionPeriod.toLong()
+                )
+            )
         }
     }
 }
@@ -129,7 +139,7 @@ sealed interface HomeScreenUiState {
     data object Loading : HomeScreenUiState
 
     data class Error(
-        val errorMessage: String? = null,
+        val errorMessage: String,
         val errorType: Throwable? = null,
     ) : HomeScreenUiState
 

@@ -13,6 +13,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -127,11 +128,12 @@ fun PasswordCard(
                 )
             }
             Row(
-                horizontalArrangement = Arrangement.End,
+                horizontalArrangement = Arrangement.spacedBy(ExtraSmallPadding),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(ExtraSmallPadding)
             ) {
+                Spacer(modifier = Modifier.weight(1f))
                 IconButton(
                     onClick = { if (id != null) onEdit(id, user.id) },
                     modifier = Modifier.size(IconSize)
