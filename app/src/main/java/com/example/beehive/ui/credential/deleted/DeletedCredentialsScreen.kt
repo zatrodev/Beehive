@@ -37,6 +37,7 @@ import com.example.beehive.ui.Dimensions.CenterIconSize
 import com.example.beehive.ui.Dimensions.MediumPadding
 import com.example.beehive.ui.Dimensions.SmallPadding
 import com.example.beehive.ui.DrawerItemsManager
+import com.example.beehive.ui.DrawerItemsManager.DELETED_INDEX
 import com.example.beehive.ui.common.BeehiveDrawer
 import com.example.beehive.ui.common.BeehiveTopBar
 import com.example.beehive.ui.common.ErrorScreen
@@ -80,7 +81,7 @@ fun DeletedCredentialsScreenReady(
 
     BeehiveDrawer(
         drawerState = drawerState,
-        selectedIndex = 2,
+        selectedIndex = DELETED_INDEX,
         items = DrawerItemsManager.allItems
     ) {
         Scaffold(
