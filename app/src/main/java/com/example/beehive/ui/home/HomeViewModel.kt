@@ -8,10 +8,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.beehive.data.credential.CredentialAndUser
 import com.example.beehive.data.credential.CredentialRepository
-import com.example.beehive.data.credential.PasswordApp
 import com.example.beehive.data.user.User
 import com.example.beehive.data.user.UserRepository
-import com.example.beehive.domain.GetCategorizedCredentialsAndUserByPackageUseCase
+import com.example.beehive.domain.GetCategorizedCredentialsByGroupingOption
 import com.example.beehive.ui.DrawerItemsManager
 import com.example.beehive.ui.DrawerItemsManager.DELETED_INDEX
 import com.example.beehive.ui.settings.SettingsViewModel.Companion.RETENTION_PERIOD
@@ -33,29 +32,29 @@ import java.util.Date
 class HomeViewModel(
     private val credentialRepository: CredentialRepository,
     private val userRepository: UserRepository,
-    private val getCategorizedCredentialsAndUserByPackageUseCase: GetCategorizedCredentialsAndUserByPackageUseCase,
+    private val getCategorizedCredentialsByGroupingOption: GetCategorizedCredentialsByGroupingOption,
     private val dataStore: DataStore<Preferences>,
 ) : ViewModel() {
-    private var appCredentialMap =
-        MutableStateFlow(getCategorizedCredentialsAndUserByPackageUseCase())
     private val _query = MutableStateFlow("")
     private val _email = MutableStateFlow("")
     private val _homeUiState = MutableStateFlow<HomeScreenUiState>(HomeScreenUiState.Loading)
     private val _isRefreshing = MutableStateFlow(false)
+    private val _groupingOption = MutableStateFlow<GroupingOption>(GroupingOption.ByUser)
 
     val uiState: StateFlow<HomeScreenUiState> = _homeUiState.asStateFlow()
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
             combine(
-                appCredentialMap.flatMapLatest {
-                    it
+                _groupingOption.flatMapLatest { groupingOption ->
+                    getCategorizedCredentialsByGroupingOption(groupingOption)
                 },
                 _query,
                 _email,
                 _isRefreshing,
                 dataStore.data
-            ) { appCredentialMap, query, email, isRefreshing, preferences ->
+            ) { credentialMap, query, email, isRefreshing, preferences ->
+
 //                if (!preferences.contains(booleanPreferencesKey("tutorial_shown"))) {
 //                    return@combine HomeScreenUiState.Tutorial
 //                }
@@ -75,7 +74,7 @@ class HomeViewModel(
 
                 HomeScreenUiState.Ready(
                     query = query,
-                    appCredentialMap = appCredentialMap.filter(query),
+                    credentialMap = credentialMap.filter(query),
                     isRefreshing = isRefreshing
                 )
             }.catch { throwable ->
@@ -99,7 +98,13 @@ class HomeViewModel(
         viewModelScope.launch(Dispatchers.IO) {
             _isRefreshing.value = true
             try {
-                appCredentialMap.value = getCategorizedCredentialsAndUserByPackageUseCase()
+                val temp = _groupingOption.value
+                _groupingOption.value = if (_groupingOption.value == GroupingOption.ByApp)
+                    GroupingOption.ByUser
+                else
+                    GroupingOption.ByApp
+
+                _groupingOption.value = temp
             } catch (e: Exception) {
                 _homeUiState.value = HomeScreenUiState.Error(e.message ?: "Unknown error")
             } finally {
@@ -122,6 +127,10 @@ class HomeViewModel(
         }
     }
 
+    fun onGroupingOptionChange(groupingOption: GroupingOption) {
+        _groupingOption.value = groupingOption
+    }
+
     fun trashPassword(id: Int) {
         viewModelScope.launch(Dispatchers.IO) {
             val retentionPeriod = dataStore.data.first()[intPreferencesKey(RETENTION_PERIOD)] ?: 30
@@ -133,6 +142,16 @@ class HomeViewModel(
                 )
             )
         }
+    }
+}
+
+sealed class GroupingOption {
+    data object ByApp : GroupingOption()
+    data object ByUser : GroupingOption()
+
+    fun getKey(credential: CredentialAndUser): Any = when (this) {
+        ByApp -> credential.credential.app
+        ByUser -> credential.user
     }
 }
 
@@ -152,7 +171,7 @@ sealed interface HomeScreenUiState {
 
     data class Ready(
         val query: String,
-        val appCredentialMap: Map<PasswordApp, List<CredentialAndUser>>,
+        val credentialMap: Map<out Any, List<CredentialAndUser>>,
         val trashedCredentialsCount: Int? = null,
         val isRefreshing: Boolean = false,
     ) : HomeScreenUiState

@@ -32,7 +32,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.beehive.R
 import com.example.beehive.data.user.User
-import com.example.beehive.domain.GetInstalledAppsUseCase.InstalledApp
 import com.example.beehive.ui.BeehiveViewModelProvider
 import com.example.beehive.ui.Dimensions.LargePadding
 import com.example.beehive.ui.Dimensions.MediumPadding
@@ -43,13 +42,13 @@ import com.example.beehive.ui.common.BeehiveTextField
 import com.example.beehive.ui.common.ErrorScreen
 import com.example.beehive.ui.common.LoadingScreen
 import com.example.beehive.ui.common.PasswordCard
+import com.example.beehive.ui.common.PasswordTile
 import com.example.beehive.ui.credential.add.OptionType
 import com.example.beehive.ui.credential.components.LengthSlider
 import com.example.beehive.ui.credential.components.NameSearchDialog
 import com.example.beehive.ui.credential.components.OptionRow
 import com.example.beehive.ui.credential.components.PasswordDisplay
 import com.example.beehive.ui.credential.components.UserDropdownMenu
-import com.example.beehive.ui.home.components.PasswordTile
 import com.example.beehive.ui.navigation.SharedElementTransition
 import com.example.beehive.utils.generatePassword
 
@@ -96,7 +95,6 @@ private fun EditCredentialScreenReady(
         EditCredentialContent(
             uiState = uiState,
             showError = showError,
-            installedApps = viewModel.installedApps,
             onNavigateToAddUser = onNavigateToAddUser,
             onAppNameChange = viewModel::updateAppName,
             onUserChange = viewModel::updateUser,
@@ -123,7 +121,6 @@ private fun EditCredentialScreenReady(
 private fun EditCredentialContent(
     uiState: EditPasswordUiState.Ready,
     showError: Boolean,
-    installedApps: List<InstalledApp>,
     clearError: () -> Unit,
     onNavigateToAddUser: () -> Unit,
     onAppNameChange: (String) -> Unit,
@@ -164,7 +161,6 @@ private fun EditCredentialContent(
         password = generatePassword(sliderPosition, checkboxStates)
     }
 
-
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -172,9 +168,10 @@ private fun EditCredentialContent(
     ) {
         Spacer(modifier = Modifier.weight(1.5f))
         PasswordCard(
-            username = username,
+            title = uiState.user.email,
+            subtitle = username,
             password = password,
-            user = uiState.user,
+            userId = uiState.user.id,
             showPassword = showPassword,
             sharedElementTransition = sharedElementTransition,
             modifier = Modifier
@@ -195,8 +192,8 @@ private fun EditCredentialContent(
                 PasswordTile(
                     name = uiState.appName,
                     icon = uiState.icon,
-                    backgroundColor = if (showError) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.tertiaryContainer,
-                    contentColor = if (showError) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onTertiaryContainer,
+                    backgroundColor = if (showError) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = if (showError) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onSecondaryContainer,
                     onClick = { showDialog = true },
                     modifier = Modifier
                         .sharedElement(
@@ -210,7 +207,12 @@ private fun EditCredentialContent(
             UserDropdownMenu(
                 activeUser = uiState.user,
                 users = uiState.users,
-                onClick = onUserChange,
+                onClick = { user ->
+                    if (showPassword)
+                        toggleShowPassword()
+
+                    onUserChange(user)
+                },
                 onNavigateToAddUser = onNavigateToAddUser
             )
         }
@@ -337,7 +339,7 @@ private fun EditCredentialContent(
             },
             disableError = clearError,
             closeDialogBox = { showDialog = false },
-            installedApps = installedApps
+            installedApps = uiState.mutableInstalledApps
         )
     }
 }

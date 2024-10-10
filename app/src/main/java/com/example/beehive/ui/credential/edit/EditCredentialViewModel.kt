@@ -12,7 +12,6 @@ import com.example.beehive.data.user.UserRepository
 import com.example.beehive.domain.GetInstalledAppsUseCase
 import com.example.beehive.domain.GetInstalledAppsUseCase.InstalledApp
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -22,7 +21,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class EditCredentialViewModel(
     savedStateHandle: SavedStateHandle,
     private val userRepository: UserRepository,
@@ -31,9 +29,8 @@ class EditCredentialViewModel(
 ) : ViewModel() {
     private val passwordId: Int = savedStateHandle.get<Int>("id")!!
     private val userId = savedStateHandle.get<Int>("userId")!!
+    private var installedApps: List<InstalledApp> = emptyList()
 
-    var installedApps: List<InstalledApp> = emptyList()
-        private set
     private val _appName = MutableStateFlow("")
     private val _username = MutableStateFlow("")
     private val _password = MutableStateFlow("")
@@ -68,6 +65,7 @@ class EditCredentialViewModel(
                     packageName = installedApps.find { it.name == appName }?.packageName
                         ?: "",
                     icon = installedApps.find { it.name == appName }?.icon,
+                    mutableInstalledApps = installedApps.filter { it.name.contains(appName) }
                 )
             }.catch { throwable ->
                 _uiState.value = EditPasswordUiState.Error(throwable.message ?: "Unknown error")
@@ -109,6 +107,7 @@ sealed interface EditPasswordUiState {
         val appName: String,
         val packageName: String,
         val password: String,
+        val mutableInstalledApps: List<InstalledApp>,
         val username: String = "",
         val icon: Drawable? = null,
     ) : EditPasswordUiState

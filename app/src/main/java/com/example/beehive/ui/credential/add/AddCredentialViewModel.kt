@@ -25,8 +25,7 @@ class AddCredentialViewModel(
     private val getInstalledAppsUseCase: GetInstalledAppsUseCase,
 ) : ViewModel() {
     var uiState by mutableStateOf(AddPasswordUiState())
-    var installedApps: List<InstalledApp> = emptyList()
-        private set
+    private var installedApps: List<InstalledApp> = emptyList()
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
@@ -34,6 +33,7 @@ class AddCredentialViewModel(
             userRepository.getAllUsersStream().collectLatest { users ->
                 uiState = uiState.copy(
                     users = users,
+                    mutableInstalledApps = installedApps
                 )
             }
         }
@@ -44,6 +44,7 @@ class AddCredentialViewModel(
             name = input,
             packageName = installedApps.find { it.name == input }?.packageName ?: "",
             icon = installedApps.find { it.name == input }?.icon,
+            mutableInstalledApps = installedApps.filter { it.name.contains(input) }
         )
     }
 
@@ -85,6 +86,7 @@ data class AddPasswordUiState(
     val password: String = generatePassword(1),
     val user: User? = null,
     val users: List<User> = emptyList(),
+    val mutableInstalledApps: List<InstalledApp> = emptyList(),
 )
 
 fun AddPasswordUiState.toCredential(id: Int, userId: Int): Credential = Credential(

@@ -39,7 +39,6 @@ fun SearchBar(
             .padding(
                 start = LargePadding,
                 end = LargePadding,
-                bottom = LargePadding
             )
 
     ) {

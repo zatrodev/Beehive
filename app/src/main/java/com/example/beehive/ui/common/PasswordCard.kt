@@ -1,5 +1,6 @@
 package com.example.beehive.ui.common
 
+import android.graphics.drawable.Drawable
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.expandVertically
@@ -20,7 +21,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
@@ -38,26 +38,20 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.beehive.R
-import com.example.beehive.data.user.User
 import com.example.beehive.ui.Dimensions.ExtraSmallPadding
 import com.example.beehive.ui.Dimensions.IconSize
 import com.example.beehive.ui.Dimensions.MediumPadding
 import com.example.beehive.ui.Dimensions.PasswordCardHeight
-import com.example.beehive.ui.Dimensions.RoundedCornerShape
-import com.example.beehive.ui.Dimensions.ShadowElevation
 import com.example.beehive.ui.Dimensions.SmallPadding
 import com.example.beehive.ui.home.components.ConfirmationDialog
 import com.example.beehive.ui.navigation.SharedElementTransition
-import com.example.beehive.utils.isDarkMode
 
 
 @OptIn(ExperimentalSharedTransitionApi::class)
@@ -65,9 +59,11 @@ import com.example.beehive.utils.isDarkMode
 fun PasswordCard(
     modifier: Modifier = Modifier,
     id: Int? = null,
-    username: String,
+    title: String,
+    subtitle: String,
+    icon: Drawable? = null,
     password: String,
-    user: User,
+    userId: Int,
     showPassword: Boolean = false,
     onDelete: (Int) -> Unit = {},
     onEdit: (Int, Int) -> Unit = { _: Int, _: Int -> },
@@ -85,12 +81,12 @@ fun PasswordCard(
     }
     val density = LocalDensity.current
     val cardWidth: Dp =
-        ((LocalConfiguration.current.screenWidthDp.dp - MediumPadding - SmallPadding * 2) / 2)
+        ((LocalConfiguration.current.screenWidthDp.dp - MediumPadding - SmallPadding * 4) / 2)
 
     with(sharedElementTransition.sharedTransitionScope) {
         Surface(
-            color = MaterialTheme.colorScheme.surfaceContainer,
-            shape = RoundedCornerShape(RoundedCornerShape),
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            shape = MaterialTheme.shapes.small,
             modifier = passwordModifier
                 .sharedElement(
                     sharedElementTransition.sharedTransitionScope.rememberSharedContentState(key = password),
@@ -99,10 +95,6 @@ fun PasswordCard(
                 .width(cardWidth)
                 .height(PasswordCardHeight)
                 .padding(SmallPadding)
-                .shadow(
-                    elevation = if (isDarkMode(LocalContext.current)) 0.dp else ShadowElevation,
-                    shape = RoundedCornerShape(RoundedCornerShape)
-                )
 
         ) {
             Column(
@@ -114,7 +106,7 @@ fun PasswordCard(
                     .verticalScroll(rememberScrollState())
             ) {
                 Text(
-                    text = user.email,
+                    text = title,
                     style = MaterialTheme.typography.titleMedium.copy(
                         color = MaterialTheme.colorScheme.onSurface
                     ),
@@ -122,9 +114,9 @@ fun PasswordCard(
                     overflow = TextOverflow.Ellipsis
                 )
                 ConditionalStyleText(
-                    text = username,
+                    text = subtitle,
                     fontSize = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
             Row(
@@ -133,9 +125,12 @@ fun PasswordCard(
                     .fillMaxWidth()
                     .padding(ExtraSmallPadding)
             ) {
+                if (icon != null)
+                    DrawableDrawer(icon = icon, modifier = Modifier.size(IconSize))
+
                 Spacer(modifier = Modifier.weight(1f))
                 IconButton(
-                    onClick = { if (id != null) onEdit(id, user.id) },
+                    onClick = { if (id != null) onEdit(id, userId) },
                     modifier = Modifier.size(IconSize)
                 ) {
                     Icon(

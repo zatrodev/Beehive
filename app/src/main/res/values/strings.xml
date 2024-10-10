@@ -47,4 +47,6 @@
     <string name="home_title">Home</string>
     <string name="retention_title">Retention period</string>
     <string name="retention_desc">Set how many days a deleted credential would stay in the bin.</string>
+    <string name="by_user">By user</string>
+    <string name="by_app">By app</string>
 </resources>

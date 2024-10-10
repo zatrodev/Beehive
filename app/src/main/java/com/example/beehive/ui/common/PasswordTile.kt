@@ -1,0 +1,102 @@
+package com.example.beehive.ui.common
+
+import android.graphics.drawable.Drawable
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
+import com.example.beehive.R
+import com.example.beehive.ui.Dimensions.InstalledAppIconSize
+import com.example.beehive.ui.Dimensions.SmallPadding
+import kotlin.math.roundToInt
+
+
+@Composable
+fun PasswordTile(
+    name: String,
+    backgroundColor: Color,
+    modifier: Modifier = Modifier,
+    icon: Any? = null,
+    onClick: (() -> Unit)? = null,
+    onNavigateToViewPassword: ((String) -> Unit)? = null,
+    packageName: String = "",
+    contentColor: Color = MaterialTheme.colorScheme.onSurface,
+) {
+    Surface(
+        color = backgroundColor,
+        shape = MaterialTheme.shapes.small,
+        modifier = modifier
+            .clickable {
+                onClick?.invoke()
+                onNavigateToViewPassword?.invoke(packageName)
+            }
+    ) {
+        Row(
+            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+            modifier = Modifier.padding(SmallPadding)
+        ) {
+            when (icon) {
+                is Drawable -> DrawableDrawer(icon = icon)
+
+                is ImageVector -> Icon(
+                    imageVector = icon,
+                    contentDescription = "user",
+                    tint = contentColor,
+                )
+
+                else -> Icon(
+                    painterResource(R.drawable.ic_app),
+                    contentDescription = "app",
+                    modifier = Modifier.size(InstalledAppIconSize)
+                )
+
+            }
+
+            if (name.isNotBlank())
+                Text(
+                    text = name,
+                    style = MaterialTheme.typography.labelLarge,
+                    color = contentColor,
+                    modifier = Modifier.padding(horizontal = SmallPadding)
+                )
+        }
+    }
+}
+
+@Composable
+fun DrawableDrawer(
+    icon: Drawable,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier
+            .requiredSize(InstalledAppIconSize)
+            .drawBehind {
+                drawIntoCanvas { canvas ->
+                    icon.let {
+                        it.setBounds(
+                            0,
+                            0,
+                            size.width.roundToInt(),
+                            size.height.roundToInt()
+                        )
+                        it.draw(canvas.nativeCanvas)
+                    }
+                }
+            }
+    )
+}

@@ -26,7 +26,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.beehive.R
 import com.example.beehive.data.user.User
-import com.example.beehive.domain.GetInstalledAppsUseCase.InstalledApp
 import com.example.beehive.ui.BeehiveViewModelProvider
 import com.example.beehive.ui.Dimensions.LargePadding
 import com.example.beehive.ui.Dimensions.MediumPadding
@@ -34,13 +33,13 @@ import com.example.beehive.ui.Dimensions.SmallPadding
 import com.example.beehive.ui.common.BeehiveButton
 import com.example.beehive.ui.common.BeehiveTextButton
 import com.example.beehive.ui.common.BeehiveTextField
+import com.example.beehive.ui.common.PasswordTile
 import com.example.beehive.ui.credential.components.ErrorText
 import com.example.beehive.ui.credential.components.LengthSlider
 import com.example.beehive.ui.credential.components.NameSearchDialog
 import com.example.beehive.ui.credential.components.OptionRow
 import com.example.beehive.ui.credential.components.PasswordDisplay
 import com.example.beehive.ui.credential.components.UserDropdownMenu
-import com.example.beehive.ui.home.components.PasswordTile
 import com.example.beehive.utils.generatePassword
 
 
@@ -57,7 +56,6 @@ fun AddCredentialScreen(
         AddCredentialContent(
             uiState = uiState,
             showError = showError,
-            installedApps = viewModel.installedApps,
             onClearError = { showError = false },
             onNavigateToAddUser = onNavigateToAddUser,
             onNameChange = viewModel::updateName,
@@ -85,7 +83,6 @@ fun AddCredentialScreen(
 private fun AddCredentialContent(
     uiState: AddPasswordUiState,
     showError: Boolean,
-    installedApps: List<InstalledApp>,
     onClearError: () -> Unit,
     onNavigateToAddUser: () -> Unit,
     onNameChange: (String) -> Unit,
@@ -250,7 +247,7 @@ private fun AddCredentialContent(
             },
             disableError = onClearError,
             closeDialogBox = { showDialog = false },
-            installedApps = installedApps
+            installedApps = uiState.mutableInstalledApps
         )
     }
 }
