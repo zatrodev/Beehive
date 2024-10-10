@@ -1,9 +1,7 @@
 package com.example.beehive.ui.home
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,8 +19,6 @@ import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.DrawerValue
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -44,6 +40,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.beehive.R
 import com.example.beehive.data.credential.PasswordApp
 import com.example.beehive.data.user.User
+import com.example.beehive.domain.GetCategorizedCredentialsByGroupingOption.GroupingOption
 import com.example.beehive.ui.BeehiveViewModelProvider
 import com.example.beehive.ui.Dimensions.FabIconSize
 import com.example.beehive.ui.Dimensions.LargePadding
@@ -55,6 +52,7 @@ import com.example.beehive.ui.common.BeehiveTopBar
 import com.example.beehive.ui.common.ErrorScreen
 import com.example.beehive.ui.common.LoadingScreen
 import com.example.beehive.ui.common.PasswordTile
+import com.example.beehive.ui.home.components.CategoryFilter
 import com.example.beehive.ui.home.components.PasswordsGrid
 import com.example.beehive.ui.home.components.SearchBar
 import com.example.beehive.ui.navigation.SharedElementTransition
@@ -264,57 +262,5 @@ fun HomeContent(
     }
 }
 
-@Composable
-fun CategoryFilter(
-    groupingOption: GroupingOption,
-    onGroupingOptionChange: (GroupingOption) -> Unit,
-) {
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(SmallPadding),
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(
-                horizontal = LargePadding,
-                vertical = SmallPadding,
-            )
-    ) {
-        FilterChip(
-            selected = groupingOption == GroupingOption.ByUser,
-            onClick = {
-                onGroupingOptionChange(GroupingOption.ByUser)
-            },
-            label = { Text(stringResource(R.string.by_user)) },
-            colors = FilterChipDefaults.filterChipColors().copy(
-                selectedContainerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f),
-                selectedLeadingIconColor = MaterialTheme.colorScheme.primary,
-                selectedLabelColor = MaterialTheme.colorScheme.primary,
-            ),
-            border = FilterChipDefaults.filterChipBorder(
-                enabled = groupingOption == GroupingOption.ByUser,
-                selected = groupingOption == GroupingOption.ByUser,
-                selectedBorderColor = MaterialTheme.colorScheme.primary,
-                disabledBorderColor = Color.Transparent
-            )
-        )
-        FilterChip(
-            selected = groupingOption == GroupingOption.ByApp,
-            onClick = {
-                onGroupingOptionChange(GroupingOption.ByApp)
-            },
-            label = { Text(stringResource(R.string.by_app)) },
-            colors = FilterChipDefaults.filterChipColors().copy(
-                selectedContainerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f),
-                selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
-            ),
-            border = FilterChipDefaults.filterChipBorder(
-                enabled = groupingOption == GroupingOption.ByApp,
-                selected = groupingOption == GroupingOption.ByApp,
-                selectedBorderColor = MaterialTheme.colorScheme.primary,
-                disabledBorderColor = Color.Transparent
-            ),
-        )
-    }
-}
+
 

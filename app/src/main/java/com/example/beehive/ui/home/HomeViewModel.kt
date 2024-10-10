@@ -11,6 +11,7 @@ import com.example.beehive.data.credential.CredentialRepository
 import com.example.beehive.data.user.User
 import com.example.beehive.data.user.UserRepository
 import com.example.beehive.domain.GetCategorizedCredentialsByGroupingOption
+import com.example.beehive.domain.GetCategorizedCredentialsByGroupingOption.GroupingOption
 import com.example.beehive.ui.DrawerItemsManager
 import com.example.beehive.ui.DrawerItemsManager.DELETED_INDEX
 import com.example.beehive.ui.settings.SettingsViewModel.Companion.RETENTION_PERIOD
@@ -142,16 +143,6 @@ class HomeViewModel(
                 )
             )
         }
-    }
-}
-
-sealed class GroupingOption {
-    data object ByApp : GroupingOption()
-    data object ByUser : GroupingOption()
-
-    fun getKey(credential: CredentialAndUser): Any = when (this) {
-        ByApp -> credential.credential.app
-        ByUser -> credential.user
     }
 }
 
