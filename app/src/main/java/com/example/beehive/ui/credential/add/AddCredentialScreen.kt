@@ -113,7 +113,9 @@ private fun AddCredentialContent(
 
     Column(
         verticalArrangement = Arrangement.spacedBy(MediumPadding),
-        modifier = modifier.verticalScroll(rememberScrollState())
+        modifier = modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -124,7 +126,7 @@ private fun AddCredentialContent(
         ) {
             Text(
                 text = stringResource(R.string.add_password_title),
-                style = MaterialTheme.typography.headlineMedium,
+                style = MaterialTheme.typography.headlineSmall,
             )
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,

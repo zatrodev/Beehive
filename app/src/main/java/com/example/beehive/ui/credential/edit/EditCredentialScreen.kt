@@ -164,11 +164,13 @@ private fun EditCredentialContent(
     }
 
     Column(
-        modifier = modifier.verticalScroll(rememberScrollState()),
+        modifier = modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(MediumPadding)
     ) {
-        Spacer(modifier = Modifier.weight(1.5f))
+        Spacer(modifier = Modifier.weight(1f))
         PasswordCard(
             title = uiState.user.email,
             subtitle = username,

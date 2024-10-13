@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
@@ -38,7 +39,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -49,9 +52,12 @@ import com.example.beehive.ui.Dimensions.ExtraSmallPadding
 import com.example.beehive.ui.Dimensions.IconSize
 import com.example.beehive.ui.Dimensions.MediumPadding
 import com.example.beehive.ui.Dimensions.PasswordCardHeight
+import com.example.beehive.ui.Dimensions.RoundedCornerShape
+import com.example.beehive.ui.Dimensions.ShadowElevation
 import com.example.beehive.ui.Dimensions.SmallPadding
 import com.example.beehive.ui.home.components.ConfirmationDialog
 import com.example.beehive.ui.navigation.SharedElementTransition
+import com.example.beehive.utils.isDarkMode
 
 
 @OptIn(ExperimentalSharedTransitionApi::class)
@@ -95,6 +101,10 @@ fun PasswordCard(
                 .width(cardWidth)
                 .height(PasswordCardHeight)
                 .padding(SmallPadding)
+                .shadow(
+                    elevation = if (isDarkMode(LocalContext.current)) 0.dp else ShadowElevation,
+                    shape = RoundedCornerShape(RoundedCornerShape)
+                )
 
         ) {
             Column(
@@ -107,7 +117,7 @@ fun PasswordCard(
             ) {
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.titleMedium.copy(
+                    style = MaterialTheme.typography.titleSmall.copy(
                         color = MaterialTheme.colorScheme.onSurface
                     ),
                     maxLines = 1,
@@ -196,7 +206,7 @@ fun DisplayPassword(password: String) {
         ) {
             Text(
                 text = password,
-                style = MaterialTheme.typography.bodyMedium.copy(
+                style = MaterialTheme.typography.bodySmall.copy(
                     color = MaterialTheme.colorScheme.inverseOnSurface
                 ),
             )

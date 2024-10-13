@@ -63,7 +63,7 @@ fun PasswordTile(
             if (name.isNotBlank())
                 Text(
                     text = name,
-                    style = MaterialTheme.typography.labelLarge,
+                    style = MaterialTheme.typography.labelMedium,
                     color = contentColor,
                     modifier = Modifier.padding(horizontal = SmallPadding)
                 )

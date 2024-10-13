@@ -79,7 +79,7 @@ fun DeletedPasswordCard(
 
     Surface(
         color = MaterialTheme.colorScheme.surfaceContainer,
-        shape = RoundedCornerShape(RoundedCornerShape),
+        shape = MaterialTheme.shapes.small,
         modifier = Modifier
             .clickable(
                 interactionSource = MutableInteractionSource(),
@@ -106,7 +106,7 @@ fun DeletedPasswordCard(
         ) {
             Text(
                 text = user.email,
-                style = MaterialTheme.typography.titleMedium.copy(
+                style = MaterialTheme.typography.titleSmall.copy(
                     color = MaterialTheme.colorScheme.onSurface
                 ),
                 maxLines = 1,

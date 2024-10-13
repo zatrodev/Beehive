@@ -8,6 +8,7 @@ import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
@@ -41,7 +42,12 @@ object DrawerItemsManager {
         items.addAll(
             listOf(
                 NavigationItem(
-                    label = { Text(text = stringResource(R.string.home_title)) },
+                    label = {
+                        Text(
+                            text = stringResource(R.string.home_title),
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    },
                     selectedIcon = {
                         Icon(
                             imageVector = Icons.Filled.Home,
@@ -61,7 +67,12 @@ object DrawerItemsManager {
                     }
                 ),
                 NavigationItem(
-                    label = { Text(text = stringResource(R.string.deleted_title)) },
+                    label = {
+                        Text(
+                            text = stringResource(R.string.deleted_title),
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    },
                     selectedIcon = {
                         Icon(imageVector = Icons.Filled.Delete, contentDescription = "deleted")
                     },
@@ -75,7 +86,12 @@ object DrawerItemsManager {
                     }
                 ),
                 NavigationItem(
-                    label = { Text(text = stringResource(R.string.settings_title)) },
+                    label = {
+                        Text(
+                            text = stringResource(R.string.settings_title),
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    },
                     selectedIcon = {
                         Icon(imageVector = Icons.Filled.Settings, contentDescription = "settings")
                     },
