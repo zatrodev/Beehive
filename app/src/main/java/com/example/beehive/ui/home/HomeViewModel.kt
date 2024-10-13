@@ -10,51 +10,41 @@ import com.example.beehive.data.credential.CredentialAndUser
 import com.example.beehive.data.credential.CredentialRepository
 import com.example.beehive.data.user.User
 import com.example.beehive.data.user.UserRepository
-import com.example.beehive.domain.GetCategorizedCredentialsByGroupingOption
-import com.example.beehive.domain.GetCategorizedCredentialsByGroupingOption.GroupingOption
+import com.example.beehive.domain.GetInstalledAppsUseCase
 import com.example.beehive.ui.DrawerItemsManager
 import com.example.beehive.ui.DrawerItemsManager.DELETED_INDEX
 import com.example.beehive.ui.settings.SettingsViewModel.Companion.RETENTION_PERIOD
 import com.example.beehive.utils.addDaysToDate
-import com.example.beehive.utils.filter
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 import java.util.Date
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class HomeViewModel(
     private val credentialRepository: CredentialRepository,
     private val userRepository: UserRepository,
-    private val getCategorizedCredentialsByGroupingOption: GetCategorizedCredentialsByGroupingOption,
+    private val getInstalledAppsUseCase: GetInstalledAppsUseCase,
     private val dataStore: DataStore<Preferences>,
 ) : ViewModel() {
     private val _query = MutableStateFlow("")
-    private val _email = MutableStateFlow("")
     private val _homeUiState = MutableStateFlow<HomeScreenUiState>(HomeScreenUiState.Loading)
     private val _isRefreshing = MutableStateFlow(false)
-    private val _groupingOption = MutableStateFlow<GroupingOption>(GroupingOption.ByUser)
 
     val uiState: StateFlow<HomeScreenUiState> = _homeUiState.asStateFlow()
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
             combine(
-                _groupingOption.flatMapLatest { groupingOption ->
-                    getCategorizedCredentialsByGroupingOption(groupingOption)
-                },
+                credentialRepository.getAllCredentialsAndUser(),
                 _query,
-                _email,
                 _isRefreshing,
                 dataStore.data
-            ) { credentialMap, query, email, isRefreshing, preferences ->
+            ) { credentials, query, isRefreshing, preferences ->
 
 //                if (!preferences.contains(booleanPreferencesKey("tutorial_shown"))) {
 //                    return@combine HomeScreenUiState.Tutorial
@@ -68,14 +58,17 @@ class HomeViewModel(
                 }
 
                 if (userRepository.getNextId() == 0) {
-                    return@combine HomeScreenUiState.InputUser(
-                        email = email,
-                    )
+                    return@combine HomeScreenUiState.InputUser
+                }
+
+                credentials.map { credential ->
+                    credential.credential.app.icon =
+                        getInstalledAppsUseCase().find { it.packageName == credential.credential.app.packageName }?.icon
                 }
 
                 HomeScreenUiState.Ready(
                     query = query,
-                    credentialMap = credentialMap.filter(query),
+                    credentials = credentials.filter(query),
                     isRefreshing = isRefreshing
                 )
             }.catch { throwable ->
@@ -99,23 +92,18 @@ class HomeViewModel(
         viewModelScope.launch(Dispatchers.IO) {
             _isRefreshing.value = true
             try {
-                val temp = _groupingOption.value
-                _groupingOption.value = if (_groupingOption.value == GroupingOption.ByApp)
-                    GroupingOption.ByUser
-                else
-                    GroupingOption.ByApp
-
-                _groupingOption.value = temp
+                val credentials = credentialRepository.getAllCredentialsAndUser().first()
+                _homeUiState.value = HomeScreenUiState.Ready(
+                    query = _query.value,
+                    credentials = credentials.filter(_query.value),
+                    isRefreshing = false
+                )
             } catch (e: Exception) {
                 _homeUiState.value = HomeScreenUiState.Error(e.message ?: "Unknown error")
             } finally {
                 _isRefreshing.value = false
             }
         }
-    }
-
-    fun onEmailChange(email: String) {
-        _email.value = email
     }
 
     fun onQueryChange(query: String) {
@@ -126,10 +114,6 @@ class HomeViewModel(
         viewModelScope.launch(Dispatchers.IO) {
             userRepository.insertUser(User(1, email))
         }
-    }
-
-    fun onGroupingOptionChange(groupingOption: GroupingOption) {
-        _groupingOption.value = groupingOption
     }
 
     fun trashPassword(id: Int) {
@@ -156,14 +140,26 @@ sealed interface HomeScreenUiState {
 
     data object Tutorial : HomeScreenUiState
 
-    data class InputUser(
-        val email: String,
-    ) : HomeScreenUiState
+    data object InputUser : HomeScreenUiState
 
     data class Ready(
         val query: String,
-        val credentialMap: Map<out Any, List<CredentialAndUser>>,
+        val credentials: List<CredentialAndUser>,
         val trashedCredentialsCount: Int? = null,
         val isRefreshing: Boolean = false,
     ) : HomeScreenUiState
+}
+
+fun List<CredentialAndUser>.filter(query: String): List<CredentialAndUser> {
+    val trimmedQuery = query.trim()
+    if (trimmedQuery.isBlank()) return this
+
+    return this.filter { credential ->
+        listOf(
+            credential.user.email,
+            credential.credential.app.name
+        ).any {
+            it.contains(trimmedQuery, ignoreCase = true)
+        }
+    }
 }

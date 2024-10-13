@@ -1,6 +1,5 @@
 package com.example.beehive.ui.user
 
-import android.annotation.SuppressLint
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -11,6 +10,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -29,7 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.beehive.R
 import com.example.beehive.ui.BeehiveViewModelProvider
@@ -47,13 +47,9 @@ fun AddUserScreen(
     onBack: () -> Unit,
     viewModel: AddUserViewModel = viewModel(factory = BeehiveViewModelProvider.Factory),
 ) {
-    val email by viewModel.email.collectAsStateWithLifecycle()
-
     Scaffold {
         AddUserContent(
-            email = email,
             onBack = onBack,
-            onEmailChange = viewModel::onEmailChange,
             onCreateUser = { email ->
                 viewModel.onCreateUser(email)
                 onBack()
@@ -63,17 +59,18 @@ fun AddUserScreen(
     }
 }
 
-@SuppressLint("UnrememberedMutableInteractionSource")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddUserContent(
-    email: String,
-    onEmailChange: (String) -> Unit,
     onCreateUser: (String) -> Unit,
     modifier: Modifier = Modifier,
     onBack: (() -> Unit)? = null,
     labelText: String = stringResource(R.string.add_user_desc),
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
+    var email by remember {
+        mutableStateOf("")
+    }
     var isError by remember { mutableStateOf(false) }
 
     Surface(modifier.fillMaxSize()) {
@@ -86,7 +83,9 @@ fun AddUserContent(
             )
             TextField(
                 value = email,
-                onValueChange = onEmailChange,
+                onValueChange = {
+                    email = it
+                },
                 maxLines = 1,
                 singleLine = true,
                 colors = TextFieldDefaults.colors(
@@ -94,6 +93,7 @@ fun AddUserContent(
                     focusedContainerColor = Color.Transparent,
                     unfocusedContainerColor = Color.Transparent,
                 ),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 modifier = Modifier
                     .width(EmailTextFieldSize)
                     .clip(RoundedCornerShape(RoundedCornerShape))
@@ -105,7 +105,7 @@ fun AddUserContent(
                             focusedIndicatorColor = MaterialTheme.colorScheme.tertiary,
                             unfocusedIndicatorColor = MaterialTheme.colorScheme.tertiary,
                         ),
-                        interactionSource = MutableInteractionSource(),
+                        interactionSource = interactionSource,
                         unfocusedIndicatorLineThickness = IndicatorLineThickness,
                     ),
 

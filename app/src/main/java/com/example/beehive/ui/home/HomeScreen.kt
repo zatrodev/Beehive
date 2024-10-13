@@ -40,7 +40,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.beehive.R
 import com.example.beehive.data.credential.PasswordApp
 import com.example.beehive.data.user.User
-import com.example.beehive.domain.GetCategorizedCredentialsByGroupingOption.GroupingOption
 import com.example.beehive.ui.BeehiveViewModelProvider
 import com.example.beehive.ui.Dimensions.FabIconSize
 import com.example.beehive.ui.Dimensions.LargePadding
@@ -75,8 +74,6 @@ fun HomeScreen(
         )
 
         is HomeScreenUiState.InputUser -> AddUserContent(
-            email = state.email,
-            onEmailChange = viewModel::onEmailChange,
             onCreateUser = viewModel::onCreateUser,
             labelText = stringResource(R.string.input_user_description),
         )
@@ -141,7 +138,6 @@ private fun HomeScreenReady(
                     onNavigateToEditPassword(id, userId)
                 },
                 onQueryChange = viewModel::onQueryChange,
-                onGroupingOptionChange = viewModel::onGroupingOptionChange,
                 refresh = viewModel::refresh,
                 sharedElementTransition = sharedElementTransition,
                 modifier = Modifier.padding(innerPadding)
@@ -157,13 +153,18 @@ fun HomeContent(
     onDelete: (Int) -> Unit,
     onEdit: (Int, Int) -> Unit,
     onQueryChange: (String) -> Unit,
-    onGroupingOptionChange: (GroupingOption) -> Unit,
     refresh: () -> Unit,
     sharedElementTransition: SharedElementTransition,
     modifier: Modifier = Modifier,
 ) {
+    var query by remember {
+        mutableStateOf(uiState.query)
+    }
     var groupingOption by remember {
         mutableStateOf<GroupingOption>(GroupingOption.ByUser)
+    }
+    var credentialMap by remember(uiState.credentials) {
+        mutableStateOf(uiState.credentials.groupBy(groupingOption::getKey) { it })
     }
 
     Column(
@@ -174,14 +175,19 @@ fun HomeContent(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             SearchBar(
-                query = uiState.query,
-                onValueChanged = { onQueryChange(it) },
+                query = query,
+                onValueChanged = {
+                    query = it
+                    onQueryChange(it)
+                },
             )
             CategoryFilter(
                 groupingOption = groupingOption,
-                onGroupingOptionChange = {
-                    groupingOption = it
-                    onGroupingOptionChange(it)
+                onGroupingOptionChange = { option ->
+                    groupingOption = option
+                    credentialMap = uiState.credentials.groupBy(groupingOption::getKey) {
+                        it
+                    }
                 }
             )
             val pullRefreshState = rememberPullRefreshState(uiState.isRefreshing, refresh)
@@ -191,7 +197,7 @@ fun HomeContent(
                     .fillMaxSize()
                     .padding(horizontal = MediumPadding)
             ) {
-                if (uiState.credentialMap.isEmpty()) {
+                if (uiState.credentials.isEmpty()) {
                     Text(
                         text = stringResource(R.string.no_bees_found),
                         style = MaterialTheme.typography.headlineSmall,
@@ -202,7 +208,7 @@ fun HomeContent(
                 }
 
                 LazyColumn {
-                    items(uiState.credentialMap.toList()) { credentialPair ->
+                    items(credentialMap.toList()) { credentialPair ->
                         Surface(
                             color = MaterialTheme.colorScheme.surfaceContainer,
                             shape = MaterialTheme.shapes.extraLarge,

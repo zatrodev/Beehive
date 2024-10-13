@@ -4,16 +4,16 @@ import kotlinx.coroutines.flow.Flow
 import java.util.Date
 
 class CredentialRepositoryImpl(private val credentialDao: CredentialDao) : CredentialRepository {
-    override fun getCredentialStream(id: Int): Flow<Credential> = credentialDao.getCredential(id)
+    override fun getCredential(id: Int): Flow<Credential> = credentialDao.getCredential(id)
 
     override fun getAllCredentialsAndUser(): Flow<List<CredentialAndUser>> =
         credentialDao.getAllCredentialsAndUser()
 
-    override fun getCredentialsByPackageNameStream(uri: String): Flow<List<Credential>> =
+    override fun getCredentialsByApp(uri: String): Flow<List<CredentialAndUser>> =
         credentialDao.getCredentialsByApp(uri)
 
-    override fun getCredentialWithUser(id: Int): Flow<CredentialAndUser> =
-        credentialDao.getCredentialWithUser(id)
+    override fun getCredentialAndUser(id: Int): Flow<CredentialAndUser> =
+        credentialDao.getCredentialAndUser(id)
 
     override fun getTrashedCredentials(): Flow<List<CredentialAndUser>> =
         credentialDao.getTrashedCredentials()

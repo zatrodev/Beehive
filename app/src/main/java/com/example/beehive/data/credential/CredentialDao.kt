@@ -23,18 +23,21 @@ interface CredentialDao {
     @Query("SELECT * from credential WHERE id = :id")
     fun getCredential(id: Int): Flow<Credential>
 
+    @Transaction
+    @Query("SELECT * from credential WHERE id = :id")
+    fun getCredentialAndUser(id: Int): Flow<CredentialAndUser>
+
+    @Transaction
     @Query("SELECT * from credential WHERE deletionDate IS NULL")
     fun getAllCredentialsAndUser(): Flow<List<CredentialAndUser>>
 
+    @Transaction
     @Query("SELECT * from credential WHERE packageName = :uri")
-    fun getCredentialsByApp(uri: String): Flow<List<Credential>>
-
+    fun getCredentialsByApp(uri: String): Flow<List<CredentialAndUser>>
+    
+    @Transaction
     @Query("SELECT * from credential WHERE deletionDate IS NOT NULL")
     fun getTrashedCredentials(): Flow<List<CredentialAndUser>>
-
-    @Transaction
-    @Query("SELECT * from credential WHERE id = :id")
-    fun getCredentialWithUser(id: Int): Flow<CredentialAndUser>
 
     @Query("SELECT COUNT(*) from credential WHERE deletionDate IS NOT NULL")
     fun countTrashedCredentials(): Flow<Int>

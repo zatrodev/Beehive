@@ -3,9 +3,9 @@ package com.example.beehive.data.user
 import kotlinx.coroutines.flow.Flow
 
 class UserRepositoryImpl(private val userDao: UserDao) : UserRepository {
-    override fun getAllUsersStream(): Flow<List<User>> = userDao.getAllUsers()
+    override fun getAllUsers(): Flow<List<User>> = userDao.getAllUsers()
 
-    override fun getUserStream(id: Int): Flow<User> = userDao.getUser(id)
+    override fun getUser(id: Int): Flow<User> = userDao.getUser(id)
 
     override fun getUsersWithCredentials(): Flow<List<UserWithCredentials>> =
         userDao.getUsersWithCredentials()

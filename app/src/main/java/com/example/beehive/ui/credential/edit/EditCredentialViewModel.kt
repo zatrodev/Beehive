@@ -42,19 +42,19 @@ class EditCredentialViewModel(
     init {
         viewModelScope.launch(Dispatchers.IO) {
             installedApps = getInstalledAppsUseCase()
-            credentialRepository.getCredentialStream(passwordId).first().let { credential ->
+            credentialRepository.getCredential(passwordId).first().let { credential ->
                 _appName.value = credential.app.name
                 _username.value = credential.username
                 _password.value = credential.password
             }
-            _user.value = userRepository.getUserStream(userId).first()
+            _user.value = userRepository.getUser(userId).first()
 
             combine(
                 _appName,
                 _username,
                 _password,
                 _user,
-                userRepository.getAllUsersStream(),
+                userRepository.getAllUsers(),
             ) { appName, username, password, user, users ->
                 EditPasswordUiState.Ready(
                     username = username,

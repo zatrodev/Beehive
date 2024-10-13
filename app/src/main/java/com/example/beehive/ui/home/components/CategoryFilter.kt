@@ -14,9 +14,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import com.example.beehive.R
-import com.example.beehive.domain.GetCategorizedCredentialsByGroupingOption.GroupingOption
 import com.example.beehive.ui.Dimensions.LargePadding
 import com.example.beehive.ui.Dimensions.SmallPadding
+import com.example.beehive.ui.home.GroupingOption
 
 @Composable
 fun CategoryFilter(

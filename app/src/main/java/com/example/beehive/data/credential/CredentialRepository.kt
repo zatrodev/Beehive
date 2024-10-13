@@ -4,11 +4,11 @@ import kotlinx.coroutines.flow.Flow
 import java.util.Date
 
 interface CredentialRepository {
-    fun getCredentialStream(id: Int): Flow<Credential>
+    fun getCredential(id: Int): Flow<Credential>
 
-    fun getCredentialsByPackageNameStream(uri: String): Flow<List<Credential>>
+    fun getCredentialsByApp(uri: String): Flow<List<CredentialAndUser>>
 
-    fun getCredentialWithUser(id: Int): Flow<CredentialAndUser>
+    fun getCredentialAndUser(id: Int): Flow<CredentialAndUser>
 
     fun getAllCredentialsAndUser(): Flow<List<CredentialAndUser>>
 

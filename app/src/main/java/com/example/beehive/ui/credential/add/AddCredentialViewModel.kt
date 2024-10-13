@@ -30,7 +30,7 @@ class AddCredentialViewModel(
     init {
         viewModelScope.launch(Dispatchers.IO) {
             installedApps = getInstalledAppsUseCase()
-            userRepository.getAllUsersStream().collectLatest { users ->
+            userRepository.getAllUsers().collectLatest { users ->
                 uiState = uiState.copy(
                     users = users,
                     mutableInstalledApps = installedApps
