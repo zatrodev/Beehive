@@ -107,7 +107,7 @@ fun PasswordCard(
             ) {
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.titleMedium.copy(
+                    style = MaterialTheme.typography.titleSmall.copy(
                         color = MaterialTheme.colorScheme.onSurface
                     ),
                     maxLines = 1,

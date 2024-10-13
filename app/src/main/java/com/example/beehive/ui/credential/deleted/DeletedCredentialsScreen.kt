@@ -146,7 +146,7 @@ fun DeletedCredentialsContent(
         ) {
             Text(
                 text = stringResource(R.string.delete_from_trash_info),
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(MediumPadding)
             )

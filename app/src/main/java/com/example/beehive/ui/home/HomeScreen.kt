@@ -42,7 +42,6 @@ import com.example.beehive.data.credential.PasswordApp
 import com.example.beehive.data.user.User
 import com.example.beehive.ui.BeehiveViewModelProvider
 import com.example.beehive.ui.Dimensions.FabIconSize
-import com.example.beehive.ui.Dimensions.LargePadding
 import com.example.beehive.ui.Dimensions.MediumPadding
 import com.example.beehive.ui.Dimensions.SmallPadding
 import com.example.beehive.ui.DrawerItemsManager
@@ -170,7 +169,7 @@ fun HomeContent(
     Column(
         modifier = modifier.navigationBarsPadding()
     ) {
-        Spacer(modifier = Modifier.height(LargePadding))
+        Spacer(modifier = Modifier.height(MediumPadding))
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {

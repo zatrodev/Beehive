@@ -32,6 +32,7 @@ class AddCredentialViewModel(
             installedApps = getInstalledAppsUseCase()
             userRepository.getAllUsers().collectLatest { users ->
                 uiState = uiState.copy(
+                    user = users.firstOrNull(),
                     users = users,
                     mutableInstalledApps = installedApps
                 )
