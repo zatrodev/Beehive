@@ -21,6 +21,7 @@ fun parseNode(
     }
 
     parsedStructure.appUri = viewNode.idPackage ?: parsedStructure.appUri
+    parsedStructure.appName = viewNode.className ?: parsedStructure.appName
 
     for (i in 0 until viewNode.childCount)
         parseNode(viewNode.getChildAt(i), parsedStructure)
@@ -34,7 +35,7 @@ private fun identifyEmailField(
     val className = viewNode.className ?: return null
     if (!className.contains("EditText")) return null
 
-    if (viewNode.inputType and InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS != 0)
+    if (viewNode.inputType and (InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS or InputType.TYPE_TEXT_VARIATION_PERSON_NAME) != 0)
         return viewNode.autofillId
 
     if (viewNode.text?.contains(

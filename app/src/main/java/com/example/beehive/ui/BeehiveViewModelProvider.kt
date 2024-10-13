@@ -6,7 +6,6 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.beehive.BeehiveApplication
-import com.example.beehive.domain.GetCategorizedCredentialsByGroupingOption
 import com.example.beehive.domain.GetInstalledAppsUseCase
 import com.example.beehive.ui.credential.add.AddCredentialViewModel
 import com.example.beehive.ui.credential.deleted.DeletedCredentialsViewModel
@@ -39,10 +38,7 @@ object BeehiveViewModelProvider {
             HomeViewModel(
                 beehiveApplication().container.credentialRepository,
                 beehiveApplication().container.userRepository,
-                GetCategorizedCredentialsByGroupingOption(
-                    beehiveApplication().container.credentialRepository,
-                    GetInstalledAppsUseCase(beehiveApplication().container.packageManager)
-                ),
+                GetInstalledAppsUseCase(beehiveApplication().container.packageManager),
                 beehiveApplication().container.dataStore
             )
         }

@@ -2,6 +2,10 @@ package com.example.beehive.auth
 
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
+import androidx.datastore.core.DataStore
+import com.example.beehive.utils.generatePassword
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import java.io.InputStream
 import java.io.OutputStream
 import java.security.KeyStore
@@ -10,7 +14,7 @@ import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.IvParameterSpec
 
-class CryptoManager {
+class SecretKeyManager {
     private val keyStore = KeyStore.getInstance("AndroidKeyStore").apply {
         load(null)
     }
@@ -33,6 +37,19 @@ class CryptoManager {
         private const val ALIAS = "room-key"
 
         var passphrase: ByteArray? = null
+
+        suspend fun setPassphrase(dataStore: DataStore<String>) {
+            passphrase = dataStore.data.map { randomKey ->
+                if (randomKey.isBlank()) {
+                    val newPassphrase = generatePassword(16)
+                    dataStore.updateData {
+                        newPassphrase
+                    }
+                    newPassphrase.encodeToByteArray()
+                } else
+                    randomKey.encodeToByteArray()
+            }.first()
+        }
     }
 
     private fun createSecretKey(): SecretKey {

@@ -5,17 +5,17 @@ import java.io.InputStream
 import java.io.OutputStream
 
 class RoomKeySerializer(
-    private val cryptoManager: CryptoManager,
+    private val secretKeyManager: SecretKeyManager,
 ) : Serializer<String> {
     override val defaultValue: String
         get() = ""
 
     override suspend fun readFrom(input: InputStream): String {
-        val decryptedBytes = cryptoManager.decrypt(input)
+        val decryptedBytes = secretKeyManager.decrypt(input)
         return decryptedBytes.decodeToString()
     }
 
     override suspend fun writeTo(t: String, output: OutputStream) {
-        cryptoManager.encrypt(t.encodeToByteArray(), output)
+        secretKeyManager.encrypt(t.encodeToByteArray(), output)
     }
 }

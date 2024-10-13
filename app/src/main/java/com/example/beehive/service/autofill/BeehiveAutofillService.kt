@@ -21,23 +21,25 @@ import android.view.autofill.AutofillValue
 import android.widget.RemoteViews
 import com.example.beehive.R
 import com.example.beehive.auth.AuthActivity
+import com.example.beehive.auth.SecretKeyManager
+import com.example.beehive.data.AuthContainer
+import com.example.beehive.data.AuthContainerImpl
 import com.example.beehive.data.BeehiveContainer
 import com.example.beehive.data.BeehiveContainerImpl
 import com.example.beehive.data.credential.Credential
 import com.example.beehive.data.credential.PasswordApp
-import com.example.beehive.domain.GetCredentialsWithUserByUriUseCase
 import com.example.beehive.service.autofill.parsing.parseStructure
 import com.example.beehive.utils.generatePassword
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 @Suppress("DEPRECATION")
 class BeehiveAutofillService : AutofillService() {
-    private lateinit var getCredentialsWithUserByUriUseCase: GetCredentialsWithUserByUriUseCase
     private lateinit var beehiveContainer: BeehiveContainer
+    private lateinit var authContainer: AuthContainer
     private val job = SupervisorJob()
     private val coroutineScope = CoroutineScope(Dispatchers.IO + job)
 
@@ -59,9 +61,8 @@ class BeehiveAutofillService : AutofillService() {
             if (isFirstIteration)
                 newPresentation.setViewVisibility(R.id.app_name, View.VISIBLE)
 
-            if (title.isBlank()) {
-                newPresentation.setTextViewText(R.id.line_a, subtitle)
-                newPresentation.setTextViewText(R.id.line_b, "<no username>")
+            if (subtitle.isBlank()) {
+                newPresentation.setTextViewText(R.id.line_a, title)
             } else {
                 newPresentation.setTextViewText(R.id.line_a, title)
                 newPresentation.setTextViewText(R.id.line_b, subtitle)
@@ -73,11 +74,7 @@ class BeehiveAutofillService : AutofillService() {
 
     override fun onConnected() {
         super.onConnected()
-        beehiveContainer = BeehiveContainerImpl(this.applicationContext)
-        getCredentialsWithUserByUriUseCase = GetCredentialsWithUserByUriUseCase(
-            beehiveContainer.credentialRepository,
-            beehiveContainer.userRepository
-        )
+        authContainer = AuthContainerImpl(this.applicationContext)
     }
 
     override fun onFillRequest(
@@ -92,46 +89,51 @@ class BeehiveAutofillService : AutofillService() {
             structure
         )
 
-        coroutineScope.launch {
-            getCredentialsWithUserByUriUseCase(appUri).collectLatest { passwords ->
-                if (passwords.isEmpty()) {
-                    // sign up
-                    val requestFillResponse = requestSignUp(usernameId, passwordId)
-                    if (requestFillResponse != null) {
-                        callback.onSuccess(requestFillResponse)
-                    }
+        coroutineScope.launch(Dispatchers.IO) {
+            SecretKeyManager.setPassphrase(authContainer.dataStore)
+            beehiveContainer = BeehiveContainerImpl(applicationContext)
 
-                    return@collectLatest
+            val credentials =
+                beehiveContainer.credentialRepository.getCredentialsByApp(appUri).first()
+
+            if (credentials.isEmpty()) {
+                // sign up
+                val requestFillResponse = requestSignUp(usernameId, passwordId)
+                if (requestFillResponse != null) {
+                    callback.onSuccess(requestFillResponse)
                 }
 
-                if (usernameId == null || passwordId == null) {
-                    callback.onFailure("Unable to autofill.")
-                    return@collectLatest
-                }
-
-                val fillResponseBuilder = FillResponse.Builder()
-                passwords.forEachIndexed { i, password ->
-                    fillResponseBuilder.addDataset(
-                        Dataset.Builder()
-                            .setValue(
-                                usernameId,
-                                null,
-                                createPresentation(
-                                    packageName,
-                                    password.username,
-                                    password.user.email,
-                                    isFirstIteration = i == 0
-                                )
-                            )
-                            .setAuthentication(
-                                createIntentSender(password.id)
-                            )
-                            .build()
-                    )
-                }
-
-                callback.onSuccess(fillResponseBuilder.build())
+                return@launch
             }
+
+            if (usernameId == null || passwordId == null) {
+                callback.onFailure("Unable to autofill.")
+                return@launch
+            }
+
+            val fillResponseBuilder = FillResponse.Builder()
+            credentials.forEachIndexed { i, credential ->
+                fillResponseBuilder.addDataset(
+                    Dataset.Builder()
+                        .setValue(
+                            usernameId,
+                            null,
+                            createPresentation(
+                                packageName,
+                                credential.user.email,
+                                credential.credential.username,
+                                isFirstIteration = i == 0
+                            )
+                        )
+                        .setAuthentication(
+                            createIntentSender(credential.credential.id)
+                        )
+                        .build()
+                )
+            }
+
+            callback.onSuccess(fillResponseBuilder.build())
+
         }
     }
 
@@ -139,7 +141,7 @@ class BeehiveAutofillService : AutofillService() {
         val context: List<FillContext> = request.fillContexts
         val structure: AssistStructure = context[context.size - 1].structure
 
-        val (_, _, username: String, password: String, packageName) = parseStructure(
+        val (_, _, username: String, password: String, packageName: String, appName: String) = parseStructure(
             structure
         )
 
@@ -156,8 +158,7 @@ class BeehiveAutofillService : AutofillService() {
                     password = password,
                     userId = beehiveContainer.userRepository.getNextId(),
                     app = PasswordApp(
-                        // TODO: edit name
-                        name = "Instagram",
+                        name = appName,
                         packageName = packageName
                     )
                 )
@@ -258,5 +259,6 @@ data class ParsedStructure(
     var usernameValue: String = "",
     var passwordValue: String = "",
     var appUri: String = "",
+    var appName: String = "",
 )
 

@@ -8,11 +8,9 @@ import androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
 import androidx.biometric.BiometricPrompt
 import androidx.biometric.BiometricPrompt.PromptInfo
 import androidx.datastore.core.DataStore
-import com.example.beehive.utils.generatePassword
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
@@ -62,7 +60,9 @@ class BiometricPromptManager(
 
                 override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                     super.onAuthenticationSucceeded(result)
-                    setRoomPassphrase()
+                    coroutineScope.launch(Dispatchers.IO) {
+                        SecretKeyManager.setPassphrase(dataStore)
+                    }
                     resultChannel.trySend(BiometricResult.AuthenticationSuccess)
                 }
 
@@ -78,18 +78,6 @@ class BiometricPromptManager(
         )
     }
 
-    private fun setRoomPassphrase() {
-        coroutineScope.launch {
-            dataStore.data.collectLatest { randomKey ->
-                if (randomKey.isBlank())
-                    CryptoManager.passphrase = dataStore.updateData {
-                        generatePassword(16)
-                    }.toByteArray()
-                else
-                    CryptoManager.passphrase = randomKey.toByteArray()
-            }
-        }
-    }
 
     sealed interface BiometricResult {
         data object HardwareUnavailable : BiometricResult

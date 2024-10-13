@@ -5,7 +5,7 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
-import com.example.beehive.auth.CryptoManager
+import com.example.beehive.auth.SecretKeyManager
 import com.example.beehive.data.credential.Credential
 import com.example.beehive.data.credential.CredentialDao
 import com.example.beehive.data.user.User
@@ -29,7 +29,7 @@ abstract class BeehiveDatabase : RoomDatabase() {
 
             val databaseFile = context.getDatabasePath(DATABASE_NAME)
             val factory =
-                SupportOpenHelperFactory(CryptoManager.passphrase)
+                SupportOpenHelperFactory(SecretKeyManager.passphrase)
 
             return Instance ?: synchronized(this) {
                 Room.databaseBuilder(
