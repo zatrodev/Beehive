@@ -32,9 +32,9 @@ interface CredentialDao {
     fun getAllCredentialsAndUser(): Flow<List<CredentialAndUser>>
 
     @Transaction
-    @Query("SELECT * from credential WHERE packageName = :uri")
+    @Query("SELECT * from credential WHERE packageName = :uri AND deletionDate IS NULL")
     fun getCredentialsByApp(uri: String): Flow<List<CredentialAndUser>>
-    
+
     @Transaction
     @Query("SELECT * from credential WHERE deletionDate IS NOT NULL")
     fun getTrashedCredentials(): Flow<List<CredentialAndUser>>

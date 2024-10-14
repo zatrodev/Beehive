@@ -15,7 +15,6 @@ import android.service.autofill.FillResponse
 import android.service.autofill.SaveCallback
 import android.service.autofill.SaveInfo
 import android.service.autofill.SaveRequest
-import android.view.View
 import android.view.autofill.AutofillId
 import android.view.autofill.AutofillValue
 import android.widget.RemoteViews
@@ -28,7 +27,7 @@ import com.example.beehive.data.BeehiveContainer
 import com.example.beehive.data.BeehiveContainerImpl
 import com.example.beehive.data.credential.Credential
 import com.example.beehive.data.credential.PasswordApp
-import com.example.beehive.service.autofill.parsing.parseStructure
+import com.example.beehive.data.user.User
 import com.example.beehive.utils.generatePassword
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -56,16 +55,16 @@ class BeehiveAutofillService : AutofillService() {
             isFirstIteration: Boolean = true,
         ): RemoteViews {
             val newPresentation =
-                RemoteViews(packageName, R.xml.password_autofill)
+                RemoteViews(packageName, R.layout.autofill_layout)
 
-            if (isFirstIteration)
-                newPresentation.setViewVisibility(R.id.app_name, View.VISIBLE)
+//            if (isFirstIteration)
+//                newPresentation.setViewVisibility(R.id.app_name, View.VISIBLE)
 
             if (subtitle.isBlank()) {
-                newPresentation.setTextViewText(R.id.line_a, title)
+                newPresentation.setTextViewText(R.id.title, title)
             } else {
-                newPresentation.setTextViewText(R.id.line_a, title)
-                newPresentation.setTextViewText(R.id.line_b, subtitle)
+                newPresentation.setTextViewText(R.id.title, title)
+                newPresentation.setTextViewText(R.id.subtitle, subtitle)
             }
 
             return newPresentation
@@ -98,12 +97,20 @@ class BeehiveAutofillService : AutofillService() {
 
             if (credentials.isEmpty()) {
                 // sign up
-                val requestFillResponse = requestSignUp(usernameId, passwordId)
-                if (requestFillResponse != null) {
-                    callback.onSuccess(requestFillResponse)
-                }
+                beehiveContainer.userRepository.getAllUsers().first().first().let { defaultUser ->
+                    val requestFillResponse =
+                        requestSignUp(
+                            request.clientState,
+                            usernameId,
+                            passwordId,
+                            defaultUser
+                        )
+                    if (requestFillResponse != null) {
+                        callback.onSuccess(requestFillResponse)
+                    }
 
-                return@launch
+                    return@launch
+                }
             }
 
             if (usernameId == null || passwordId == null) {
@@ -141,24 +148,37 @@ class BeehiveAutofillService : AutofillService() {
         val context: List<FillContext> = request.fillContexts
         val structure: AssistStructure = context[context.size - 1].structure
 
-        val (_, _, username: String, password: String, packageName: String, appName: String) = parseStructure(
-            structure
-        )
+        var parsedStructure = ParsedStructure()
 
-        if (username.isEmpty() || password.isEmpty()) {
-            callback.onFailure("No text fields found")
-            return
+        val clientState = request.clientState
+        val usernameId: AutofillId? = clientState?.getParcelable("usernameId")
+        val passwordId: AutofillId? = clientState?.getParcelable("passwordId")
+
+        if (usernameId != null && passwordId != null) {
+            parsedStructure.usernameValue = context.firstNotNullOfOrNull { fillContext ->
+                getValueFromStructure(fillContext.structure, usernameId)
+            } ?: return
+
+            parsedStructure.passwordValue = context.firstNotNullOfOrNull { fillContext ->
+                getValueFromStructure(fillContext.structure, passwordId)
+            } ?: return
+        } else {
+            parsedStructure = parseStructure(structure)
+            if (parsedStructure.usernameValue.isEmpty() || parsedStructure.passwordValue.isEmpty()) {
+                callback.onFailure("No text fields found")
+                return
+            }
         }
 
         coroutineScope.launch {
             beehiveContainer.credentialRepository.insertCredential(
                 Credential(
                     id = beehiveContainer.credentialRepository.getNextId() + 1,
-                    username = username,
-                    password = password,
+                    username = parsedStructure.usernameValue,
+                    password = parsedStructure.passwordValue,
                     userId = beehiveContainer.userRepository.getNextId(),
                     app = PasswordApp(
-                        name = appName,
+                        name = parsedStructure.appName,
                         packageName = packageName
                     )
                 )
@@ -188,15 +208,24 @@ class BeehiveAutofillService : AutofillService() {
         return intentSender
     }
 
-    private fun requestSignUp(usernameId: AutofillId?, passwordId: AutofillId?): FillResponse? {
+    private fun requestSignUp(
+        clientState: Bundle?,
+        usernameId: AutofillId?,
+        passwordId: AutofillId?,
+        user: User,
+    ): FillResponse? {
         val newPassword = generatePassword(DEFAULT_NEW_PASSWORD_LENGTH)
-        val presentation = createPresentation("Create password for this app? ($newPassword)")
+        val presentation =
+            createPresentation(packageName, "Create password for this app? ($newPassword)")
+
+        val usernameValue = AutofillValue.forText(user.email)
+        val passwordValue = AutofillValue.forText(newPassword)
 
         if (usernameId != null && passwordId != null) {
             return FillResponse.Builder().addDataset(
                 Dataset.Builder()
-                    .setValue(usernameId, AutofillValue.forText("some user"), presentation)
-                    .setValue(passwordId, AutofillValue.forText(newPassword), presentation)
+                    .setValue(usernameId, usernameValue, presentation)
+                    .setValue(passwordId, passwordValue, presentation)
                     .build()
             )
                 .setSaveInfo(
@@ -209,15 +238,17 @@ class BeehiveAutofillService : AutofillService() {
         }
 
         if (usernameId != null) {
-            val clientState = Bundle().apply { putParcelable("usernameId", usernameId) }
+            val newClientState = Bundle()
+            newClientState.putParcelable("usernameId", usernameId)
+            newClientState.putParcelable("passwordValue", passwordValue)
 
             return FillResponse.Builder()
                 .addDataset(
                     Dataset.Builder()
-                        .setValue(usernameId, AutofillValue.forText("some user"), presentation)
+                        .setValue(usernameId, usernameValue, presentation)
                         .build()
                 )
-                .setClientState(clientState)
+                .setClientState(newClientState)
                 .setSaveInfo(
                     SaveInfo.Builder(
                         SaveInfo.SAVE_DATA_TYPE_USERNAME,
@@ -228,12 +259,24 @@ class BeehiveAutofillService : AutofillService() {
         }
 
         if (passwordId != null) {
-            val clientState = Bundle().apply {
-                putParcelable("passwordId", passwordId)
-            }
-            val parceledUsernameId: AutofillId = clientState.getParcelable("usernameId")!!
+            clientState?.putParcelable("passwordId", passwordId)
+            val parceledUsernameId: AutofillId =
+                clientState?.getParcelable("usernameId") ?: return null
+            val parceledPasswordValue: AutofillValue? = clientState.getParcelable("passwordValue")
 
             return FillResponse.Builder()
+                .addDataset(
+                    Dataset.Builder()
+                        .setValue(
+                            passwordId,
+                            AutofillValue.forText(newPassword),
+                            createPresentation(
+                                packageName,
+                                parceledPasswordValue?.textValue.toString()
+                            )
+                        )
+                        .build()
+                )
                 .setClientState(clientState)
                 .setSaveInfo(
                     SaveInfo.Builder(
@@ -249,16 +292,4 @@ class BeehiveAutofillService : AutofillService() {
 
         return null
     }
-
-
 }
-
-data class ParsedStructure(
-    var usernameId: AutofillId? = null,
-    var passwordId: AutofillId? = null,
-    var usernameValue: String = "",
-    var passwordValue: String = "",
-    var appUri: String = "",
-    var appName: String = "",
-)
-
