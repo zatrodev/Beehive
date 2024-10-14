@@ -38,8 +38,9 @@ object BeehiveViewModelProvider {
             HomeViewModel(
                 beehiveApplication().container.credentialRepository,
                 beehiveApplication().container.userRepository,
+                beehiveApplication().container.settingsRepository,
                 GetInstalledAppsUseCase(beehiveApplication().container.packageManager),
-                beehiveApplication().container.dataStore
+                beehiveApplication().autofillManager
             )
         }
 
@@ -58,7 +59,7 @@ object BeehiveViewModelProvider {
         initializer {
             SettingsViewModel(
                 beehiveApplication().container.credentialRepository,
-                beehiveApplication().container.dataStore
+                beehiveApplication().container.settingsRepository
             )
         }
     }

@@ -1,5 +1,10 @@
 package com.example.beehive.ui.home
 
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -37,6 +42,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.beehive.MainActivity
 import com.example.beehive.R
 import com.example.beehive.data.credential.PasswordApp
 import com.example.beehive.data.user.User
@@ -51,6 +57,7 @@ import com.example.beehive.ui.common.ErrorScreen
 import com.example.beehive.ui.common.LoadingScreen
 import com.example.beehive.ui.common.PasswordTile
 import com.example.beehive.ui.home.components.CategoryFilter
+import com.example.beehive.ui.home.components.ConfirmationDialog
 import com.example.beehive.ui.home.components.PasswordsGrid
 import com.example.beehive.ui.home.components.SearchBar
 import com.example.beehive.ui.navigation.SharedElementTransition
@@ -156,6 +163,14 @@ fun HomeContent(
     sharedElementTransition: SharedElementTransition,
     modifier: Modifier = Modifier,
 ) {
+    val launcher =
+        rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult(),
+            onResult = {
+                println(it)
+            })
+    var showAutofillDialog by remember {
+        mutableStateOf(uiState.showAutofillDialog)
+    }
     var query by remember {
         mutableStateOf(uiState.query)
     }
@@ -263,6 +278,24 @@ fun HomeContent(
                     modifier = Modifier.align(Alignment.TopCenter)
                 )
             }
+        }
+
+        if (showAutofillDialog) {
+            ConfirmationDialog(
+                title = stringResource(R.string.autofill_not_enabled_title),
+                message = stringResource(R.string.autofill_not_enabled_message),
+                onConfirm = {
+                    launcher.launch(
+                        Intent(
+                            Settings.ACTION_REQUEST_SET_AUTOFILL_SERVICE,
+                            Uri.parse("package:${MainActivity.PACKAGE_NAME}")
+                        )
+                    )
+                    showAutofillDialog = false
+                },
+                onCancel = {
+                    showAutofillDialog = false
+                })
         }
     }
 }

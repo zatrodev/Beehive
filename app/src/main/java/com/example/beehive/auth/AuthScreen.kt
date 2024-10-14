@@ -22,6 +22,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.paint
@@ -37,6 +40,7 @@ import com.example.beehive.R
 import com.example.beehive.auth.BiometricPromptManager.BiometricResult
 import com.example.beehive.ui.Dimensions.FingerprintIconSize
 import com.example.beehive.ui.Dimensions.SmallPadding
+import com.example.beehive.ui.home.components.ConfirmationDialog
 import kotlinx.coroutines.delay
 
 
@@ -47,6 +51,15 @@ fun AuthScreen(
     promptManager: BiometricPromptManager,
     isFromService: Boolean,
 ) {
+    val launcher =
+        rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult(),
+            onResult = {
+                println(it)
+            })
+    var showSetBiometricDialog by remember {
+        mutableStateOf(false)
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -64,30 +77,16 @@ fun AuthScreen(
             val biometricResult by promptManager.promptResults.collectAsStateWithLifecycle(
                 initialValue = null
             )
-            val launcher =
-                rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult(),
-                    onResult = {
-                        println(it)
-                    })
-
             LaunchedEffect(biometricResult) {
                 if (biometricResult is BiometricResult.AuthenticationNotSet) {
-                    if (Build.VERSION.SDK_INT >= 30) {
-                        val enrollIntent = Intent(Settings.ACTION_BIOMETRIC_ENROLL).apply {
-                            putExtra(
-                                Settings.EXTRA_BIOMETRIC_AUTHENTICATORS_ALLOWED,
-                                BIOMETRIC_STRONG or DEVICE_CREDENTIAL
-                            )
-                        }
-
-                        launcher.launch(enrollIntent)
-                    }
+                    if (Build.VERSION.SDK_INT >= 30)
+                        showSetBiometricDialog = true
                 } else if (biometricResult is BiometricResult.AuthenticationSuccess) {
                     if (isFromService) {
                         returnToService()
                         return@LaunchedEffect
                     }
-                    
+
                     onNavigateToHome()
                 }
             }
@@ -126,5 +125,24 @@ fun AuthScreen(
                 delay(500)
                 promptManager.authenticateWithBiometric("Authenticate Autofill")
             }
+
+        if (showSetBiometricDialog)
+            ConfirmationDialog(
+                title = stringResource(R.string.biometric_not_set_title),
+                message = stringResource(R.string.biometric_not_set_message),
+                onConfirm = {
+                    if (Build.VERSION.SDK_INT >= 30) {
+                        val enrollIntent = Intent(Settings.ACTION_BIOMETRIC_ENROLL).apply {
+                            putExtra(
+                                Settings.EXTRA_BIOMETRIC_AUTHENTICATORS_ALLOWED,
+                                BIOMETRIC_STRONG or DEVICE_CREDENTIAL
+                            )
+                        }
+                        launcher.launch(enrollIntent)
+                    }
+
+                    showSetBiometricDialog = false
+                },
+                onCancel = { showSetBiometricDialog = false })
     }
 }

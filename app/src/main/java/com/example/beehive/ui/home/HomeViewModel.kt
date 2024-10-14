@@ -1,9 +1,7 @@
 package com.example.beehive.ui.home
 
 import android.database.sqlite.SQLiteException
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.intPreferencesKey
+import android.view.autofill.AutofillManager
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.beehive.data.credential.CredentialAndUser
@@ -11,9 +9,9 @@ import com.example.beehive.data.credential.CredentialRepository
 import com.example.beehive.data.user.User
 import com.example.beehive.data.user.UserRepository
 import com.example.beehive.domain.GetInstalledAppsUseCase
+import com.example.beehive.settings.SettingsRepository
 import com.example.beehive.ui.DrawerItemsManager
 import com.example.beehive.ui.DrawerItemsManager.DELETED_INDEX
-import com.example.beehive.ui.settings.SettingsViewModel.Companion.RETENTION_PERIOD
 import com.example.beehive.utils.addDaysToDate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,12 +26,15 @@ import java.util.Date
 class HomeViewModel(
     private val credentialRepository: CredentialRepository,
     private val userRepository: UserRepository,
+    private val settingsRepository: SettingsRepository,
     private val getInstalledAppsUseCase: GetInstalledAppsUseCase,
-    private val dataStore: DataStore<Preferences>,
+    autofillManager: AutofillManager,
 ) : ViewModel() {
     private val _query = MutableStateFlow("")
     private val _homeUiState = MutableStateFlow<HomeScreenUiState>(HomeScreenUiState.Loading)
     private val _isRefreshing = MutableStateFlow(false)
+    private val disabledAutoFill =
+        !autofillManager.hasEnabledAutofillServices() && autofillManager.isAutofillSupported
 
     val uiState: StateFlow<HomeScreenUiState> = _homeUiState.asStateFlow()
 
@@ -43,12 +44,11 @@ class HomeViewModel(
                 credentialRepository.getAllCredentialsAndUser(),
                 _query,
                 _isRefreshing,
-                dataStore.data
-            ) { credentials, query, isRefreshing, preferences ->
+            ) { credentials, query, isRefreshing ->
+                val firstLaunch = settingsRepository.getFirstLaunch()
 
-//                if (!preferences.contains(booleanPreferencesKey("tutorial_shown"))) {
-//                    return@combine HomeScreenUiState.Tutorial
-//                }
+                if (firstLaunch)
+                    settingsRepository.updateFirstLaunch(false)
 
                 if (DrawerItemsManager.allItems[DELETED_INDEX].badgeCount == null) {
                     DrawerItemsManager.setBadgeCount(
@@ -69,7 +69,8 @@ class HomeViewModel(
                 HomeScreenUiState.Ready(
                     query = query,
                     credentials = credentials.filter(query),
-                    isRefreshing = isRefreshing
+                    isRefreshing = isRefreshing,
+                    showAutofillDialog = firstLaunch && disabledAutoFill,
                 )
             }.catch { throwable ->
                 _homeUiState.value = when (throwable) {
@@ -118,7 +119,7 @@ class HomeViewModel(
 
     fun trashPassword(id: Int) {
         viewModelScope.launch(Dispatchers.IO) {
-            val retentionPeriod = dataStore.data.first()[intPreferencesKey(RETENTION_PERIOD)] ?: 30
+            val retentionPeriod = settingsRepository.retentionPeriodFlow.first()
             credentialRepository.trashCredential(
                 id,
                 addDaysToDate(
@@ -147,6 +148,7 @@ sealed interface HomeScreenUiState {
         val credentials: List<CredentialAndUser>,
         val trashedCredentialsCount: Int? = null,
         val isRefreshing: Boolean = false,
+        val showAutofillDialog: Boolean = false,
     ) : HomeScreenUiState
 }
 
