@@ -9,13 +9,13 @@ import com.example.beehive.ui.common.BeehiveTextButton
 
 @Composable
 fun ConfirmationDialog(
+    title: String,
     message: String,
     onConfirm: () -> Unit,
     onCancel: () -> Unit,
-    title: String? = null,
 ) {
-    AlertDialog(onDismissRequest = { },
-        title = { if (title != null) Text(title) },
+    AlertDialog(onDismissRequest = onCancel,
+        title = { Text(title) },
         text = { Text(message) },
         dismissButton = {
             BeehiveTextButton(text = stringResource(R.string.cancel), onClick = onCancel)

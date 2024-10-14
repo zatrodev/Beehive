@@ -49,4 +49,8 @@
     <string name="retention_desc">Set how many days a deleted credential would stay in the bin.</string>
     <string name="by_user">By user</string>
     <string name="by_app">By app</string>
+    <string name="autofill_not_enabled_message">Autofill is not enabled for this app. Set Beehive as your autofill service?</string>
+    <string name="biometric_not_set_message">Your biometrics are currently not set. Set your biometrics in settings?</string>
+    <string name="autofill_not_enabled_title">Set autofill</string>
+    <string name="biometric_not_set_title">Set biometrics</string>
 </resources>

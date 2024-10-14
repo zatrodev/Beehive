@@ -19,7 +19,7 @@ import com.example.beehive.data.credential.CredentialRepository
 import com.example.beehive.service.autofill.BeehiveAutofillService.Companion.EXTRA_FROM_SERVICE
 import com.example.beehive.service.autofill.BeehiveAutofillService.Companion.EXTRA_PASSWORD_ID
 import com.example.beehive.service.autofill.BeehiveAutofillService.Companion.createPresentation
-import com.example.beehive.service.autofill.parsing.parseStructure
+import com.example.beehive.service.autofill.parseStructure
 import com.example.beehive.ui.theme.BeehiveTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

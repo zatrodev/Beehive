@@ -9,19 +9,20 @@ import com.example.beehive.data.credential.CredentialRepository
 import com.example.beehive.data.credential.CredentialRepositoryImpl
 import com.example.beehive.data.user.UserRepository
 import com.example.beehive.data.user.UserRepositoryImpl
+import com.example.beehive.settings.SettingsRepository
 
 interface BeehiveContainer {
     val credentialRepository: CredentialRepository
     val userRepository: UserRepository
+    val settingsRepository: SettingsRepository
     val packageManager: PackageManager
-    val dataStore: DataStore<Preferences>
 }
 
-class BeehiveContainerImpl(private val applicationContext: Context) : BeehiveContainer {
-    private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(
-        name = "settings"
-    )
+private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(
+    name = "settings"
+)
 
+class BeehiveContainerImpl(private val applicationContext: Context) : BeehiveContainer {
     override val credentialRepository: CredentialRepository by lazy {
         CredentialRepositoryImpl(BeehiveDatabase.getDatabase(applicationContext).passwordDao())
     }
@@ -33,6 +34,7 @@ class BeehiveContainerImpl(private val applicationContext: Context) : BeehiveCon
     override val packageManager: PackageManager
         get() = applicationContext.packageManager
 
-    override val dataStore: DataStore<Preferences>
-        get() = applicationContext.dataStore
+    override val settingsRepository: SettingsRepository by lazy {
+        SettingsRepository(applicationContext.dataStore)
+    }
 }

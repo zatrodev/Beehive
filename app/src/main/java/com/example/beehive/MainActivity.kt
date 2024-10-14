@@ -11,6 +11,10 @@ import kotlin.system.exitProcess
 
 
 class MainActivity : AppCompatActivity() {
+    companion object {
+        var PACKAGE_NAME = ""
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -33,6 +37,8 @@ class MainActivity : AppCompatActivity() {
                 )
             }
         }
+
+        PACKAGE_NAME = applicationContext.packageName
     }
 }
 
