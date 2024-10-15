@@ -25,4 +25,6 @@ object Dimensions {
     val FingerprintIconSize = 55.dp
     val CenterIconSize = 150.dp
     val TopBarElevation = 10.dp
+    val BottomSheetIconSize = 32.dp
+    val CheckIconSize = 8.dp
 }

@@ -39,7 +39,8 @@
     <string name="delete_from_trash_question">Are you sure you want to permanently delete this password?</string>
     <string name="delete_from_trash_info">Deleted credentials will be retained for up to 30 days.</string>
     <string name="cancel">Cancel</string>
-    <string name="confirm">OK</string>
+    <string name="ok">OK</string>
+    <string name="confirm">Confirm</string>
     <string name="delete_title">Delete password</string>
     <string name="settings_title">Settings</string>
     <string name="deleted_title">Deleted</string>
@@ -53,4 +54,6 @@
     <string name="biometric_not_set_message">Your biometrics are currently not set. Set your biometrics in settings?</string>
     <string name="autofill_not_enabled_title">Set autofill</string>
     <string name="biometric_not_set_title">Set biometrics</string>
+    <string name="app_icon">app icon</string>
+    <string name="choose_password_title">Choose a password</string>
 </resources>

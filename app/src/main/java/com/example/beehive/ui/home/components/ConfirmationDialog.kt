@@ -21,6 +21,6 @@ fun ConfirmationDialog(
             BeehiveTextButton(text = stringResource(R.string.cancel), onClick = onCancel)
         },
         confirmButton = {
-            BeehiveTextButton(text = stringResource(R.string.confirm), onClick = onConfirm)
+            BeehiveTextButton(text = stringResource(R.string.ok), onClick = onConfirm)
         })
 }

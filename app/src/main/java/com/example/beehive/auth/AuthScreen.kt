@@ -46,10 +46,10 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun AuthScreen(
-    onNavigateToHome: () -> Unit,
-    returnToService: () -> Unit,
+    navigateToHome: () -> Unit,
+    navigateToChooseCredential: () -> Unit,
+    replyIntentManager: ReplyIntentManager?,
     promptManager: BiometricPromptManager,
-    isFromService: Boolean,
 ) {
     val launcher =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult(),
@@ -78,16 +78,22 @@ fun AuthScreen(
                 initialValue = null
             )
             LaunchedEffect(biometricResult) {
-                if (biometricResult is BiometricResult.AuthenticationNotSet) {
-                    if (Build.VERSION.SDK_INT >= 30)
-                        showSetBiometricDialog = true
-                } else if (biometricResult is BiometricResult.AuthenticationSuccess) {
-                    if (isFromService) {
-                        returnToService()
-                        return@LaunchedEffect
+                when (biometricResult) {
+                    is BiometricResult.AuthenticationNotSet -> {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+                            showSetBiometricDialog = true
                     }
 
-                    onNavigateToHome()
+                    is BiometricResult.AuthenticationSuccess -> {
+                        replyIntentManager?.let { manager ->
+                            manager.handleAutofill(navigateToChooseCredential)
+                            return@LaunchedEffect
+                        }
+
+                        navigateToHome()
+                    }
+
+                    else -> Unit
                 }
             }
 
@@ -120,7 +126,7 @@ fun AuthScreen(
             }
         }
 
-        if (isFromService)
+        if (replyIntentManager != null)
             LaunchedEffect(Unit) {
                 delay(500)
                 promptManager.authenticateWithBiometric("Authenticate Autofill")

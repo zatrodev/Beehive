@@ -2,8 +2,8 @@ package com.example.beehive
 
 import android.app.Application
 import android.view.autofill.AutofillManager
-import com.example.beehive.data.BeehiveContainer
-import com.example.beehive.data.BeehiveContainerImpl
+import com.example.beehive.data.container.BeehiveContainer
+import com.example.beehive.data.container.BeehiveContainerImpl
 
 class BeehiveApplication : Application() {
     lateinit var container: BeehiveContainer

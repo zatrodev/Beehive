@@ -6,6 +6,8 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.beehive.BeehiveApplication
+import com.example.beehive.auth.choose.ChooseCredentialViewModel
+import com.example.beehive.domain.GetCredentialsAndUserWithIconsSetUseCase
 import com.example.beehive.domain.GetInstalledAppsUseCase
 import com.example.beehive.ui.credential.add.AddCredentialViewModel
 import com.example.beehive.ui.credential.deleted.DeletedCredentialsViewModel
@@ -37,9 +39,12 @@ object BeehiveViewModelProvider {
         initializer {
             HomeViewModel(
                 beehiveApplication().container.credentialRepository,
+                GetCredentialsAndUserWithIconsSetUseCase(
+                    beehiveApplication().container.credentialRepository,
+                    GetInstalledAppsUseCase(beehiveApplication().packageManager)
+                ),
                 beehiveApplication().container.userRepository,
                 beehiveApplication().container.settingsRepository,
-                GetInstalledAppsUseCase(beehiveApplication().container.packageManager),
                 beehiveApplication().autofillManager
             )
         }
@@ -60,6 +65,15 @@ object BeehiveViewModelProvider {
             SettingsViewModel(
                 beehiveApplication().container.credentialRepository,
                 beehiveApplication().container.settingsRepository
+            )
+        }
+
+        initializer {
+            ChooseCredentialViewModel(
+                GetCredentialsAndUserWithIconsSetUseCase(
+                    beehiveApplication().container.credentialRepository,
+                    GetInstalledAppsUseCase(beehiveApplication().packageManager)
+                )
             )
         }
     }

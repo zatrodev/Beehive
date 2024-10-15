@@ -8,7 +8,7 @@ import com.example.beehive.data.credential.CredentialAndUser
 import com.example.beehive.data.credential.CredentialRepository
 import com.example.beehive.data.user.User
 import com.example.beehive.data.user.UserRepository
-import com.example.beehive.domain.GetInstalledAppsUseCase
+import com.example.beehive.domain.GetCredentialsAndUserWithIconsSetUseCase
 import com.example.beehive.settings.SettingsRepository
 import com.example.beehive.ui.DrawerItemsManager
 import com.example.beehive.ui.DrawerItemsManager.DELETED_INDEX
@@ -25,9 +25,9 @@ import java.util.Date
 
 class HomeViewModel(
     private val credentialRepository: CredentialRepository,
+    private val getCredentialsAndUserWithIconsSetUseCase: GetCredentialsAndUserWithIconsSetUseCase,
     private val userRepository: UserRepository,
     private val settingsRepository: SettingsRepository,
-    private val getInstalledAppsUseCase: GetInstalledAppsUseCase,
     autofillManager: AutofillManager,
 ) : ViewModel() {
     private val _query = MutableStateFlow("")
@@ -41,7 +41,7 @@ class HomeViewModel(
     init {
         viewModelScope.launch(Dispatchers.IO) {
             combine(
-                credentialRepository.getAllCredentialsAndUser(),
+                getCredentialsAndUserWithIconsSetUseCase(),
                 _query,
                 _isRefreshing,
             ) { credentials, query, isRefreshing ->
@@ -59,11 +59,6 @@ class HomeViewModel(
 
                 if (userRepository.getNextId() == 0) {
                     return@combine HomeScreenUiState.InputUser
-                }
-
-                credentials.map { credential ->
-                    credential.credential.app.icon =
-                        getInstalledAppsUseCase().find { it.packageName == credential.credential.app.packageName }?.icon
                 }
 
                 HomeScreenUiState.Ready(

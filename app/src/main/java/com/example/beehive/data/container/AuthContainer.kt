@@ -1,4 +1,4 @@
-package com.example.beehive.data
+package com.example.beehive.data.container
 
 import android.content.Context
 import androidx.datastore.core.DataStore
@@ -16,5 +16,7 @@ private val Context.dataStore by dataStore(
 )
 
 class AuthContainerImpl(applicationContext: Context) : AuthContainer {
-    override val dataStore: DataStore<String> = applicationContext.dataStore
+    override val dataStore: DataStore<String> by lazy {
+        applicationContext.dataStore
+    }
 }

@@ -1,10 +1,11 @@
-package com.example.beehive.data
+package com.example.beehive.data.container
 
 import android.content.Context
 import android.content.pm.PackageManager
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
+import com.example.beehive.data.BeehiveDatabase
 import com.example.beehive.data.credential.CredentialRepository
 import com.example.beehive.data.credential.CredentialRepositoryImpl
 import com.example.beehive.data.user.UserRepository
@@ -31,8 +32,9 @@ class BeehiveContainerImpl(private val applicationContext: Context) : BeehiveCon
         UserRepositoryImpl(BeehiveDatabase.getDatabase(applicationContext).userDao())
     }
 
-    override val packageManager: PackageManager
-        get() = applicationContext.packageManager
+    override val packageManager: PackageManager by lazy {
+        applicationContext.packageManager
+    }
 
     override val settingsRepository: SettingsRepository by lazy {
         SettingsRepository(applicationContext.dataStore)

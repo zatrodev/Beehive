@@ -4,6 +4,7 @@ import android.app.PendingIntent
 import android.app.assist.AssistStructure
 import android.content.Intent
 import android.content.IntentSender
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.os.CancellationSignal
 import android.service.autofill.AutofillService
@@ -15,19 +16,23 @@ import android.service.autofill.FillResponse
 import android.service.autofill.SaveCallback
 import android.service.autofill.SaveInfo
 import android.service.autofill.SaveRequest
+import android.view.View
 import android.view.autofill.AutofillId
 import android.view.autofill.AutofillValue
 import android.widget.RemoteViews
+import androidx.appcompat.content.res.AppCompatResources
+import androidx.core.graphics.drawable.toBitmap
 import com.example.beehive.R
 import com.example.beehive.auth.AuthActivity
 import com.example.beehive.auth.SecretKeyManager
-import com.example.beehive.data.AuthContainer
-import com.example.beehive.data.AuthContainerImpl
-import com.example.beehive.data.BeehiveContainer
-import com.example.beehive.data.BeehiveContainerImpl
+import com.example.beehive.data.container.AuthContainer
+import com.example.beehive.data.container.AuthContainerImpl
+import com.example.beehive.data.container.BeehiveContainer
+import com.example.beehive.data.container.BeehiveContainerImpl
 import com.example.beehive.data.credential.Credential
 import com.example.beehive.data.credential.PasswordApp
 import com.example.beehive.data.user.User
+import com.example.beehive.domain.GetInstalledAppsUseCase
 import com.example.beehive.utils.generatePassword
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -39,6 +44,7 @@ import kotlinx.coroutines.launch
 class BeehiveAutofillService : AutofillService() {
     private lateinit var beehiveContainer: BeehiveContainer
     private lateinit var authContainer: AuthContainer
+    private lateinit var getInstalledAppsUseCase: GetInstalledAppsUseCase
     private val job = SupervisorJob()
     private val coroutineScope = CoroutineScope(Dispatchers.IO + job)
 
@@ -47,24 +53,22 @@ class BeehiveAutofillService : AutofillService() {
 
         const val EXTRA_PASSWORD_ID = "passwordId"
         const val EXTRA_FROM_SERVICE = "fromService"
+        const val EXTRA_IS_CHOOSE = "fromSearch"
 
         fun createPresentation(
             packageName: String,
-            title: String = "",
+            title: String,
             subtitle: String = "",
-            isFirstIteration: Boolean = true,
+            appIcon: Drawable? = null,
         ): RemoteViews {
-            val newPresentation =
-                RemoteViews(packageName, R.layout.autofill_layout)
+            val newPresentation = RemoteViews(packageName, R.layout.autofill_item)
 
-//            if (isFirstIteration)
-//                newPresentation.setViewVisibility(R.id.app_name, View.VISIBLE)
+            newPresentation.setImageViewBitmap(R.id.app_icon, appIcon?.toBitmap())
+            newPresentation.setTextViewText(R.id.title, title)
 
-            if (subtitle.isBlank()) {
-                newPresentation.setTextViewText(R.id.title, title)
-            } else {
-                newPresentation.setTextViewText(R.id.title, title)
+            if (subtitle.isNotBlank()) {
                 newPresentation.setTextViewText(R.id.subtitle, subtitle)
+                newPresentation.setViewVisibility(R.id.subtitle, View.VISIBLE)
             }
 
             return newPresentation
@@ -73,6 +77,7 @@ class BeehiveAutofillService : AutofillService() {
 
     override fun onConnected() {
         super.onConnected()
+        getInstalledAppsUseCase = GetInstalledAppsUseCase(packageManager)
         authContainer = AuthContainerImpl(this.applicationContext)
     }
 
@@ -119,7 +124,13 @@ class BeehiveAutofillService : AutofillService() {
             }
 
             val fillResponseBuilder = FillResponse.Builder()
-            credentials.forEachIndexed { i, credential ->
+            credentials.forEach { credential ->
+                credential.apply {
+                    credential.credential.app.icon = getInstalledAppsUseCase().find {
+                        it.packageName == credential.credential.app.packageName
+                    }?.icon
+                }
+
                 fillResponseBuilder.addDataset(
                     Dataset.Builder()
                         .setValue(
@@ -129,7 +140,7 @@ class BeehiveAutofillService : AutofillService() {
                                 packageName,
                                 credential.user.email,
                                 credential.credential.username,
-                                isFirstIteration = i == 0
+                                credential.credential.app.icon,
                             )
                         )
                         .setAuthentication(
@@ -139,6 +150,25 @@ class BeehiveAutofillService : AutofillService() {
                 )
             }
 
+            fillResponseBuilder.addDataset(
+                Dataset.Builder()
+                    .setValue(
+                        usernameId,
+                        null,
+                        createPresentation(
+                            packageName,
+                            "Choose a password",
+                            appIcon = AppCompatResources.getDrawable(
+                                applicationContext,
+                                R.drawable.ic_launcher_foreground
+                            )
+                        )
+                    )
+                    .setAuthentication(
+                        createIntentSender()
+                    )
+                    .build()
+            )
             callback.onSuccess(fillResponseBuilder.build())
 
         }
@@ -193,14 +223,18 @@ class BeehiveAutofillService : AutofillService() {
         job.cancel()
     }
 
-    private fun createIntentSender(passwordId: Int): IntentSender {
+    private fun createIntentSender(passwordId: Int? = null): IntentSender {
         val authIntent = Intent(this, AuthActivity::class.java).apply {
-            putExtra(EXTRA_PASSWORD_ID, passwordId)
-            putExtra(EXTRA_FROM_SERVICE, true)
+            if (passwordId == null)
+                putExtra(EXTRA_IS_CHOOSE, true)
+            else {
+                putExtra(EXTRA_PASSWORD_ID, passwordId)
+                putExtra(EXTRA_FROM_SERVICE, true)
+            }
         }
         val intentSender: IntentSender = PendingIntent.getActivity(
             this,
-            passwordId,
+            passwordId ?: -1,
             authIntent,
             PendingIntent.FLAG_MUTABLE
         ).intentSender
@@ -216,7 +250,14 @@ class BeehiveAutofillService : AutofillService() {
     ): FillResponse? {
         val newPassword = generatePassword(DEFAULT_NEW_PASSWORD_LENGTH)
         val presentation =
-            createPresentation(packageName, "Create password for this app? ($newPassword)")
+            createPresentation(
+                packageName,
+                "Create password for this app? ($newPassword)",
+                appIcon = AppCompatResources.getDrawable(
+                    applicationContext,
+                    R.drawable.ic_launcher_foreground
+                )
+            )
 
         val usernameValue = AutofillValue.forText(user.email)
         val passwordValue = AutofillValue.forText(newPassword)
