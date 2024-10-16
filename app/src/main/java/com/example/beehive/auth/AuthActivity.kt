@@ -97,8 +97,9 @@ class ReplyIntentManager(
     private val returnToService: (Intent) -> Unit,
     private val cancelAutofill: () -> Unit,
 ) {
-    private lateinit var usernameId: AutofillId
-    private lateinit var passwordId: AutofillId
+    private var usernameId: AutofillId? = null
+    private var passwordId: AutofillId? = null
+    private var focusedId: AutofillId? = null
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
     private var replyIntent = Intent()
 
@@ -108,13 +109,13 @@ class ReplyIntentManager(
                 intent.getParcelableExtra<AssistStructure>(EXTRA_ASSIST_STRUCTURE)
                     ?: throw NullPointerException("Structure can't be null!")
 
-            val (usernameId, passwordId, _, _, _) = parseStructure(structure)
-            if (usernameId == null || passwordId == null)
+            val (usernameId, passwordId, _, _, focusedId, _) = parseStructure(structure)
+            if (usernameId == null && passwordId == null && focusedId == null)
                 throw NullPointerException("No autofill-able text fields found!")
-
 
             this.usernameId = usernameId
             this.passwordId = passwordId
+            this.focusedId = focusedId
         } catch (e: NullPointerException) {
             cancelAutofill()
         }
@@ -145,9 +146,21 @@ class ReplyIntentManager(
         try {
             val credentialAndUser =
                 credentialRepository.getCredentialAndUser(id).first()
-            val responseDataset: Dataset = Dataset.Builder()
+
+            val responseDatasetBuilder = if (usernameId == null || passwordId == null) {
+                Dataset.Builder()
+                    .setValue(
+                        focusedId!!,
+                        AutofillValue.forText(credentialAndUser.credential.password),
+                        createPresentation(
+                            packageName,
+                            credentialAndUser.user.email,
+                            credentialAndUser.credential.username,
+                        )
+                    )
+            } else Dataset.Builder()
                 .setValue(
-                    usernameId,
+                    usernameId!!,
                     AutofillValue.forText(credentialAndUser.credential.username.ifBlank { credentialAndUser.user.email }),
                     createPresentation(
                         packageName,
@@ -156,7 +169,7 @@ class ReplyIntentManager(
                     )
                 )
                 .setValue(
-                    passwordId,
+                    passwordId!!,
                     AutofillValue.forText(credentialAndUser.credential.password),
                     createPresentation(
                         packageName,
@@ -164,12 +177,11 @@ class ReplyIntentManager(
                         credentialAndUser.credential.username,
                     )
                 )
-                .build()
 
             replyIntent = Intent().apply {
-                putExtra(EXTRA_AUTHENTICATION_RESULT, responseDataset)
+                putExtra(EXTRA_AUTHENTICATION_RESULT, responseDatasetBuilder.build())
             }
-        } catch (e: NoSuchElementException) {
+        } catch (e: Exception) {
             cancelAutofill()
             return
         }

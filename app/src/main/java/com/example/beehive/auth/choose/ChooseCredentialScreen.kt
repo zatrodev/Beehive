@@ -64,6 +64,7 @@ import com.example.beehive.ui.Dimensions.RoundedCornerShape
 import com.example.beehive.ui.Dimensions.ShadowElevation
 import com.example.beehive.ui.Dimensions.SmallPadding
 import com.example.beehive.ui.common.ConditionalStyleText
+import com.example.beehive.ui.common.LoadingScreen
 import com.example.beehive.ui.common.PasswordTile
 import com.example.beehive.utils.isDarkMode
 import kotlinx.coroutines.CoroutineScope
@@ -83,93 +84,97 @@ fun ChooseCredentialScreen(
     }
     val credentials by viewModel.credentials.collectAsStateWithLifecycle()
 
-    Scaffold { innerPadding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .clickable(
-                    interactionSource = MutableInteractionSource(),
-                    indication = null
-                ) {
-                    chosenCredential = null
-                }
-        ) {
-            chosenCredential?.let {
-                BottomSheet(
-                    onConfirm = {
-                        coroutineScope.launch {
-                            replyIntentManager.setReply(chosenCredential!!.credential.id)
-                            replyIntentManager.sendReply()
-                        }
-                    },
-                    modifier = Modifier.align(Alignment.BottomEnd)
-                )
-            }
-            Column(
+    if (credentials.isEmpty()) {
+        LoadingScreen()
+    } else {
+        Scaffold { innerPadding ->
+            Box(
                 modifier = Modifier
-                    .padding(innerPadding)
-                    .navigationBarsPadding()
-            ) {
-                Text(
-                    text = stringResource(R.string.choose_password_title),
-                    style = MaterialTheme.typography.headlineSmall,
-                    modifier = Modifier.padding(MediumPadding)
-                )
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = MediumPadding)
-                ) {
-                    if (credentials.isEmpty()) {
-                        Text(
-                            text = stringResource(R.string.no_bees_found),
-                            style = MaterialTheme.typography.headlineSmall,
-                            color = MaterialTheme.colorScheme.outlineVariant,
-                            modifier = Modifier.align(Alignment.Center)
-                        )
-                        return@Column
+                    .fillMaxSize()
+                    .clickable(
+                        interactionSource = MutableInteractionSource(),
+                        indication = null
+                    ) {
+                        chosenCredential = null
                     }
+            ) {
+                chosenCredential?.let {
+                    BottomSheet(
+                        onConfirm = {
+                            coroutineScope.launch {
+                                replyIntentManager.setReply(chosenCredential!!.credential.id)
+                                replyIntentManager.sendReply()
+                            }
+                        },
+                        modifier = Modifier.align(Alignment.BottomEnd)
+                    )
+                }
+                Column(
+                    modifier = Modifier
+                        .padding(innerPadding)
+                        .navigationBarsPadding()
+                ) {
+                    Text(
+                        text = stringResource(R.string.choose_password_title),
+                        style = MaterialTheme.typography.headlineSmall,
+                        modifier = Modifier.padding(MediumPadding)
+                    )
 
-                    LazyColumn {
-                        items(credentials.groupBy {
-                            it.credential.app
-                        }.toList()) { credentialPair ->
-                            Surface(
-                                color = MaterialTheme.colorScheme.surfaceContainer,
-                                shape = MaterialTheme.shapes.extraLarge,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = SmallPadding)
-                            ) {
-                                Column {
-                                    PasswordTile(
-                                        name = credentialPair.first.name,
-                                        icon = credentialPair.first.icon,
-                                        backgroundColor = Color.Transparent,
-                                        modifier = Modifier.padding(
-                                            start = SmallPadding,
-                                            end = SmallPadding,
-                                            top = SmallPadding,
-                                        ),
-                                    )
-                                    FlowRow(
-                                        maxItemsInEachRow = 2,
-                                        modifier = Modifier.padding(
-                                            start = SmallPadding,
-                                            end = SmallPadding,
-                                            bottom = SmallPadding,
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = MediumPadding)
+                    ) {
+                        if (credentials.isEmpty()) {
+                            Text(
+                                text = stringResource(R.string.no_bees_found),
+                                style = MaterialTheme.typography.headlineSmall,
+                                color = MaterialTheme.colorScheme.outlineVariant,
+                                modifier = Modifier.align(Alignment.Center)
+                            )
+                            return@Column
+                        }
+
+                        LazyColumn {
+                            items(credentials.groupBy {
+                                it.credential.app
+                            }.toList()) { credentialPair ->
+                                Surface(
+                                    color = MaterialTheme.colorScheme.surfaceContainer,
+                                    shape = MaterialTheme.shapes.extraLarge,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = SmallPadding)
+                                ) {
+                                    Column {
+                                        PasswordTile(
+                                            name = credentialPair.first.name,
+                                            icon = credentialPair.first.icon,
+                                            backgroundColor = Color.Transparent,
+                                            modifier = Modifier.padding(
+                                                start = SmallPadding,
+                                                end = SmallPadding,
+                                                top = SmallPadding,
+                                            ),
                                         )
-                                    ) {
-                                        credentialPair.second.map {
-                                            PasswordCard(
-                                                username = it.credential.username,
-                                                user = it.user,
-                                                selected = it.credential.id == chosenCredential?.credential?.id,
-                                                onClick = {
-                                                    chosenCredential = it
-                                                }
+                                        FlowRow(
+                                            maxItemsInEachRow = 2,
+                                            modifier = Modifier.padding(
+                                                start = SmallPadding,
+                                                end = SmallPadding,
+                                                bottom = SmallPadding,
                                             )
+                                        ) {
+                                            credentialPair.second.map {
+                                                PasswordCard(
+                                                    username = it.credential.username,
+                                                    user = it.user,
+                                                    selected = it.credential.id == chosenCredential?.credential?.id,
+                                                    onClick = {
+                                                        chosenCredential = it
+                                                    }
+                                                )
+                                            }
                                         }
                                     }
                                 }
@@ -180,6 +185,7 @@ fun ChooseCredentialScreen(
             }
         }
     }
+
 }
 
 @Composable

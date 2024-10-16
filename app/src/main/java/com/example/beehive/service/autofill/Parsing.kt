@@ -6,6 +6,7 @@ import android.text.InputType
 import android.view.autofill.AutofillId
 import androidx.autofill.HintConstants.AUTOFILL_HINT_EMAIL_ADDRESS
 import androidx.autofill.HintConstants.AUTOFILL_HINT_PASSWORD
+import androidx.autofill.HintConstants.AUTOFILL_HINT_USERNAME
 import com.example.beehive.utils.windows
 
 fun parseStructure(
@@ -44,8 +45,8 @@ data class ParsedStructure(
     var passwordId: AutofillId? = null,
     var usernameValue: String = "",
     var passwordValue: String = "",
+    var focusedFieldId: AutofillId? = null,
     var appUri: String = "",
-    var appName: String = "",
 )
 
 fun parseNode(
@@ -65,13 +66,28 @@ fun parseNode(
         parsedStructure.passwordId?.let { viewNode.autofillValue?.toString() } ?: ""
     }
 
+    parsedStructure.focusedFieldId =
+        parsedStructure.focusedFieldId ?: identifyFocusedField(viewNode)
+
     parsedStructure.appUri = viewNode.idPackage ?: parsedStructure.appUri
-    parsedStructure.appName = viewNode.className ?: parsedStructure.appName
 
     for (i in 0 until viewNode.childCount)
         parseNode(viewNode.getChildAt(i), parsedStructure)
 
     return parsedStructure
+}
+
+private fun identifyFocusedField(
+    viewNode: ViewNode,
+): AutofillId? {
+    if (!viewNode.isFocused)
+        return null
+
+    val className = viewNode.className ?: return null
+    if (!className.contains("EditText"))
+        return null
+
+    return viewNode.autofillId
 }
 
 private fun identifyEmailField(
@@ -80,18 +96,24 @@ private fun identifyEmailField(
     val className = viewNode.className ?: return null
     if (!className.contains("EditText")) return null
 
-    if (viewNode.autofillHints?.contains(AUTOFILL_HINT_EMAIL_ADDRESS) == true
+    if (viewNode.autofillHints?.contains(AUTOFILL_HINT_EMAIL_ADDRESS) == true || viewNode.autofillHints?.contains(
+            AUTOFILL_HINT_USERNAME
+        ) == true
     )
         return viewNode.autofillId
 
-    if (viewNode.inputType and (InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS) != 0)
-        return viewNode.autofillId
 
     if (viewNode.text?.contains(
             "email",
             ignoreCase = true
         ) == true || viewNode.hint?.contains("email", ignoreCase = true) == true
     ) return viewNode.autofillId
+
+    if (viewNode.idEntry?.isNotBlank() == true)
+        return null
+
+    if (viewNode.inputType and (InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS) != 0)
+        return viewNode.autofillId
 
     return null
 }

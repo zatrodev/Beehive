@@ -12,6 +12,7 @@ import android.service.autofill.Dataset
 import android.service.autofill.FillCallback
 import android.service.autofill.FillContext
 import android.service.autofill.FillRequest
+import android.service.autofill.FillRequest.FLAG_MANUAL_REQUEST
 import android.service.autofill.FillResponse
 import android.service.autofill.SaveCallback
 import android.service.autofill.SaveInfo
@@ -63,7 +64,11 @@ class BeehiveAutofillService : AutofillService() {
         ): RemoteViews {
             val newPresentation = RemoteViews(packageName, R.layout.autofill_item)
 
-            newPresentation.setImageViewBitmap(R.id.app_icon, appIcon?.toBitmap())
+            if (appIcon != null) {
+                newPresentation.setImageViewBitmap(R.id.app_icon, appIcon.toBitmap())
+                newPresentation.setViewVisibility(R.id.app_icon, View.VISIBLE)
+            }
+
             newPresentation.setTextViewText(R.id.title, title)
 
             if (subtitle.isNotBlank()) {
@@ -89,11 +94,11 @@ class BeehiveAutofillService : AutofillService() {
         val context: List<FillContext> = request.fillContexts
         val structure: AssistStructure = context[context.size - 1].structure
 
-        val (usernameId: AutofillId?, passwordId: AutofillId?, _, _, appUri: String) = parseStructure(
+        val (usernameId: AutofillId?, passwordId: AutofillId?, _, _, focusedFieldId: AutofillId?, appUri: String) = parseStructure(
             structure
         )
 
-        coroutineScope.launch(Dispatchers.IO) {
+        coroutineScope.launch {
             SecretKeyManager.setPassphrase(authContainer.dataStore)
             beehiveContainer = BeehiveContainerImpl(applicationContext)
 
@@ -101,36 +106,48 @@ class BeehiveAutofillService : AutofillService() {
                 beehiveContainer.credentialRepository.getCredentialsByApp(appUri).first()
 
             if (credentials.isEmpty()) {
-                // sign up
-                beehiveContainer.userRepository.getAllUsers().first().first().let { defaultUser ->
-                    val requestFillResponse =
-                        requestSignUp(
-                            request.clientState,
-                            usernameId,
-                            passwordId,
-                            defaultUser
-                        )
-                    if (requestFillResponse != null) {
-                        callback.onSuccess(requestFillResponse)
-                    }
+                if (request.flags and FLAG_MANUAL_REQUEST == FLAG_MANUAL_REQUEST) {
+                    focusedFieldId?.let {
+                        val fillResponseBuilder = FillResponse.Builder()
+                        fillResponseBuilder.addChoosePasswordOption(focusedFieldId)
 
-                    return@launch
+                        callback.onSuccess(fillResponseBuilder.build())
+                        return@launch
+                    }
+                } else {
+                    beehiveContainer.userRepository.getAllUsers().first().first()
+                        .let { defaultUser ->
+                            val requestFillResponseBuilder =
+                                requestSignUp(
+                                    request.clientState,
+                                    usernameId,
+                                    passwordId,
+                                    defaultUser
+                                )
+
+                            requestFillResponseBuilder?.let { builder ->
+                                val autofillId =
+                                    arrayOf(usernameId, passwordId).firstOrNull { id -> id != null }
+
+                                autofillId?.let {
+                                    builder.addChoosePasswordOption(it)
+                                }
+
+                                callback.onSuccess(builder.build())
+                            }
+
+                            return@launch
+                        }
                 }
             }
 
-            if (usernameId == null || passwordId == null) {
+            if (usernameId == null) {
                 callback.onFailure("Unable to autofill.")
                 return@launch
             }
 
             val fillResponseBuilder = FillResponse.Builder()
             credentials.forEach { credential ->
-                credential.apply {
-                    credential.credential.app.icon = getInstalledAppsUseCase().find {
-                        it.packageName == credential.credential.app.packageName
-                    }?.icon
-                }
-
                 fillResponseBuilder.addDataset(
                     Dataset.Builder()
                         .setValue(
@@ -140,35 +157,16 @@ class BeehiveAutofillService : AutofillService() {
                                 packageName,
                                 credential.user.email,
                                 credential.credential.username,
-                                credential.credential.app.icon,
                             )
                         )
                         .setAuthentication(
-                            createIntentSender(credential.credential.id)
+                            createIntentSender(id = credential.credential.id)
                         )
                         .build()
                 )
             }
 
-            fillResponseBuilder.addDataset(
-                Dataset.Builder()
-                    .setValue(
-                        usernameId,
-                        null,
-                        createPresentation(
-                            packageName,
-                            "Choose a password",
-                            appIcon = AppCompatResources.getDrawable(
-                                applicationContext,
-                                R.drawable.ic_launcher_foreground
-                            )
-                        )
-                    )
-                    .setAuthentication(
-                        createIntentSender()
-                    )
-                    .build()
-            )
+            fillResponseBuilder.addChoosePasswordOption(usernameId)
             callback.onSuccess(fillResponseBuilder.build())
 
         }
@@ -208,8 +206,8 @@ class BeehiveAutofillService : AutofillService() {
                     password = parsedStructure.passwordValue,
                     userId = beehiveContainer.userRepository.getNextId(),
                     app = PasswordApp(
-                        name = parsedStructure.appName,
-                        packageName = packageName
+                        name = parsedStructure.appUri,
+                        packageName = parsedStructure.appUri
                     )
                 )
             )
@@ -223,18 +221,21 @@ class BeehiveAutofillService : AutofillService() {
         job.cancel()
     }
 
-    private fun createIntentSender(passwordId: Int? = null): IntentSender {
+    private fun createIntentSender(
+        id: Int? = null,
+    ): IntentSender {
         val authIntent = Intent(this, AuthActivity::class.java).apply {
-            if (passwordId == null)
+            if (id == null)
                 putExtra(EXTRA_IS_CHOOSE, true)
             else {
-                putExtra(EXTRA_PASSWORD_ID, passwordId)
+                putExtra(EXTRA_PASSWORD_ID, id)
                 putExtra(EXTRA_FROM_SERVICE, true)
             }
         }
+
         val intentSender: IntentSender = PendingIntent.getActivity(
             this,
-            passwordId ?: -1,
+            id ?: -1,
             authIntent,
             PendingIntent.FLAG_MUTABLE
         ).intentSender
@@ -242,12 +243,36 @@ class BeehiveAutofillService : AutofillService() {
         return intentSender
     }
 
+    private fun FillResponse.Builder.addChoosePasswordOption(
+        autofillId: AutofillId,
+    ) {
+        this.addDataset(
+            Dataset.Builder()
+                .setValue(
+                    autofillId,
+                    null,
+                    createPresentation(
+                        packageName,
+                        "Choose a saved password",
+                        appIcon = AppCompatResources.getDrawable(
+                            applicationContext,
+                            R.drawable.ic_launcher_foreground
+                        )
+                    )
+                )
+                .setAuthentication(
+                    createIntentSender()
+                )
+                .build()
+        )
+    }
+
     private fun requestSignUp(
         clientState: Bundle?,
         usernameId: AutofillId?,
         passwordId: AutofillId?,
         user: User,
-    ): FillResponse? {
+    ): FillResponse.Builder? {
         val newPassword = generatePassword(DEFAULT_NEW_PASSWORD_LENGTH)
         val presentation =
             createPresentation(
@@ -275,7 +300,6 @@ class BeehiveAutofillService : AutofillService() {
                         arrayOf(usernameId, passwordId)
                     ).build()
                 )
-                .build()
         }
 
         if (usernameId != null) {
@@ -296,7 +320,6 @@ class BeehiveAutofillService : AutofillService() {
                         arrayOf(usernameId)
                     ).build()
                 )
-                .build()
         }
 
         if (passwordId != null) {
@@ -327,7 +350,6 @@ class BeehiveAutofillService : AutofillService() {
                         .setFlags(SaveInfo.FLAG_SAVE_ON_ALL_VIEWS_INVISIBLE)
                         .build()
                 )
-                .build()
         }
 
 
