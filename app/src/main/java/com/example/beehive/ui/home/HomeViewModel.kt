@@ -13,6 +13,7 @@ import com.example.beehive.settings.SettingsRepository
 import com.example.beehive.ui.DrawerItemsManager
 import com.example.beehive.ui.DrawerItemsManager.DELETED_INDEX
 import com.example.beehive.utils.addDaysToDate
+import com.example.beehive.utils.filter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -145,18 +146,4 @@ sealed interface HomeScreenUiState {
         val isRefreshing: Boolean = false,
         val showAutofillDialog: Boolean = false,
     ) : HomeScreenUiState
-}
-
-fun List<CredentialAndUser>.filter(query: String): List<CredentialAndUser> {
-    val trimmedQuery = query.trim()
-    if (trimmedQuery.isBlank()) return this
-
-    return this.filter { credential ->
-        listOf(
-            credential.user.email,
-            credential.credential.app.name
-        ).any {
-            it.contains(trimmedQuery, ignoreCase = true)
-        }
-    }
 }
