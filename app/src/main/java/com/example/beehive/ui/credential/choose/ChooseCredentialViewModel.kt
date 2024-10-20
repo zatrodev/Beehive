@@ -1,4 +1,4 @@
-package com.example.beehive.auth.choose
+package com.example.beehive.ui.credential.choose
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

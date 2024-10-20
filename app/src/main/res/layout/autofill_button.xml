@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="50dp"
+    android:layout_height="48dp"
+    android:paddingStart="6dp"
+    android:paddingEnd="4dp"
+    android:gravity="center_vertical"
+    android:background="@drawable/autofill_button_bg">
+
+    <com.google.android.material.card.MaterialCardView xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:theme="@style/Theme.MaterialComponents.DayNight"
+        app:cardCornerRadius="18dp">
+
+        <ImageButton
+            android:id="@+id/autofill_button"
+            android:contentDescription="@string/autofill_button"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@mipmap/ic_launcher_round"
+            android:scaleType="fitXY"
+            android:background="?attr/selectableItemBackgroundBorderless" /> <!-- For ripple effect -->
+
+    </com.google.android.material.card.MaterialCardView>
+</LinearLayout>

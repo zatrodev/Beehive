@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.beehive.R
 import com.example.beehive.auth.BiometricPromptManager.BiometricResult
+import com.example.beehive.service.autofill.ReplyIntentManager
 import com.example.beehive.ui.Dimensions.FingerprintIconSize
 import com.example.beehive.ui.Dimensions.SmallPadding
 import com.example.beehive.ui.home.components.ConfirmationDialog
@@ -128,7 +129,7 @@ fun AuthScreen(
 
         if (replyIntentManager != null)
             LaunchedEffect(Unit) {
-                delay(500)
+                delay(250)
                 promptManager.authenticateWithBiometric("Authenticate Autofill")
             }
 

@@ -56,4 +56,5 @@
     <string name="biometric_not_set_title">Set biometrics</string>
     <string name="app_icon">app icon</string>
     <string name="choose_password_title">Choose a password</string>
+    <string name="autofill_button">autofill_button</string>
 </resources>

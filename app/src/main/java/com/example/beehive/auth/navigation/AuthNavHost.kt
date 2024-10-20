@@ -7,8 +7,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.beehive.auth.AuthScreen
 import com.example.beehive.auth.BiometricPromptManager
-import com.example.beehive.auth.ReplyIntentManager
-import com.example.beehive.auth.choose.ChooseCredentialScreen
+import com.example.beehive.service.autofill.ReplyIntentManager
+import com.example.beehive.ui.credential.choose.ChooseCredentialScreen
 import kotlinx.serialization.Serializable
 
 @Serializable

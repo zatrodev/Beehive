@@ -33,28 +33,30 @@ import com.example.beehive.data.container.BeehiveContainerImpl
 import com.example.beehive.data.credential.Credential
 import com.example.beehive.data.credential.PasswordApp
 import com.example.beehive.data.user.User
-import com.example.beehive.domain.GetInstalledAppsUseCase
 import com.example.beehive.utils.generatePassword
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+
 
 @Suppress("DEPRECATION")
 class BeehiveAutofillService : AutofillService() {
     private lateinit var beehiveContainer: BeehiveContainer
     private lateinit var authContainer: AuthContainer
-    private lateinit var getInstalledAppsUseCase: GetInstalledAppsUseCase
-    private val job = SupervisorJob()
-    private val coroutineScope = CoroutineScope(Dispatchers.IO + job)
+    private lateinit var parser: Parser
+    private val coroutineScope = CoroutineScope(Dispatchers.IO)
 
     companion object {
         private const val DEFAULT_NEW_PASSWORD_LENGTH = 12
 
-        const val EXTRA_PASSWORD_ID = "passwordId"
-        const val EXTRA_FROM_SERVICE = "fromService"
-        const val EXTRA_IS_CHOOSE = "fromSearch"
+        const val EXTRA_PASSWORD_ID = "com.example.beehive.PasswordId"
+        const val EXTRA_FROM_SERVICE = "com.example.beehive.FromService"
+        const val EXTRA_IS_CHOOSE = "com.example.beehive.IsChoose"
+
+        fun notUsedPresentation(packageName: String): RemoteViews {
+            return RemoteViews(packageName, android.R.layout.simple_list_item_1)
+        }
 
         fun createPresentation(
             packageName: String,
@@ -62,7 +64,7 @@ class BeehiveAutofillService : AutofillService() {
             subtitle: String = "",
             appIcon: Drawable? = null,
         ): RemoteViews {
-            val newPresentation = RemoteViews(packageName, R.layout.autofill_item)
+            val newPresentation = RemoteViews(packageName, R.layout.autofill_suggestion_item)
 
             if (appIcon != null) {
                 newPresentation.setImageViewBitmap(R.id.app_icon, appIcon.toBitmap())
@@ -82,7 +84,6 @@ class BeehiveAutofillService : AutofillService() {
 
     override fun onConnected() {
         super.onConnected()
-        getInstalledAppsUseCase = GetInstalledAppsUseCase(packageManager)
         authContainer = AuthContainerImpl(this.applicationContext)
     }
 
@@ -94,22 +95,20 @@ class BeehiveAutofillService : AutofillService() {
         val context: List<FillContext> = request.fillContexts
         val structure: AssistStructure = context[context.size - 1].structure
 
-        val (usernameId: AutofillId?, passwordId: AutofillId?, _, _, focusedFieldId: AutofillId?, appUri: String) = parseStructure(
-            structure
-        )
-
+        parser = Parser(structure)
         coroutineScope.launch {
             SecretKeyManager.setPassphrase(authContainer.dataStore)
             beehiveContainer = BeehiveContainerImpl(applicationContext)
 
             val credentials =
-                beehiveContainer.credentialRepository.getCredentialsByApp(appUri).first()
+                beehiveContainer.credentialRepository.getCredentialsByApp(parser.parsedStructure.appUri)
+                    .first()
 
             if (credentials.isEmpty()) {
                 if (request.flags and FLAG_MANUAL_REQUEST == FLAG_MANUAL_REQUEST) {
-                    focusedFieldId?.let {
+                    parser.parsedStructure.focusedFieldId?.let {
                         val fillResponseBuilder = FillResponse.Builder()
-                        fillResponseBuilder.addChoosePasswordOption(focusedFieldId)
+                        fillResponseBuilder.addChoosePasswordOption(parser.parsedStructure.focusedFieldId!!)
 
                         callback.onSuccess(fillResponseBuilder.build())
                         return@launch
@@ -120,14 +119,17 @@ class BeehiveAutofillService : AutofillService() {
                             val requestFillResponseBuilder =
                                 requestSignUp(
                                     request.clientState,
-                                    usernameId,
-                                    passwordId,
+                                    parser.parsedStructure.usernameId,
+                                    parser.parsedStructure.passwordId,
                                     defaultUser
                                 )
 
                             requestFillResponseBuilder?.let { builder ->
                                 val autofillId =
-                                    arrayOf(usernameId, passwordId).firstOrNull { id -> id != null }
+                                    arrayOf(
+                                        parser.parsedStructure.usernameId,
+                                        parser.parsedStructure.passwordId
+                                    ).firstOrNull { id -> id != null }
 
                                 autofillId?.let {
                                     builder.addChoosePasswordOption(it)
@@ -141,7 +143,7 @@ class BeehiveAutofillService : AutofillService() {
                 }
             }
 
-            if (usernameId == null) {
+            if (parser.parsedStructure.passwordId == null) {
                 callback.onFailure("Unable to autofill.")
                 return@launch
             }
@@ -151,7 +153,7 @@ class BeehiveAutofillService : AutofillService() {
                 fillResponseBuilder.addDataset(
                     Dataset.Builder()
                         .setValue(
-                            usernameId,
+                            parser.parsedStructure.usernameId!!,
                             null,
                             createPresentation(
                                 packageName,
@@ -166,7 +168,7 @@ class BeehiveAutofillService : AutofillService() {
                 )
             }
 
-            fillResponseBuilder.addChoosePasswordOption(usernameId)
+            fillResponseBuilder.addChoosePasswordOption(parser.parsedStructure.passwordId!!)
             callback.onSuccess(fillResponseBuilder.build())
 
         }
@@ -176,22 +178,26 @@ class BeehiveAutofillService : AutofillService() {
         val context: List<FillContext> = request.fillContexts
         val structure: AssistStructure = context[context.size - 1].structure
 
-        var parsedStructure = ParsedStructure()
+        var parsedStructure = Parser.ParsedStructure()
 
         val clientState = request.clientState
         val usernameId: AutofillId? = clientState?.getParcelable("usernameId")
         val passwordId: AutofillId? = clientState?.getParcelable("passwordId")
 
         if (usernameId != null && passwordId != null) {
-            parsedStructure.usernameValue = context.firstNotNullOfOrNull { fillContext ->
-                getValueFromStructure(fillContext.structure, usernameId)
-            } ?: return
+            parsedStructure.usernameValue =
+                Parser.findNodeByAutofillId(
+                    context[0].structure,
+                    usernameId
+                )?.autofillValue.toString()
 
-            parsedStructure.passwordValue = context.firstNotNullOfOrNull { fillContext ->
-                getValueFromStructure(fillContext.structure, passwordId)
-            } ?: return
+            parsedStructure.usernameValue =
+                Parser.findNodeByAutofillId(
+                    context[1].structure,
+                    usernameId
+                )?.autofillValue.toString()
         } else {
-            parsedStructure = parseStructure(structure)
+            parsedStructure = Parser(structure).parsedStructure
             if (parsedStructure.usernameValue.isEmpty() || parsedStructure.passwordValue.isEmpty()) {
                 callback.onFailure("No text fields found")
                 return
@@ -214,11 +220,6 @@ class BeehiveAutofillService : AutofillService() {
 
             callback.onSuccess()
         }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        job.cancel()
     }
 
     private fun createIntentSender(
@@ -256,7 +257,7 @@ class BeehiveAutofillService : AutofillService() {
                         "Choose a saved password",
                         appIcon = AppCompatResources.getDrawable(
                             applicationContext,
-                            R.drawable.ic_launcher_foreground
+                            R.mipmap.ic_launcher_round
                         )
                     )
                 )
@@ -355,4 +356,104 @@ class BeehiveAutofillService : AutofillService() {
 
         return null
     }
+
+//    fun parseStructure(
+//        structure: AssistStructure,
+//    ): ParsedStructure {
+//        return structure.windows
+//            .mapNotNull { window -> window.rootViewNode }
+//            .fold(ParsedStructure()) { parsed, node -> getAutofillableFields(node, parsed) }
+//    }
+//
+
+//
+//    private fun getAutofillableFields(
+//        viewNode: ViewNode,
+//        parsedStructure: ParsedStructure = ParsedStructure(),
+//    ): ParsedStructure {
+//        if (parsedStructure.usernameId != null && parsedStructure.passwordId != null)
+//            return parsedStructure
+//
+//        parsedStructure.usernameId = parsedStructure.usernameId ?: identifyEmailField(viewNode)
+//        parsedStructure.usernameValue = parsedStructure.usernameValue.ifEmpty {
+//            parsedStructure.usernameId?.let { viewNode.autofillValue?.toString() } ?: ""
+//        }
+//
+//        parsedStructure.passwordId = parsedStructure.passwordId ?: identifyPasswordField(viewNode)
+//        parsedStructure.passwordValue = parsedStructure.passwordValue.ifEmpty {
+//            parsedStructure.passwordId?.let { viewNode.autofillValue?.toString() } ?: ""
+//        }
+//
+//        parsedStructure.focusedFieldId =
+//            parsedStructure.focusedFieldId ?: identifyFocusedField(viewNode)
+//
+//        parsedStructure.appUri = viewNode.idPackage ?: parsedStructure.appUri
+//
+//        for (i in 0 until viewNode.childCount)
+//            getAutofillableFields(viewNode.getChildAt(i), parsedStructure)
+//
+//        return parsedStructure
+//    }
+//
+//    private fun identifyFocusedField(
+//        viewNode: ViewNode,
+//    ): AutofillId? {
+//        if (!viewNode.isFocused)
+//            return null
+//
+//        val className = viewNode.className ?: return null
+//        if (!className.contains("EditText"))
+//            return null
+//
+//        return viewNode.autofillId
+//    }
+//
+//    private fun identifyEmailField(
+//        viewNode: ViewNode,
+//    ): AutofillId? {
+//        val className = viewNode.className ?: return null
+//        if (!className.contains("EditText")) return null
+//
+//        if (viewNode.autofillHints?.contains(AUTOFILL_HINT_EMAIL_ADDRESS) == true || viewNode.autofillHints?.contains(
+//                AUTOFILL_HINT_USERNAME
+//            ) == true
+//        )
+//            return viewNode.autofillId
+//
+//
+//        if (viewNode.text?.contains(
+//                "email",
+//                ignoreCase = true
+//            ) == true || viewNode.hint?.contains("email", ignoreCase = true) == true
+//        ) return viewNode.autofillId
+//
+//        if (viewNode.idEntry?.isNotBlank() == true)
+//            return null
+//
+//        if (viewNode.inputType and (InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS) != 0)
+//            return viewNode.autofillId
+//
+//        return null
+//    }
+//
+//    private fun identifyPasswordField(
+//        viewNode: ViewNode,
+//    ): AutofillId? {
+//        val className = viewNode.className ?: return null
+//        if (!className.contains("EditText")) return null
+//
+//        if (viewNode.autofillHints?.contains(AUTOFILL_HINT_PASSWORD) == true)
+//            return viewNode.autofillId
+//
+//        if (viewNode.inputType and InputType.TYPE_TEXT_VARIATION_PASSWORD != 0)
+//            return viewNode.autofillId
+//
+//        if (viewNode.text?.contains("password", ignoreCase = true) == true ||
+//            viewNode.hint?.contains("password", ignoreCase = true) == true
+//        ) {
+//            return viewNode.autofillId
+//        }
+//
+//        return null
+//    }
 }

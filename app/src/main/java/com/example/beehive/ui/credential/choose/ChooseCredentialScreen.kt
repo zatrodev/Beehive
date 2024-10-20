@@ -1,4 +1,4 @@
-package com.example.beehive.auth.choose
+package com.example.beehive.ui.credential.choose
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.clickable
@@ -51,9 +51,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.beehive.R
-import com.example.beehive.auth.ReplyIntentManager
 import com.example.beehive.data.credential.CredentialAndUser
 import com.example.beehive.data.user.User
+import com.example.beehive.service.autofill.ReplyIntentManager
 import com.example.beehive.ui.BeehiveViewModelProvider
 import com.example.beehive.ui.Dimensions.BottomSheetIconSize
 import com.example.beehive.ui.Dimensions.CheckIconSize
@@ -78,7 +78,7 @@ fun ChooseCredentialScreen(
     replyIntentManager: ReplyIntentManager,
     viewModel: ChooseCredentialViewModel = viewModel(factory = BeehiveViewModelProvider.Factory),
 ) {
-    val coroutineScope = CoroutineScope(Dispatchers.IO)
+    val coroutineScope = CoroutineScope(Dispatchers.Main)
     var chosenCredential by remember {
         mutableStateOf<CredentialAndUser?>(null)
     }

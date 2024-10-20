@@ -6,10 +6,10 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.beehive.BeehiveApplication
-import com.example.beehive.auth.choose.ChooseCredentialViewModel
 import com.example.beehive.domain.GetCredentialsAndUserWithIconsSetUseCase
 import com.example.beehive.domain.GetInstalledAppsUseCase
 import com.example.beehive.ui.credential.add.AddCredentialViewModel
+import com.example.beehive.ui.credential.choose.ChooseCredentialViewModel
 import com.example.beehive.ui.credential.deleted.DeletedCredentialsViewModel
 import com.example.beehive.ui.credential.edit.EditCredentialViewModel
 import com.example.beehive.ui.home.HomeViewModel

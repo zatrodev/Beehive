@@ -64,6 +64,7 @@ dependencies {
     implementation(libs.androidx.datastore)
     implementation(libs.lottie.compose)
     implementation(libs.androidx.datastore.preferences)
+    implementation(libs.material)
     annotationProcessor(libs.androidx.room.room.compiler7)
     ksp(libs.androidx.room.room.compiler7)
     implementation(libs.androidx.room.ktx)
