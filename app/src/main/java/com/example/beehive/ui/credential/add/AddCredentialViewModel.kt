@@ -45,7 +45,12 @@ class AddCredentialViewModel(
             name = input,
             packageName = installedApps.find { it.name == input }?.packageName ?: input,
             icon = installedApps.find { it.name == input }?.icon,
-            mutableInstalledApps = installedApps.filter { it.name.contains(input) }
+            mutableInstalledApps = installedApps.filter {
+                it.name.contains(
+                    input,
+                    ignoreCase = true
+                )
+            }
         )
     }
 

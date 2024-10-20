@@ -65,7 +65,12 @@ class EditCredentialViewModel(
                     packageName = installedApps.find { it.name == appName }?.packageName
                         ?: appName,
                     icon = installedApps.find { it.name == appName }?.icon,
-                    mutableInstalledApps = installedApps.filter { it.name.contains(appName) }
+                    mutableInstalledApps = installedApps.filter {
+                        it.name.contains(
+                            appName,
+                            ignoreCase = true
+                        )
+                    }
                 )
             }.catch { throwable ->
                 _uiState.value = EditPasswordUiState.Error(throwable.message ?: "Unknown error")
