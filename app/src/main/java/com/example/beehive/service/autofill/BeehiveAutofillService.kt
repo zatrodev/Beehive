@@ -44,7 +44,7 @@ import kotlinx.coroutines.launch
 class BeehiveAutofillService : AutofillService() {
     private lateinit var beehiveContainer: BeehiveContainer
     private lateinit var authContainer: AuthContainer
-    private lateinit var parser: Parser
+    private lateinit var parser: Parser<AssistStructure>
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
 
     companion object {
@@ -101,14 +101,14 @@ class BeehiveAutofillService : AutofillService() {
             beehiveContainer = BeehiveContainerImpl(applicationContext)
 
             val credentials =
-                beehiveContainer.credentialRepository.getCredentialsByApp(parser.parsedStructure.appUri)
+                beehiveContainer.credentialRepository.getCredentialsByApp(parser.autofillData.appUri)
                     .first()
 
             if (credentials.isEmpty()) {
                 if (request.flags and FLAG_MANUAL_REQUEST == FLAG_MANUAL_REQUEST) {
-                    parser.parsedStructure.focusedFieldId?.let {
+                    parser.autofillData.focusedFieldId?.let {
                         val fillResponseBuilder = FillResponse.Builder()
-                        fillResponseBuilder.addChoosePasswordOption(parser.parsedStructure.focusedFieldId!!)
+                        fillResponseBuilder.addChoosePasswordOption(parser.autofillData.focusedFieldId!!)
 
                         callback.onSuccess(fillResponseBuilder.build())
                         return@launch
@@ -119,16 +119,16 @@ class BeehiveAutofillService : AutofillService() {
                             val requestFillResponseBuilder =
                                 requestSignUp(
                                     request.clientState,
-                                    parser.parsedStructure.usernameId,
-                                    parser.parsedStructure.passwordId,
+                                    parser.autofillData.usernameId,
+                                    parser.autofillData.passwordId,
                                     defaultUser
                                 )
 
                             requestFillResponseBuilder?.let { builder ->
                                 val autofillId =
                                     arrayOf(
-                                        parser.parsedStructure.usernameId,
-                                        parser.parsedStructure.passwordId
+                                        parser.autofillData.usernameId,
+                                        parser.autofillData.passwordId
                                     ).firstOrNull { id -> id != null }
 
                                 autofillId?.let {
@@ -143,7 +143,7 @@ class BeehiveAutofillService : AutofillService() {
                 }
             }
 
-            if (parser.parsedStructure.passwordId == null) {
+            if (parser.autofillData.passwordId == null) {
                 callback.onFailure("Unable to autofill.")
                 return@launch
             }
@@ -153,7 +153,7 @@ class BeehiveAutofillService : AutofillService() {
                 fillResponseBuilder.addDataset(
                     Dataset.Builder()
                         .setValue(
-                            parser.parsedStructure.usernameId!!,
+                            parser.autofillData.usernameId!!,
                             null,
                             createPresentation(
                                 packageName,
@@ -168,7 +168,7 @@ class BeehiveAutofillService : AutofillService() {
                 )
             }
 
-            fillResponseBuilder.addChoosePasswordOption(parser.parsedStructure.passwordId!!)
+            fillResponseBuilder.addChoosePasswordOption(parser.autofillData.passwordId!!)
             callback.onSuccess(fillResponseBuilder.build())
 
         }
@@ -178,27 +178,27 @@ class BeehiveAutofillService : AutofillService() {
         val context: List<FillContext> = request.fillContexts
         val structure: AssistStructure = context[context.size - 1].structure
 
-        var parsedStructure = Parser.ParsedStructure()
+        var autofillData = Parser.AutofillData()
 
         val clientState = request.clientState
         val usernameId: AutofillId? = clientState?.getParcelable("usernameId")
         val passwordId: AutofillId? = clientState?.getParcelable("passwordId")
 
         if (usernameId != null && passwordId != null) {
-            parsedStructure.usernameValue =
+            autofillData.usernameValue =
                 Parser.findNodeByAutofillId(
                     context[0].structure,
                     usernameId
                 )?.autofillValue.toString()
 
-            parsedStructure.usernameValue =
+            autofillData.usernameValue =
                 Parser.findNodeByAutofillId(
                     context[1].structure,
                     usernameId
                 )?.autofillValue.toString()
         } else {
-            parsedStructure = Parser(structure).parsedStructure
-            if (parsedStructure.usernameValue.isEmpty() || parsedStructure.passwordValue.isEmpty()) {
+            autofillData = Parser(structure).autofillData
+            if (autofillData.usernameValue.isEmpty() || autofillData.passwordValue.isEmpty()) {
                 callback.onFailure("No text fields found")
                 return
             }
@@ -208,12 +208,12 @@ class BeehiveAutofillService : AutofillService() {
             beehiveContainer.credentialRepository.insertCredential(
                 Credential(
                     id = beehiveContainer.credentialRepository.getNextId() + 1,
-                    username = parsedStructure.usernameValue,
-                    password = parsedStructure.passwordValue,
+                    username = autofillData.usernameValue,
+                    password = autofillData.passwordValue,
                     userId = beehiveContainer.userRepository.getNextId(),
                     app = PasswordApp(
-                        name = parsedStructure.appUri,
-                        packageName = parsedStructure.appUri
+                        name = autofillData.appUri,
+                        packageName = autofillData.appUri
                     )
                 )
             )

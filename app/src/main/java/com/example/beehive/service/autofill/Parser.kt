@@ -3,16 +3,17 @@ package com.example.beehive.service.autofill
 import android.app.assist.AssistStructure
 import android.app.assist.AssistStructure.ViewNode
 import android.text.InputType
+import android.view.accessibility.AccessibilityNodeInfo
 import android.view.autofill.AutofillId
 import androidx.autofill.HintConstants.AUTOFILL_HINT_EMAIL_ADDRESS
 import androidx.autofill.HintConstants.AUTOFILL_HINT_PASSWORD
 import androidx.autofill.HintConstants.AUTOFILL_HINT_USERNAME
 import com.example.beehive.utils.windows
 
-class Parser(
-    structure: AssistStructure,
+class Parser<T>(
+    private val structure: T,
 ) {
-    data class ParsedStructure(
+    data class AutofillData(
         var usernameId: AutofillId? = null,
         var passwordId: AutofillId? = null,
         var usernameValue: String = "",
@@ -21,7 +22,12 @@ class Parser(
         var appUri: String = "",
     )
 
-    var parsedStructure: ParsedStructure
+    data class AutofillNodes(
+        var usernameNode: AccessibilityNodeInfo? = null,
+        var passwordNode: AccessibilityNodeInfo? = null,
+    )
+
+    lateinit var autofillData: AutofillData
         private set
 
     companion object {
@@ -41,44 +47,106 @@ class Parser(
     }
 
     init {
-        parsedStructure = parseStructure(structure)
+        when (structure) {
+            is AssistStructure -> autofillData = parseStructure()
+            is AccessibilityNodeInfo -> Unit
+        }
     }
 
-    private fun parseStructure(
-        structure: AssistStructure,
-    ): ParsedStructure {
-        return structure.windows
+    private fun parseStructure(): AutofillData {
+        return (structure as AssistStructure).windows
             .mapNotNull { window -> window.rootViewNode }
-            .fold(ParsedStructure()) { parsed, node -> getAutofillableFields(node, parsed) }
+            .fold(AutofillData()) { parsed, node -> getAutofillableFields(node, parsed) }
     }
 
     private fun getAutofillableFields(
         viewNode: ViewNode,
-        parsedStructure: ParsedStructure = ParsedStructure(),
-    ): ParsedStructure {
-        if (parsedStructure.usernameId != null && parsedStructure.passwordId != null)
-            return parsedStructure
+        autofillData: AutofillData = AutofillData(),
+    ): AutofillData {
+        if (autofillData.usernameId != null && autofillData.passwordId != null)
+            return autofillData
 
-        parsedStructure.usernameId = parsedStructure.usernameId ?: identifyEmailField(viewNode)
-        parsedStructure.usernameValue = parsedStructure.usernameValue.ifEmpty {
-            parsedStructure.usernameId?.let { viewNode.autofillValue?.toString() } ?: ""
+        autofillData.usernameId = autofillData.usernameId ?: identifyEmailField(viewNode)
+        autofillData.usernameValue = autofillData.usernameValue.ifEmpty {
+            autofillData.usernameId?.let { viewNode.autofillValue?.toString() } ?: ""
         }
 
-        parsedStructure.passwordId = parsedStructure.passwordId ?: identifyPasswordField(viewNode)
-        parsedStructure.passwordValue = parsedStructure.passwordValue.ifEmpty {
-            parsedStructure.passwordId?.let { viewNode.autofillValue?.toString() } ?: ""
+        autofillData.passwordId = autofillData.passwordId ?: identifyPasswordField(viewNode)
+        autofillData.passwordValue = autofillData.passwordValue.ifEmpty {
+            autofillData.passwordId?.let { viewNode.autofillValue?.toString() } ?: ""
         }
 
-        parsedStructure.focusedFieldId =
-            parsedStructure.focusedFieldId ?: identifyFocusedField(viewNode)
+        autofillData.focusedFieldId =
+            autofillData.focusedFieldId ?: identifyFocusedField(viewNode)
 
-        parsedStructure.appUri = viewNode.idPackage ?: parsedStructure.appUri
+        autofillData.appUri = viewNode.idPackage ?: autofillData.appUri
 
         for (i in 0 until viewNode.childCount)
-            getAutofillableFields(viewNode.getChildAt(i), parsedStructure)
+            getAutofillableFields(viewNode.getChildAt(i), autofillData)
 
-        return parsedStructure
+        return autofillData
     }
+
+    fun isViewAutofillable(
+        viewNode: AccessibilityNodeInfo = structure as AccessibilityNodeInfo,
+        autofillNodes: AutofillNodes = AutofillNodes(),
+    ): Boolean {
+        autofillNodes.usernameNode =
+            autofillNodes.usernameNode ?: identifyEmailField(viewNode)
+        autofillNodes.passwordNode =
+            autofillNodes.passwordNode ?: identifyPasswordField(viewNode)
+
+        if (autofillNodes.usernameNode != null || autofillNodes.passwordNode != null)
+            return true
+
+        return (0 until viewNode.childCount).any { i ->
+            val child = viewNode.getChild(i) ?: return@any false
+            isViewAutofillable(child, autofillNodes)
+        }
+    }
+
+    private fun identifyEmailField(
+        viewNode: AccessibilityNodeInfo,
+    ): AccessibilityNodeInfo? {
+        val className = viewNode.className ?: return null
+        if (!className.contains("EditText")) return null
+
+        if (viewNode.text?.contains(
+                "email",
+                ignoreCase = true
+            ) == true || viewNode.hintText?.contains(
+                "email",
+                ignoreCase = true
+            ) == true || viewNode.text?.contains(
+                "username",
+                ignoreCase = true
+            ) == true || viewNode.hintText?.contains("username", ignoreCase = true) == true
+        ) return viewNode
+
+        if (viewNode.inputType and (InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS) != 0)
+            return viewNode
+
+        return null
+    }
+
+    private fun identifyPasswordField(
+        viewNode: AccessibilityNodeInfo,
+    ): AccessibilityNodeInfo? {
+        val className = viewNode.className ?: return null
+        if (!className.contains("EditText")) return null
+
+        if (viewNode.isPassword)
+            return viewNode
+
+        if (viewNode.text?.contains("password", ignoreCase = true) == true ||
+            viewNode.hintText?.contains("password", ignoreCase = true) == true
+        ) {
+            return viewNode
+        }
+
+        return null
+    }
+
 
     private fun identifyFocusedField(
         viewNode: ViewNode,

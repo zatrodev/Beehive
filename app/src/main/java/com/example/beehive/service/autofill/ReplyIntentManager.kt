@@ -43,7 +43,7 @@ class ReplyIntentManager(
 
             if (structure != null) {
                 val parser = Parser(structure)
-                val (usernameId, passwordId, _, _, focusedId, _) = parser.parsedStructure
+                val (usernameId, passwordId, _, _, focusedId, _) = parser.autofillData
 
                 this.usernameId = usernameId
                 this.passwordId = passwordId

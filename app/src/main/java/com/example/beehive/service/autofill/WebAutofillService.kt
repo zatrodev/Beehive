@@ -10,7 +10,6 @@ import android.content.IntentSender
 import android.graphics.PixelFormat
 import android.graphics.drawable.Drawable
 import android.os.Bundle
-import android.text.InputType
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -91,7 +90,8 @@ class WebAutofillService : AccessibilityService(), IntentSender.OnFinished {
         if (!isEditText || overlayView.childCount > 0)
             return
 
-        if (isViewAutofillable(rootInActiveWindow)) {
+        val parser = Parser(rootInActiveWindow)
+        if (parser.isViewAutofillable(rootInActiveWindow)) {
             val pageUrl =
                 getUrl(rootInActiveWindow, addressBarId(event.source!!.packageName.toString()))
                     ?: return
@@ -241,75 +241,75 @@ class WebAutofillService : AccessibilityService(), IntentSender.OnFinished {
         return view
     }
 
-
-    private fun isViewAutofillable(
-        viewNode: AccessibilityNodeInfo,
-        autofillFields: AutofillFields = AutofillFields(),
-    ): Boolean {
-        autofillFields.usernameNode =
-            autofillFields.usernameNode ?: identifyEmailField(viewNode)
-        autofillFields.passwordNode =
-            autofillFields.passwordNode ?: identifyPasswordField(viewNode)
-
-        if (autofillFields.usernameNode != null || autofillFields.passwordNode != null)
-            return true
-
-        (0 until viewNode.childCount).forEach { i ->
-            val child = viewNode.getChild(i) ?: return@forEach
-            if (isViewAutofillable(child, autofillFields)) {
-                return true
-            }
-        }
-
-        return false
-    }
-
-    private fun identifyEmailField(
-        viewNode: AccessibilityNodeInfo,
-    ): AccessibilityNodeInfo? {
-        val className = viewNode.className ?: return null
-        if (!className.contains("EditText")) return null
-
-        if (viewNode.text?.contains(
-                "email",
-                ignoreCase = true
-            ) == true || viewNode.hintText?.contains(
-                "email",
-                ignoreCase = true
-            ) == true || viewNode.text?.contains(
-                "username",
-                ignoreCase = true
-            ) == true || viewNode.hintText?.contains("username", ignoreCase = true) == true
-        ) return viewNode
-
-        if (viewNode.inputType and (InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS) != 0)
-            return viewNode
-
-        return null
-    }
-
-    private fun identifyPasswordField(
-        viewNode: AccessibilityNodeInfo,
-    ): AccessibilityNodeInfo? {
-        val className = viewNode.className ?: return null
-        if (!className.contains("EditText")) return null
-
-        if (viewNode.isPassword)
-            return viewNode
-
-        if (viewNode.text?.contains("password", ignoreCase = true) == true ||
-            viewNode.hintText?.contains("password", ignoreCase = true) == true
-        ) {
-            return viewNode
-        }
-
-        return null
-    }
-
-    private data class AutofillFields(
-        var usernameNode: AccessibilityNodeInfo? = null,
-        var passwordNode: AccessibilityNodeInfo? = null,
-    )
+//
+//    private fun isViewAutofillable(
+//        viewNode: AccessibilityNodeInfo,
+//        autofillFields: AutofillFields = AutofillFields(),
+//    ): Boolean {
+//        autofillFields.usernameNode =
+//            autofillFields.usernameNode ?: identifyEmailField(viewNode)
+//        autofillFields.passwordNode =
+//            autofillFields.passwordNode ?: identifyPasswordField(viewNode)
+//
+//        if (autofillFields.usernameNode != null || autofillFields.passwordNode != null)
+//            return true
+//
+//        (0 until viewNode.childCount).forEach { i ->
+//            val child = viewNode.getChild(i) ?: return@forEach
+//            if (isViewAutofillable(child, autofillFields)) {
+//                return true
+//            }
+//        }
+//
+//        return false
+//    }
+//
+//    private fun identifyEmailField(
+//        viewNode: AccessibilityNodeInfo,
+//    ): AccessibilityNodeInfo? {
+//        val className = viewNode.className ?: return null
+//        if (!className.contains("EditText")) return null
+//
+//        if (viewNode.text?.contains(
+//                "email",
+//                ignoreCase = true
+//            ) == true || viewNode.hintText?.contains(
+//                "email",
+//                ignoreCase = true
+//            ) == true || viewNode.text?.contains(
+//                "username",
+//                ignoreCase = true
+//            ) == true || viewNode.hintText?.contains("username", ignoreCase = true) == true
+//        ) return viewNode
+//
+//        if (viewNode.inputType and (InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS) != 0)
+//            return viewNode
+//
+//        return null
+//    }
+//
+//    private fun identifyPasswordField(
+//        viewNode: AccessibilityNodeInfo,
+//    ): AccessibilityNodeInfo? {
+//        val className = viewNode.className ?: return null
+//        if (!className.contains("EditText")) return null
+//
+//        if (viewNode.isPassword)
+//            return viewNode
+//
+//        if (viewNode.text?.contains("password", ignoreCase = true) == true ||
+//            viewNode.hintText?.contains("password", ignoreCase = true) == true
+//        ) {
+//            return viewNode
+//        }
+//
+//        return null
+//    }
+//
+//    private data class AutofillFields(
+//        var usernameNode: AccessibilityNodeInfo? = null,
+//        var passwordNode: AccessibilityNodeInfo? = null,
+//    )
 
     private fun addressBarId(packageName: String): String {
         return "$packageName:id/url_bar"
