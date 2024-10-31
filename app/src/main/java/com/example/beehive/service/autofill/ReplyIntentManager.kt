@@ -1,12 +1,8 @@
 package com.example.beehive.service.autofill
 
 import android.app.assist.AssistStructure
-import android.content.ClipData
-import android.content.ClipDescription
-import android.content.ClipboardManager
+import android.content.Context
 import android.content.Intent
-import android.os.Build
-import android.os.PersistableBundle
 import android.service.autofill.Dataset
 import android.view.autofill.AutofillId
 import android.view.autofill.AutofillManager.EXTRA_ASSIST_STRUCTURE
@@ -16,6 +12,7 @@ import com.example.beehive.data.credential.CredentialRepository
 import com.example.beehive.service.autofill.BeehiveAutofillService.Companion.EXTRA_IS_CHOOSE
 import com.example.beehive.service.autofill.BeehiveAutofillService.Companion.EXTRA_PASSWORD_ID
 import com.example.beehive.service.autofill.BeehiveAutofillService.Companion.notUsedPresentation
+import com.example.beehive.utils.copyToClipboard
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -24,7 +21,7 @@ import kotlinx.coroutines.launch
 @Suppress("DEPRECATION")
 class ReplyIntentManager(
     private val intent: Intent,
-    private val clipboardManager: ClipboardManager,
+    private val context: Context,
     private val packageName: String,
     private val credentialRepository: CredentialRepository,
     private val returnToService: (Intent?) -> Unit,
@@ -84,20 +81,7 @@ class ReplyIntentManager(
                 credentialRepository.getCredentialAndUser(id).first()
 
             if (usernameId == null && passwordId == null && focusedId == null) {
-                val clipData = ClipData.newPlainText(
-                    "",
-                    credentialAndUser.credential.password
-                )
-                clipData.apply {
-                    description.extras = PersistableBundle().apply {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                            putBoolean(ClipDescription.EXTRA_IS_SENSITIVE, true)
-                        } else {
-                            putBoolean("android.content.extra.IS_SENSITIVE", true)
-                        }
-                    }
-                }
-                clipboardManager.setPrimaryClip(clipData)
+                copyToClipboard(context, credentialAndUser.credential.password, true)
             } else {
                 val responseDatasetBuilder = if (usernameId == null || passwordId == null) {
                     Dataset.Builder()

@@ -2,19 +2,15 @@ package com.example.beehive.ui.home.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import com.example.beehive.R
-import com.example.beehive.ui.Dimensions.LargePadding
 import com.example.beehive.ui.Dimensions.SmallPadding
 import com.example.beehive.ui.home.GroupingOption
 
@@ -26,31 +22,7 @@ fun CategoryFilter(
     Row(
         horizontalArrangement = Arrangement.spacedBy(SmallPadding),
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(
-                horizontal = LargePadding,
-                vertical = SmallPadding,
-            )
     ) {
-        FilterChip(
-            selected = groupingOption == GroupingOption.ByUser,
-            onClick = {
-                onGroupingOptionChange(GroupingOption.ByUser)
-            },
-            label = { Text(stringResource(R.string.by_user)) },
-            colors = FilterChipDefaults.filterChipColors().copy(
-                selectedContainerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f),
-                selectedLeadingIconColor = MaterialTheme.colorScheme.primary,
-                selectedLabelColor = MaterialTheme.colorScheme.primary,
-            ),
-            border = FilterChipDefaults.filterChipBorder(
-                enabled = groupingOption == GroupingOption.ByUser,
-                selected = groupingOption == GroupingOption.ByUser,
-                selectedBorderColor = MaterialTheme.colorScheme.primary,
-                disabledBorderColor = Color.Transparent
-            )
-        )
         FilterChip(
             selected = groupingOption == GroupingOption.ByApp,
             onClick = {
@@ -68,6 +40,24 @@ fun CategoryFilter(
                 selectedBorderColor = MaterialTheme.colorScheme.primary,
                 disabledBorderColor = Color.Transparent
             ),
+        )
+        FilterChip(
+            selected = groupingOption == GroupingOption.ByUser,
+            onClick = {
+                onGroupingOptionChange(GroupingOption.ByUser)
+            },
+            label = { Text(stringResource(R.string.by_user)) },
+            colors = FilterChipDefaults.filterChipColors().copy(
+                selectedContainerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f),
+                selectedLeadingIconColor = MaterialTheme.colorScheme.primary,
+                selectedLabelColor = MaterialTheme.colorScheme.primary,
+            ),
+            border = FilterChipDefaults.filterChipBorder(
+                enabled = groupingOption == GroupingOption.ByUser,
+                selected = groupingOption == GroupingOption.ByUser,
+                selectedBorderColor = MaterialTheme.colorScheme.primary,
+                disabledBorderColor = Color.Transparent
+            )
         )
     }
 }

@@ -29,7 +29,7 @@ class CredentialRepositoryImpl(private val credentialDao: CredentialDao) : Crede
 
     override suspend fun deleteExpiredCredentials() = credentialDao.deleteExpiredCredentials()
 
-    override suspend fun getNextId(): Int = credentialDao.getNextId()
+    override suspend fun getNextId(): Int = credentialDao.getCurrentId() + 1
 
     override suspend fun insertCredential(credential: Credential) = credentialDao.insert(credential)
 

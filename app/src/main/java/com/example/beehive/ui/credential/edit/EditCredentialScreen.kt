@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -29,25 +30,26 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.beehive.R
 import com.example.beehive.data.user.User
 import com.example.beehive.ui.BeehiveViewModelProvider
+import com.example.beehive.ui.Dimensions.EditPasswordCardHeight
 import com.example.beehive.ui.Dimensions.LargePadding
 import com.example.beehive.ui.Dimensions.MediumPadding
+import com.example.beehive.ui.Dimensions.PasswordCardWidth
 import com.example.beehive.ui.Dimensions.SmallPadding
+import com.example.beehive.ui.common.AppTile
 import com.example.beehive.ui.common.BeehiveButton
 import com.example.beehive.ui.common.BeehiveTextButton
 import com.example.beehive.ui.common.BeehiveTextField
+import com.example.beehive.ui.common.CredentialCard
 import com.example.beehive.ui.common.ErrorScreen
 import com.example.beehive.ui.common.LoadingScreen
-import com.example.beehive.ui.common.PasswordCard
-import com.example.beehive.ui.common.PasswordTile
 import com.example.beehive.ui.credential.add.OptionType
+import com.example.beehive.ui.credential.components.AppNameSearchDialog
 import com.example.beehive.ui.credential.components.LengthSlider
-import com.example.beehive.ui.credential.components.NameSearchDialog
 import com.example.beehive.ui.credential.components.OptionRow
 import com.example.beehive.ui.credential.components.PasswordDisplay
 import com.example.beehive.ui.credential.components.UserDropdownMenu
@@ -98,7 +100,7 @@ private fun EditCredentialScreenReady(
             uiState = uiState,
             showError = showError,
             onNavigateToAddUser = onNavigateToAddUser,
-            onAppNameChange = viewModel::updateAppName,
+            updateAppName = viewModel::updateAppName,
             onUserChange = viewModel::updateUser,
             clearError = { showError = false },
             onBack = onBack,
@@ -106,7 +108,7 @@ private fun EditCredentialScreenReady(
                 if (uiState.appName.isBlank())
                     showError = true
                 else {
-                    viewModel.updatePassword()
+                    viewModel.updateCredential()
                     onBack()
                 }
             },
@@ -125,7 +127,7 @@ private fun EditCredentialContent(
     showError: Boolean,
     clearError: () -> Unit,
     onNavigateToAddUser: () -> Unit,
-    onAppNameChange: (String) -> Unit,
+    updateAppName: (String) -> Unit,
     onUserChange: (User) -> Unit,
     onBack: () -> Unit,
     onDoneEditingClick: () -> Unit,
@@ -147,6 +149,7 @@ private fun EditCredentialContent(
     }
     var password by remember { mutableStateOf(uiState.password) }
     var username by remember { mutableStateOf(uiState.username) }
+    var appName by remember { mutableStateOf(uiState.appName) }
 
     fun toggleShowPassword() {
         showPassword = !showPassword
@@ -161,6 +164,7 @@ private fun EditCredentialContent(
             toggleShowPassword()
 
         password = generatePassword(sliderPosition, checkboxStates)
+        updatePassword(password)
     }
 
     Column(
@@ -171,7 +175,7 @@ private fun EditCredentialContent(
         verticalArrangement = Arrangement.spacedBy(MediumPadding)
     ) {
         Spacer(modifier = Modifier.weight(1f))
-        PasswordCard(
+        CredentialCard(
             title = uiState.user.email,
             subtitle = username,
             password = password,
@@ -179,7 +183,9 @@ private fun EditCredentialContent(
             showPassword = showPassword,
             sharedElementTransition = sharedElementTransition,
             modifier = Modifier
-                .width(200.dp)
+                .width(PasswordCardWidth)
+                .height(EditPasswordCardHeight)
+                .padding(SmallPadding)
                 .clickable(interactionSource = interactionSource, indication = null) {
                     toggleShowPassword()
                 }
@@ -193,7 +199,7 @@ private fun EditCredentialContent(
                 .padding(horizontal = LargePadding)
         ) {
             with(sharedElementTransition.sharedTransitionScope) {
-                PasswordTile(
+                AppTile(
                     name = uiState.appName,
                     icon = uiState.icon,
                     backgroundColor = if (showError) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.secondaryContainer,
@@ -233,6 +239,7 @@ private fun EditCredentialContent(
                         toggleShowPassword()
 
                     username = it
+                    updateUsername(username)
                     clearError()
                 },
                 labelColor = MaterialTheme.colorScheme.primary,
@@ -263,6 +270,7 @@ private fun EditCredentialContent(
                         password = password,
                         onPasswordChange = {
                             password = it
+                            updatePassword(password)
                         }
                     )
                     LengthSlider(
@@ -273,6 +281,7 @@ private fun EditCredentialContent(
 
                             sliderPosition = it.toInt()
                             password = generatePassword(sliderPosition, checkboxStates)
+                            updatePassword(password)
                         })
                     Column(
                         modifier = Modifier
@@ -322,28 +331,28 @@ private fun EditCredentialContent(
                 text = stringResource(R.string.done_editing_button),
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
-                onClick = {
-                    updateUsername(username)
-                    updatePassword(password)
-                    onDoneEditingClick()
-                },
+                onClick = onDoneEditingClick,
                 modifier = Modifier.padding(SmallPadding)
             )
         }
     }
 
     if (showDialog) {
-        NameSearchDialog(
-            name = uiState.appName,
+        AppNameSearchDialog(
+            name = appName,
             openDialog = showDialog,
-            onNameChange = onAppNameChange,
-            appCardOnClick = { name ->
-                onAppNameChange(name)
+            onAppNameChange = {
+                appName = it
+                updateAppName(it)
+            },
+            appCardOnClick = {
+                appName = it
+                updateAppName(it)
                 showDialog = false
             },
             disableError = clearError,
             closeDialogBox = { showDialog = false },
-            installedApps = uiState.mutableInstalledApps
+            installedApps = uiState.installedApps
         )
     }
 }

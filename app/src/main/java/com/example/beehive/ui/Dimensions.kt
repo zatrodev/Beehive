@@ -9,12 +9,14 @@ object Dimensions {
     val LargePadding = 24.dp
     val IndicatorLineThickness = 3.dp
     val RoundedCornerShape = 6.dp
-    val IconSize = 17.5f.dp
+    val IconSize = 20.dp
     val ActionIconSize = 35.dp
     val UserIconSize = 20.dp
     val UserIconContainerWidth = 85.dp
     val UserIconContainerHeight = 65.dp
-    val PasswordCardHeight = 120.dp
+    val PasswordCardHeight = 80.dp
+    val EditPasswordCardHeight = 120.dp
+    val PasswordCardWidth = 200.dp
     val ShadowElevation = 8.dp
     val InstalledAppIconSize = 30.dp
     val EmailTextFieldSize = 350.dp

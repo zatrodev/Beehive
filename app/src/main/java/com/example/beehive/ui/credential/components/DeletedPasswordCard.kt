@@ -129,7 +129,7 @@ fun DeletedPasswordCard(
                 contentColor = MaterialTheme.colorScheme.onErrorContainer
             ) {
                 Text(
-                    text = "$remainingDays days",
+                    text = "$remainingDays ${if (remainingDays > 1) "days" else "day"}",
                     style = MaterialTheme.typography.labelSmall,
                 )
             }

@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -24,9 +25,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material3.Badge
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -48,6 +46,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.beehive.R
@@ -56,16 +55,16 @@ import com.example.beehive.data.user.User
 import com.example.beehive.service.autofill.ReplyIntentManager
 import com.example.beehive.ui.BeehiveViewModelProvider
 import com.example.beehive.ui.Dimensions.BottomSheetIconSize
-import com.example.beehive.ui.Dimensions.CheckIconSize
 import com.example.beehive.ui.Dimensions.ExtraSmallPadding
 import com.example.beehive.ui.Dimensions.MediumPadding
 import com.example.beehive.ui.Dimensions.PasswordCardHeight
 import com.example.beehive.ui.Dimensions.RoundedCornerShape
 import com.example.beehive.ui.Dimensions.ShadowElevation
 import com.example.beehive.ui.Dimensions.SmallPadding
+import com.example.beehive.ui.common.AppTile
 import com.example.beehive.ui.common.ConditionalStyleText
 import com.example.beehive.ui.common.LoadingScreen
-import com.example.beehive.ui.common.PasswordTile
+import com.example.beehive.ui.common.SelectedIndicator
 import com.example.beehive.utils.isDarkMode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -106,7 +105,9 @@ fun ChooseCredentialScreen(
                                 replyIntentManager.sendReply()
                             }
                         },
-                        modifier = Modifier.align(Alignment.BottomEnd)
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .zIndex(1f)
                     )
                 }
                 Column(
@@ -135,7 +136,9 @@ fun ChooseCredentialScreen(
                             return@Column
                         }
 
-                        LazyColumn {
+                        LazyColumn(
+                            modifier = Modifier.safeContentPadding()
+                        ) {
                             items(credentials.groupBy {
                                 it.credential.app
                             }.toList()) { credentialPair ->
@@ -147,7 +150,7 @@ fun ChooseCredentialScreen(
                                         .padding(vertical = SmallPadding)
                                 ) {
                                     Column {
-                                        PasswordTile(
+                                        AppTile(
                                             name = credentialPair.first.name,
                                             icon = credentialPair.first.icon,
                                             backgroundColor = Color.Transparent,
@@ -206,27 +209,23 @@ fun BottomSheet(
 
     ) {
         Column(
+            verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .clickable {
+                    onConfirm()
+                }
+                .padding(MediumPadding)
         ) {
-            Column(
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier
-                    .clickable {
-                        onConfirm()
-                    }
-                    .padding(MediumPadding)
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_confirm),
-                    contentDescription = "confirm",
-                    modifier = Modifier.size(BottomSheetIconSize)
-                )
-                Text(
-                    text = stringResource(R.string.confirm),
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
+            Icon(
+                painter = painterResource(R.drawable.ic_confirm),
+                contentDescription = "confirm",
+                modifier = Modifier.size(BottomSheetIconSize)
+            )
+            Text(
+                text = stringResource(R.string.confirm),
+                style = MaterialTheme.typography.bodySmall
+            )
         }
     }
 }
@@ -288,19 +287,7 @@ fun PasswordCard(
                 .fillMaxWidth()
                 .padding(ExtraSmallPadding)
         ) {
-
-            Badge(
-                containerColor = if (selected) MaterialTheme.colorScheme.inverseSurface else MaterialTheme.colorScheme.surfaceContainerHighest,
-            ) {
-                if (selected) {
-                    Icon(
-                        imageVector = Icons.Filled.Check,
-                        contentDescription = "Selected",
-                        tint = MaterialTheme.colorScheme.inverseOnSurface,
-                        modifier = Modifier.size(CheckIconSize)
-                    )
-                }
-            }
+            SelectedIndicator(selected = selected)
         }
     }
 }

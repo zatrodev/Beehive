@@ -16,5 +16,5 @@ class UserRepositoryImpl(private val userDao: UserDao) : UserRepository {
 
     override suspend fun insertUser(user: User) = userDao.insert(user)
 
-    override suspend fun getNextId(): Int = userDao.getNextId()
+    override suspend fun getNextId(): Int = userDao.getCurrentId() + 1
 }

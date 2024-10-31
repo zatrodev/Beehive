@@ -58,7 +58,7 @@ interface CredentialDao {
     suspend fun restoreCredential(id: Int)
 
     @Query("SELECT MAX(id) from credential")
-    suspend fun getNextId(): Int
+    suspend fun getCurrentId(): Int
 
     @Query("UPDATE credential SET deletionDate = :deletionDate WHERE id = :id")
     suspend fun updateDeletionDate(id: Int, deletionDate: Date)

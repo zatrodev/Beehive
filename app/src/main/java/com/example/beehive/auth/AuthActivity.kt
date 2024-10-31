@@ -1,10 +1,8 @@
 package com.example.beehive.auth
 
 import android.app.Activity
-import android.content.ClipboardManager
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -47,7 +45,7 @@ class AuthActivity : AppCompatActivity() {
                 ) {
                     replyIntentManager = ReplyIntentManager(
                         intent,
-                        getSystemService(CLIPBOARD_SERVICE) as ClipboardManager,
+                        applicationContext,
                         packageName,
                         beehiveContainer.credentialRepository,
                         ::returnToService,
@@ -75,17 +73,6 @@ class AuthActivity : AppCompatActivity() {
 
     private fun returnToService(replyIntent: Intent?) {
         setResult(Activity.RESULT_OK, replyIntent)
-
-        if (replyIntent == null) {
-            this.runOnUiThread {
-                Toast.makeText(
-                    applicationContext,
-                    "Copied to clipboard",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-        }
-
         finish()
     }
 

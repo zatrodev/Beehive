@@ -30,5 +30,5 @@ interface UserDao {
     fun getUsersWithCredentials(): Flow<List<UserWithCredentials>>
 
     @Query("SELECT MAX(id) FROM user")
-    suspend fun getNextId(): Int
+    suspend fun getCurrentId(): Int
 }

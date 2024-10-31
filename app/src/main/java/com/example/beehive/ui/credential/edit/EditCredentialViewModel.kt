@@ -1,22 +1,22 @@
 package com.example.beehive.ui.credential.edit
 
-import android.graphics.drawable.Drawable
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.beehive.data.app.AppInfo
+import com.example.beehive.data.app.AppRepository
 import com.example.beehive.data.credential.Credential
 import com.example.beehive.data.credential.CredentialRepository
 import com.example.beehive.data.credential.PasswordApp
 import com.example.beehive.data.user.User
 import com.example.beehive.data.user.UserRepository
-import com.example.beehive.domain.GetInstalledAppsUseCase
-import com.example.beehive.domain.GetInstalledAppsUseCase.InstalledApp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
@@ -25,23 +25,21 @@ class EditCredentialViewModel(
     savedStateHandle: SavedStateHandle,
     private val userRepository: UserRepository,
     private val credentialRepository: CredentialRepository,
-    private val getInstalledAppsUseCase: GetInstalledAppsUseCase,
+    private val appRepository: AppRepository,
 ) : ViewModel() {
     private val passwordId: Int = savedStateHandle.get<Int>("id")!!
     private val userId = savedStateHandle.get<Int>("userId")!!
-    private var installedApps: List<InstalledApp> = emptyList()
 
     private val _appName = MutableStateFlow("")
     private val _username = MutableStateFlow("")
     private val _password = MutableStateFlow("")
-    private val _user = MutableStateFlow(User(0, ""))
+    private val _user = MutableStateFlow<User?>(null)
     private val _uiState = MutableStateFlow<EditPasswordUiState>(EditPasswordUiState.Loading)
 
     val uiState: StateFlow<EditPasswordUiState> = _uiState.asStateFlow()
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            installedApps = getInstalledAppsUseCase()
             credentialRepository.getCredential(passwordId).first().let { credential ->
                 _appName.value = credential.app.name
                 _username.value = credential.username
@@ -49,23 +47,24 @@ class EditCredentialViewModel(
             }
             _user.value = userRepository.getUser(userId).first()
 
-            combine(
+            com.example.beehive.utils.combine(
+                appRepository.getAllInstalledApps(),
                 _appName,
                 _username,
                 _password,
                 _user,
                 userRepository.getAllUsers(),
-            ) { appName, username, password, user, users ->
+            ) { installedApps, appName, username, password, user, users ->
                 EditPasswordUiState.Ready(
                     username = username,
                     password = password,
                     appName = appName,
-                    user = user,
+                    user = user ?: users.first(),
                     users = users,
                     packageName = installedApps.find { it.name == appName }?.packageName
                         ?: appName,
-                    icon = installedApps.find { it.name == appName }?.icon,
-                    mutableInstalledApps = installedApps.filter {
+                    icon = installedApps.find { it.name == appName }?.icon?.asImageBitmap(),
+                    installedApps = installedApps.filter {
                         it.name.contains(
                             appName,
                             ignoreCase = true
@@ -96,7 +95,7 @@ class EditCredentialViewModel(
         _user.value = user
     }
 
-    fun updatePassword() {
+    fun updateCredential() {
         viewModelScope.launch(Dispatchers.IO) {
             credentialRepository.updateCredential(
                 uiState.value.toCredential(passwordId)
@@ -112,9 +111,9 @@ sealed interface EditPasswordUiState {
         val appName: String,
         val packageName: String,
         val password: String,
-        val mutableInstalledApps: List<InstalledApp>,
+        val installedApps: List<AppInfo>,
         val username: String = "",
-        val icon: Drawable? = null,
+        val icon: ImageBitmap? = null,
     ) : EditPasswordUiState
 
     data class Error(val errorMessage: String) : EditPasswordUiState
@@ -133,49 +132,3 @@ fun EditPasswordUiState.toCredential(
     ),
     userId = this.user.id
 )
-//
-//class EditCredentialViewModel(
-//    savedStateHandle: SavedStateHandle,
-//    private val userRepository: UserRepository,
-//    private val credentialRepository: CredentialRepository,
-//    private val getInstalledAppsUseCase: GetInstalledAppsUseCase,
-//) : ViewModel(), PasswordInput {
-//    private val passwordId: Int = savedStateHandle.get<Int>("id")!!
-//    private val userId: Int = savedStateHandle.get<Int>("userId")!!
-//
-//    override var installedApps = emptyList<InstalledApp>()
-//    override var uiState by mutableStateOf(AddPasswordUiState())
-//
-//    init {
-//        viewModelScope.launch(Dispatchers.IO) {
-//            installedApps = getInstalledAppsUseCase()
-//            uiState = credentialRepository.getCredentialStream(passwordId)
-//                .filterNotNull()
-//                .first()
-//                .toPasswordUiState()
-//                .copy(
-//                    user = userRepository.getUserStream(userId).filterNotNull().first(),
-//                    users = userRepository.getAllUsersStream().filterNotNull().first(),
-//                    installedApps = installedApps
-//                )
-//        }
-//    }
-//
-//    fun updatePassword() {
-//        viewModelScope.launch(Dispatchers.IO) {
-//            credentialRepository.updateCredential(
-//                uiState.toPassword(
-//                    passwordId,
-//                    uiState.user?.id ?: userId
-//                )
-//            )
-//        }
-//    }
-//}
-//
-//fun Credential.toPasswordUiState(): AddPasswordUiState = AddPasswordUiState(
-//    username = username,
-//    password = password,
-//    name = app.name,
-//    packageName = app.packageName,
-//)

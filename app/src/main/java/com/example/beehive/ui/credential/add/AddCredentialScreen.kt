@@ -25,6 +25,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.beehive.R
 import com.example.beehive.data.user.User
@@ -32,13 +33,13 @@ import com.example.beehive.ui.BeehiveViewModelProvider
 import com.example.beehive.ui.Dimensions.LargePadding
 import com.example.beehive.ui.Dimensions.MediumPadding
 import com.example.beehive.ui.Dimensions.SmallPadding
+import com.example.beehive.ui.common.AppTile
 import com.example.beehive.ui.common.BeehiveButton
 import com.example.beehive.ui.common.BeehiveTextButton
 import com.example.beehive.ui.common.BeehiveTextField
-import com.example.beehive.ui.common.PasswordTile
+import com.example.beehive.ui.credential.components.AppNameSearchDialog
 import com.example.beehive.ui.credential.components.ErrorText
 import com.example.beehive.ui.credential.components.LengthSlider
-import com.example.beehive.ui.credential.components.NameSearchDialog
 import com.example.beehive.ui.credential.components.OptionRow
 import com.example.beehive.ui.credential.components.PasswordDisplay
 import com.example.beehive.ui.credential.components.UserDropdownMenu
@@ -52,21 +53,21 @@ fun AddCredentialScreen(
     viewModel: AddCredentialViewModel = viewModel(factory = BeehiveViewModelProvider.Factory),
 ) {
     var showError by remember { mutableStateOf(false) }
-    val uiState = viewModel.uiState
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         AddCredentialContent(
             uiState = uiState,
             showError = showError,
-            onClearError = { showError = false },
+            clearError = { showError = false },
             onNavigateToAddUser = onNavigateToAddUser,
-            onNameChange = viewModel::updateName,
-            onUsernameChange = viewModel::updateUsername,
-            onPasswordChange = viewModel::updatePassword,
+            updateAppName = viewModel::updateAppName,
+            updateUsername = viewModel::updateUsername,
+            updatePassword = viewModel::updatePassword,
             onUserChange = viewModel::updateUser,
             onBack = onBack,
             onCreateClick = {
-                if (uiState.name.isBlank() || uiState.user == null)
+                if (uiState.appName.isBlank() || uiState.user == null)
                     showError = true
                 else {
                     viewModel.createCredential()
@@ -85,11 +86,11 @@ fun AddCredentialScreen(
 private fun AddCredentialContent(
     uiState: AddPasswordUiState,
     showError: Boolean,
-    onClearError: () -> Unit,
+    clearError: () -> Unit,
     onNavigateToAddUser: () -> Unit,
-    onNameChange: (String) -> Unit,
-    onUsernameChange: (String) -> Unit,
-    onPasswordChange: (String) -> Unit,
+    updateAppName: (String) -> Unit,
+    updateUsername: (String) -> Unit,
+    updatePassword: (String) -> Unit,
     onUserChange: (User) -> Unit,
     onBack: () -> Unit,
     onCreateClick: () -> Unit,
@@ -102,13 +103,17 @@ private fun AddCredentialContent(
             mapOf(*OptionType.entries.map { it to true }.toTypedArray())
         )
     }
+    var password by remember { mutableStateOf(uiState.password) }
+    var username by remember { mutableStateOf(uiState.username) }
+    var appName by remember { mutableStateOf(uiState.appName) }
 
     fun onOptionChange(optionType: OptionType) {
         val tempStates = checkboxStates.toMutableMap()
         tempStates[optionType] = !tempStates[optionType]!!
         checkboxStates = tempStates
 
-        onPasswordChange(generatePassword(sliderPosition, checkboxStates))
+        password = generatePassword(sliderPosition, checkboxStates)
+        updatePassword(password)
     }
 
     Column(
@@ -144,15 +149,15 @@ private fun AddCredentialContent(
             }
         }
         Spacer(modifier = Modifier.weight(1f))
-        PasswordTile(
-            name = uiState.name,
+        AppTile(
+            name = uiState.appName,
             icon = uiState.icon,
-            backgroundColor = if (showError && uiState.name.isBlank()) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.tertiaryContainer,
-            contentColor = if (showError && uiState.name.isBlank()) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onTertiaryContainer,
+            backgroundColor = if (showError && uiState.appName.isBlank()) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.tertiaryContainer,
+            contentColor = if (showError && uiState.appName.isBlank()) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onTertiaryContainer,
             onClick = { showDialog = true },
             modifier = Modifier.padding(horizontal = LargePadding)
         )
-        if (showError && uiState.name.isBlank())
+        if (showError && uiState.appName.isBlank())
             ErrorText(text = stringResource(R.string.name_error_message))
 
         Surface(
@@ -162,8 +167,12 @@ private fun AddCredentialContent(
                 .padding(horizontal = LargePadding)
         ) {
             BeehiveTextField(
-                value = uiState.username,
-                onValueChange = onUsernameChange,
+                value = username,
+                onValueChange = {
+                    username = it
+                    updateUsername(username)
+                    clearError()
+                },
                 labelColor = MaterialTheme.colorScheme.primary,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -183,12 +192,16 @@ private fun AddCredentialContent(
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(start = LargePadding, top = LargePadding)
                 )
-                PasswordDisplay(password = uiState.password, onPasswordChange = onPasswordChange)
+                PasswordDisplay(password = password, onPasswordChange = {
+                    password = it
+                    updatePassword(password)
+                })
                 LengthSlider(
                     length = sliderPosition,
                     onLengthChange = {
                         sliderPosition = it.toInt()
-                        onPasswordChange(generatePassword(sliderPosition, checkboxStates))
+                        password = generatePassword(sliderPosition, checkboxStates)
+                        updatePassword(password)
                     })
                 Column(
                     modifier = Modifier
@@ -244,17 +257,21 @@ private fun AddCredentialContent(
     }
 
     if (showDialog) {
-        NameSearchDialog(
-            name = uiState.name,
+        AppNameSearchDialog(
+            name = appName,
             openDialog = showDialog,
-            onNameChange = onNameChange,
-            appCardOnClick = { name ->
-                onNameChange(name)
+            onAppNameChange = {
+                appName = it
+                updateAppName(it)
+            },
+            appCardOnClick = {
+                appName = it
+                updateAppName(it)
                 showDialog = false
             },
-            disableError = onClearError,
+            disableError = clearError,
             closeDialogBox = { showDialog = false },
-            installedApps = uiState.mutableInstalledApps
+            installedApps = uiState.installedApps
         )
     }
 }

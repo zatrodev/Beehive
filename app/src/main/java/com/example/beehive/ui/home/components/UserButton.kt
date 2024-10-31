@@ -44,27 +44,25 @@ fun UserButton(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.padding(ExtraSmallPadding)
         ) {
-            if (user != null)
+            if (user != null) {
                 Icon(
                     imageVector = Icons.Filled.Person,
                     contentDescription = user.email,
                     tint = contentColor,
                     modifier = Modifier.size(UserIconSize)
                 )
-            else
-                Icon(
-                    painter = painterResource(R.drawable.ic_no_user_selected),
-                    contentDescription = "no user selected",
-                    tint = Color.White,
-                )
-
-            if (user != null)
                 Text(
                     text = user.email.split("@")[0],
                     color = MaterialTheme.colorScheme.onSurface,
                     style = MaterialTheme.typography.labelSmall,
                     textAlign = TextAlign.Center,
                     overflow = TextOverflow.Clip
+                )
+            } else
+                Icon(
+                    painter = painterResource(R.drawable.ic_no_user_selected),
+                    contentDescription = "no user selected",
+                    tint = Color.White,
                 )
         }
     }

@@ -12,7 +12,7 @@ class AddUserViewModel(
 ) : ViewModel() {
     fun onCreateUser(email: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            userRepository.insertUser(User(id = userRepository.getNextId() + 1, email = email))
+            userRepository.insertUser(User(id = userRepository.getNextId(), email = email))
         }
     }
 }
