@@ -4,11 +4,13 @@ import android.database.sqlite.SQLiteException
 import android.view.autofill.AutofillManager
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.beehive.data.app.AppRepository
 import com.example.beehive.data.credential.CredentialAndUser
 import com.example.beehive.data.credential.CredentialRepository
 import com.example.beehive.data.user.User
 import com.example.beehive.data.user.UserRepository
 import com.example.beehive.domain.GetCredentialsAndUserWithIconsSetUseCase
+import com.example.beehive.domain.GetInstalledAppsUseCase
 import com.example.beehive.settings.SettingsRepository
 import com.example.beehive.ui.DrawerItemsManager
 import com.example.beehive.ui.DrawerItemsManager.DELETED_INDEX
@@ -29,6 +31,8 @@ class HomeViewModel(
     private val getCredentialsAndUserWithIconsSetUseCase: GetCredentialsAndUserWithIconsSetUseCase,
     private val userRepository: UserRepository,
     private val settingsRepository: SettingsRepository,
+    private val appRepository: AppRepository,
+    private val getInstalledAppsUseCase: GetInstalledAppsUseCase,
     autofillManager: AutofillManager,
 ) : ViewModel() {
     private val _query = MutableStateFlow("")
@@ -43,27 +47,25 @@ class HomeViewModel(
         viewModelScope.launch(Dispatchers.IO) {
             combine(
                 getCredentialsAndUserWithIconsSetUseCase(),
+                credentialRepository.countTrashedCredentials(),
                 _query,
                 _isRefreshing,
-            ) { credentials, query, isRefreshing ->
+            ) { credentials, trashedCredentialsCount, query, isRefreshing ->
                 val firstLaunch = settingsRepository.getFirstLaunch()
 
-                if (firstLaunch)
+                if (firstLaunch) {
+                    val installedApps = getInstalledAppsUseCase()
+                    appRepository.insertAll(installedApps)
                     settingsRepository.updateFirstLaunch(false)
-
-                if (DrawerItemsManager.allItems[DELETED_INDEX].badgeCount == null) {
-                    DrawerItemsManager.setBadgeCount(
-                        DELETED_INDEX,
-                        credentialRepository.countTrashedCredentials().first()
-                    )
                 }
 
-                if (userRepository.getNextId() == 0) {
+                if (userRepository.getNextId() == 1) {
                     return@combine HomeScreenUiState.InputUser
                 }
 
                 HomeScreenUiState.Ready(
                     query = query,
+                    trashedCredentialsCount = trashedCredentialsCount,
                     credentials = credentials.filter(query),
                     isRefreshing = isRefreshing,
                     showAutofillDialog = firstLaunch && disabledAutoFill,
@@ -80,6 +82,11 @@ class HomeViewModel(
                     else -> HomeScreenUiState.Error(throwable.message ?: "Unknown error")
                 }
             }.collect {
+                it as HomeScreenUiState.Ready
+                DrawerItemsManager.setBadgeCount(
+                    DELETED_INDEX,
+                    it.trashedCredentialsCount ?: 0
+                )
                 _homeUiState.value = it
             }
         }

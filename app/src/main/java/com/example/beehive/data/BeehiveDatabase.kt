@@ -6,17 +6,24 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.example.beehive.auth.SecretKeyManager
+import com.example.beehive.data.app.AppDao
+import com.example.beehive.data.app.AppInfo
 import com.example.beehive.data.credential.Credential
 import com.example.beehive.data.credential.CredentialDao
 import com.example.beehive.data.user.User
 import com.example.beehive.data.user.UserDao
 import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
 
-@Database(entities = [Credential::class, User::class], version = 2, exportSchema = false)
-@TypeConverters(Converters::class)
+@Database(
+    entities = [Credential::class, User::class, AppInfo::class],
+    version = 1,
+    exportSchema = false
+)
+@TypeConverters(DateConverter::class, BitmapConverter::class)
 abstract class BeehiveDatabase : RoomDatabase() {
     abstract fun passwordDao(): CredentialDao
     abstract fun userDao(): UserDao
+    abstract fun appDao(): AppDao
 
     companion object {
         private const val DATABASE_NAME = "beehive_database.db"

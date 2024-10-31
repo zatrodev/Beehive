@@ -34,7 +34,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.beehive.domain.GetInstalledAppsUseCase.InstalledApp
+import com.example.beehive.data.app.AppInfo
 import com.example.beehive.ui.Dimensions.MediumPadding
 import com.example.beehive.ui.Dimensions.SmallPadding
 import com.example.beehive.ui.common.BeehiveTextButton
@@ -43,14 +43,14 @@ import com.example.beehive.ui.theme.BeehiveTheme
 @SuppressLint("RememberReturnType")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NameSearchDialog(
+fun AppNameSearchDialog(
     name: String,
     openDialog: Boolean,
-    onNameChange: (String) -> Unit,
+    onAppNameChange: (String) -> Unit,
     appCardOnClick: (String) -> Unit,
     disableError: () -> Unit,
     closeDialogBox: () -> Unit,
-    installedApps: List<InstalledApp>,
+    installedApps: List<AppInfo>,
 ) {
     if (openDialog) {
         val interactionSource = remember { MutableInteractionSource() }
@@ -65,7 +65,7 @@ fun NameSearchDialog(
                     BasicTextField(
                         value = name,
                         onValueChange = {
-                            onNameChange(it)
+                            onAppNameChange(it)
                             disableError()
                         },
                         cursorBrush = SolidColor(MaterialTheme.colorScheme.onSurface),
@@ -127,12 +127,12 @@ fun NameSearchDialog(
                                 fontWeight = FontWeight.Bold
                             )
                             LazyColumn {
-                                items(installedApps) { (app, _, icon) ->
+                                items(installedApps) { (_, name, icon) ->
                                     InstalledAppCard(
-                                        appName = app,
+                                        appName = name,
                                         appIcon = icon,
                                         onClick = {
-                                            appCardOnClick(app)
+                                            appCardOnClick(name)
                                             disableError()
                                         },
                                         modifier = Modifier
@@ -170,9 +170,9 @@ fun NameSearchDialog(
 @Composable
 fun PreviewNameSearchDialog() {
     BeehiveTheme {
-        NameSearchDialog(
+        AppNameSearchDialog(
             name = "",
-            onNameChange = {},
+            onAppNameChange = {},
             openDialog = true,
             appCardOnClick = { _ -> },
             closeDialogBox = {},

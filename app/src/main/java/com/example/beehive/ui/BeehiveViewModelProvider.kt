@@ -22,7 +22,7 @@ object BeehiveViewModelProvider {
             AddCredentialViewModel(
                 beehiveApplication().container.userRepository,
                 beehiveApplication().container.credentialRepository,
-                GetInstalledAppsUseCase(beehiveApplication().container.packageManager)
+                beehiveApplication().container.appRepository
             )
         }
 
@@ -31,8 +31,7 @@ object BeehiveViewModelProvider {
                 this.createSavedStateHandle(),
                 beehiveApplication().container.userRepository,
                 beehiveApplication().container.credentialRepository,
-                GetInstalledAppsUseCase(beehiveApplication().container.packageManager)
-
+                beehiveApplication().container.appRepository
             )
         }
 
@@ -41,10 +40,12 @@ object BeehiveViewModelProvider {
                 beehiveApplication().container.credentialRepository,
                 GetCredentialsAndUserWithIconsSetUseCase(
                     beehiveApplication().container.credentialRepository,
-                    GetInstalledAppsUseCase(beehiveApplication().packageManager)
+                    beehiveApplication().container.appRepository
                 ),
                 beehiveApplication().container.userRepository,
                 beehiveApplication().container.settingsRepository,
+                beehiveApplication().container.appRepository,
+                GetInstalledAppsUseCase(beehiveApplication().packageManager),
                 beehiveApplication().autofillManager
             )
         }
@@ -72,7 +73,7 @@ object BeehiveViewModelProvider {
             ChooseCredentialViewModel(
                 GetCredentialsAndUserWithIconsSetUseCase(
                     beehiveApplication().container.credentialRepository,
-                    GetInstalledAppsUseCase(beehiveApplication().packageManager)
+                    beehiveApplication().container.appRepository
                 )
             )
         }

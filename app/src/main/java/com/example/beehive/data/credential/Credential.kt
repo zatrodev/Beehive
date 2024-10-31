@@ -1,12 +1,11 @@
 package com.example.beehive.data.credential
 
-import android.graphics.drawable.Drawable
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
 import androidx.room.Relation
-import com.example.beehive.data.Searchable
 import com.example.beehive.data.user.User
 import java.util.Date
 
@@ -23,13 +22,9 @@ data class Credential(
 data class PasswordApp(
     val name: String,
     val packageName: String,
-) : Searchable {
+) {
     @Ignore
-    var icon: Drawable? = null
-
-    @get:Ignore
-    override val searchText: String
-        get() = name
+    var icon: ImageBitmap? = null
 }
 
 data class CredentialAndUser(

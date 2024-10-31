@@ -1,6 +1,6 @@
 package com.example.beehive.ui.common
 
-import android.graphics.drawable.Drawable
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -12,6 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import com.example.beehive.R
@@ -20,7 +21,7 @@ import com.example.beehive.ui.Dimensions.SmallPadding
 
 
 @Composable
-fun PasswordTile(
+fun AppTile(
     name: String,
     backgroundColor: Color,
     modifier: Modifier = Modifier,
@@ -44,7 +45,11 @@ fun PasswordTile(
             modifier = Modifier.padding(SmallPadding)
         ) {
             when (icon) {
-                is Drawable -> DrawableDrawer(icon = icon)
+                is ImageBitmap -> Image(
+                    bitmap = icon,
+                    contentDescription = "app",
+                    modifier = Modifier.size(InstalledAppIconSize)
+                )
 
                 is ImageVector -> Icon(
                     imageVector = icon,
@@ -63,7 +68,7 @@ fun PasswordTile(
             if (name.isNotBlank())
                 Text(
                     text = name,
-                    style = MaterialTheme.typography.labelMedium,
+                    style = MaterialTheme.typography.labelLarge,
                     color = contentColor,
                     modifier = Modifier.padding(horizontal = SmallPadding)
                 )
